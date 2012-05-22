@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import inspect
 from libcloud.utils.misc import get_driver
 
 from libcloud_rest.exception import NotSupportedProviderError
@@ -40,12 +41,26 @@ def get_driver_by_provider_name(drivers, providers, provider_name):
     provider_name = provider_name.upper()
     try:
         provider = getattr(providers, provider_name)
-        driver = get_driver(drivers, provider)
+        Driver = get_driver(drivers, provider)
     except AttributeError:
         raise NotSupportedProviderError(provider=provider_name)
+    return Driver
+
+
+def get_driver_instance(Driver, username, password):
+    """
+
+    @param Driver:
+    @param username:
+    @param password:
+    @return:
+    """
+    if inspect.isbuiltin(Driver.__new__):
+        arg_spec = inspect.getargspec(Driver.__init__)
+    else:
+        arg_spec = inspect.getargspec(Driver.__new__)
+    if 'secure' in arg_spec.args:
+        driver = Driver(username, password)
+    else:
+        driver = Driver(username)
     return driver
-
-
-
-
-
