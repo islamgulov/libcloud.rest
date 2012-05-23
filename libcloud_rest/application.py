@@ -1,29 +1,18 @@
 # -*- coding:utf-8 -*-
 from exceptions import BaseException
-from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException
 
-import libcloud_rest
-from controllers import ApplicationController
-from controllers import ComputeController
 from libcloud_rest.exception import LibcloudRestError
+from libcloud_rest.api.urls import urls
 
 
 class LibcloudRestApp(object):
     """
     FIXME
     """
-
-    def __init__(self):
-        prefix = '/%s' % libcloud_rest.__version__
-        self.url_map = Map([
-            Rule('/', endpoint=(ApplicationController, 'index'), methods=['GET']),
-            Rule(prefix + '/compute/providers', endpoint=(ComputeController, 'providers'), methods=['GET']),
-            Rule(prefix + '/compute/<string:provider>/nodes', endpoint=(ComputeController, 'list_nodes'),
-                methods=['GET'])
-        ])
+    url_map = urls
 
     def dispatch(self, controller, action_name, request, params):
         """

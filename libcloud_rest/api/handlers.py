@@ -1,15 +1,15 @@
 # -*- coding:utf-8 -*-
 from werkzeug.wrappers import Response
 import simplejson as json
-
-import libcloud_rest
 import libcloud
-from libcloud_rest.common import get_providers_names
-from libcloud_rest.common import get_driver_instance
-from libcloud_rest.common import get_driver_by_provider_name
+
+from libcloud_rest.utils import get_providers_names
+from libcloud_rest.utils import get_driver_instance
+from libcloud_rest.utils import get_driver_by_provider_name
+from libcloud_rest.api.versions import versions
 
 
-class BaseController(object):
+class BaseHandler(object):
     def json_response(self, obj):
         """
 
@@ -20,7 +20,7 @@ class BaseController(object):
         return Response(reply, mimetype='application/json')
 
 
-class ApplicationController(BaseController):
+class ApplicationHandler(BaseHandler):
     def index(self):
         """
 
@@ -30,12 +30,12 @@ class ApplicationController(BaseController):
             "General API information": "http://goo.gl/Ano2O",
             "GitHub page": "https://github.com/islamgulov/libcloud.rest",
             "libcloud_version": libcloud.__version__,
-            "api_version": libcloud_rest.__version__,
-            }
+            "api_version": versions[libcloud.__version__]
+        }
         return self.json_response(response)
 
 
-class BaseServiceController(BaseController):
+class BaseServiceHandler(BaseHandler):
     """
     To use this class inherit from it and define _DRIVERS and _Provider.
     """
@@ -52,7 +52,7 @@ class BaseServiceController(BaseController):
         return get_driver_instance(Driver, username, password)
 
 
-class ComputeController(BaseServiceController):
+class ComputeHandler(BaseServiceHandler):
     from libcloud.compute.providers import Provider as _Provider
     from libcloud.compute.providers import DRIVERS as _DRIVERS
 

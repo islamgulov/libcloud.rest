@@ -1,0 +1,15 @@
+<VirtualHost *:8000>
+    WSGIScriptAlias / /var/www/libcloud_rest/libcloud_rest.wsgi
+    WSGIDaemonProcess libcloud_rest display-name=libcloud_rest user=www-data processes=2 threads=15 python-path=/VIRTUAL_ENV/site-packages
+
+#    WSGIPythonPath /home/ilgiz/empty/env1/lib/python2.7/site-package
+    ErrorLog /var/log/apache2/error-libcloud_rest.log
+    CustomLog /var/log/apache2/access-libcloud_rest.log combined
+
+    <Directory /var/www/libcloud_rest>
+        WSGIProcessGroup libcloud_rest
+        WSGIApplicationGroup %{GLOBAL}
+        Order deny,allow
+        Allow from all
+    </Directory>
+</VirtualHost>
