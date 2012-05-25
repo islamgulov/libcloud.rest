@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import inspect
-from libcloud.utils.misc import get_driver
 
+from libcloud.utils.misc import get_driver
 from libcloud_rest.exception import NotSupportedProviderError
 
 __all__ = [
