@@ -17,7 +17,7 @@ setup(
         'wsgiref==0.1.2',
         ],
     url='https://github.com/islamgulov/libcloud.rest/',
-    license='',
+    license='Apache License (2.0)',
     author='ilgiz',
     author_email='',
     description='REST Interface for Libcloud',
