@@ -27,7 +27,7 @@ class ApplicationHandler(BaseHandler):
         @return:
         """
         response = {
-            "General API information": "http://goo.gl/Ano2O",
+            "Project strategic plan": "http://goo.gl/TIxkg",
             "GitHub page": "https://github.com/islamgulov/libcloud.rest",
             "libcloud_version": libcloud.__version__,
             "api_version": versions[libcloud.__version__]
@@ -46,10 +46,10 @@ class BaseServiceHandler(BaseHandler):
     def _get_driver_instance(self):
         provider_name = self.params.get("provider")
         headers = self.request.headers
-        username = headers.get("username")
-        password = headers.get("password")
+        username = headers.get("x-auth-user",None)
+        api_key = headers.get("x-api-key", None)
         Driver = get_driver_by_provider_name(self._DRIVERS, self._Provider, provider_name)
-        return get_driver_instance(Driver, username, password)
+        return get_driver_instance(Driver, username, api_key)
 
 
 class ComputeHandler(BaseServiceHandler):
