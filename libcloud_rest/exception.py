@@ -7,16 +7,13 @@ class LibcloudRestError(Exception):
     To use this class inherit from it and define attributes.
     """
 
-    http_code = 500
-    error_code = 'Unknown.'
-    error_message = "An unknown exception occurred.s "
+    code = 1000
+    name = 'UnknownError'
+    message = "An unknown error occurred."
+    http_status_code = 500
 
     def __init__(self, **kwargs):
-        try:
-            self.error_message = self.error_message % kwargs
-        except Exception:
-            # kwargs doesn't match a variable in the message
-            pass
+        self.message = self.message % kwargs
         super(LibcloudRestError, self).__init__()
 
     def to_json(self):
@@ -26,33 +23,35 @@ class LibcloudRestError(Exception):
         """
         data = {'error':
                         {
-                        'error_code': self.error_code,
-                        'error_message': self.error_message,
+                        'code': self.code,
+                        'name': self.name,
+                        'message': self.message,
                         }
         }
         return json.dumps(data)
 
 
     def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return ("<" + self.__class__.__name__ + " in "
-                + repr(self.http_code)
+        return ("<"
+                + str(self.code)
                 + " "
-                + self.error_code
+                + self.name
                 + " "
-                + self.error_message
+                + self.message
                 + ">")
 
 
-class NotSupportedProviderError(LibcloudRestError):
-    http_code = 400
-    error_code = "NotSupportedProvider"
-    error_message = "Provider %(provider)s does not supported."
+
+class ProviderNotSupportedError(LibcloudRestError):
+    code = 1001
+    code = "ProviderNotSupported"
+    message = "Provider %(provider)s does not supported."
+    http_status_code= 400
 
 
 class InternalError(LibcloudRestError):
-    http_code = 500
-    error_code = "InternalError"
-    error_message = "We encountered an internal error."
+    code = 1002
+    code = "InternalError"
+    message = "We encountered an internal error."
+    http_status_code = 500
+
