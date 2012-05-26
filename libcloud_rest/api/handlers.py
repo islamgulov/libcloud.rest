@@ -46,10 +46,20 @@ class BaseServiceHandler(BaseHandler):
     def _get_driver_instance(self):
         provider_name = self.params.get("provider")
         headers = self.request.headers
-        username = headers.get("x-auth-user",None)
+        username = headers.get("x-auth-user", None)
         api_key = headers.get("x-api-key", None)
         Driver = get_driver_by_provider_name(self._DRIVERS, self._Provider, provider_name)
         return get_driver_instance(Driver, username, api_key)
+
+    def providers(self):
+        """
+
+        @return:
+        """
+        response = {
+            'providers': get_providers_names(self._Provider),
+            }
+        return self.json_response(response)
 
 
 class ComputeHandler(BaseServiceHandler):
@@ -63,18 +73,6 @@ class ComputeHandler(BaseServiceHandler):
             ((attr_name, getattr(node, attr_name)) for attr_name in render_attrs)
         )
 
-    def providers(self):
-        """
-
-        @return:
-        """
-        from libcloud.compute.providers import Provider
-
-        response = {
-            'providers': get_providers_names(Provider),
-            }
-        return self.json_response(response)
-
     def list_nodes(self):
         """
 
@@ -86,4 +84,15 @@ class ComputeHandler(BaseServiceHandler):
         return self.json_response(resp)
 
 
+class StorageHandler(BaseServiceHandler):
+    from libcloud.storage.providers import Provider as _Provider
+    from libcloud.storage.providers import DRIVERS as _DRIVERS
 
+
+class LoabBalancerHandler(BaseServiceHandler):
+    from libcloud.loadbalancer.providers import Provider as _Provider
+    from libcloud.loadbalancer.providers import DRIVERS as _DRIVERS
+
+class DNSHandler(BaseServiceHandler):
+    from libcloud.dns.providers import Provider as _Provider
+    from libcloud.dns.providers import DRIVERS as _DRIVERS

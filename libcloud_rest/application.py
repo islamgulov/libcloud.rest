@@ -36,7 +36,8 @@ class LibcloudRestApp(object):
         except BaseException, error:
             print error #FIXME
             fake_error = LibcloudRestError() #FIXME
-            return Response(fake_error.to_json(), status=fake_error.http_code, mimetype='application/json')
+            return Response(fake_error.to_json(), status=fake_error.http_status_code,
+                mimetype='application/json') #FIXME: response error generator
 
     def __call__(self, environ, start_response):
         request = Request(environ)
