@@ -7,6 +7,7 @@ from werkzeug.exceptions import HTTPException
 
 from libcloud_rest.exception import LibcloudRestError
 from libcloud_rest.api.urls import urls
+from libcloud_rest.log import logger
 
 
 class LibcloudRestApp(object):
@@ -35,7 +36,7 @@ class LibcloudRestApp(object):
             return Response(error_json, status=error.http_code,
                 mimetype='application/json')
         except BaseException, error:
-            print error  # FIXME
+            logger.debug(str(error))
             fake_error = LibcloudRestError()  # FIXME
             return Response(
                 fake_error.to_json(), status=fake_error.http_status_code,
@@ -46,11 +47,11 @@ class LibcloudRestApp(object):
         urls = self.url_map.bind_to_environ(environ)
 
         try:
+            logger.debug('%s - %s %s' % (request.remote_addr, request.method, request.url))
             endpoint, params = urls.match()
 
             (controller_class, action) = endpoint
             controller = controller_class()
-
             response = self.dispatch(controller, action, request, params)
         except HTTPException, e:
             response = e
