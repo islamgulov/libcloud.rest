@@ -42,13 +42,13 @@ class BaseServiceHandler(BaseHandler):
     _DRIVERS = None
     _Providers = None
 
-
     def _get_driver_instance(self):
         provider_name = self.params.get('provider')
         headers = self.request.headers
         username = headers.get('x-auth-user', None)
         api_key = headers.get('x-api-key', None)
-        Driver = get_driver_by_provider_name(self._DRIVERS, self._Providers, provider_name)
+        Driver = get_driver_by_provider_name(
+            self._DRIVERS, self._Providers, provider_name)
         return get_driver_instance(Driver, username, api_key)
 
     def providers(self):
@@ -70,7 +70,7 @@ class ComputeHandler(BaseServiceHandler):
     def _node_render(node):
         render_attrs = ['uuid', 'name', 'state', 'public_ips']
         return dict(
-            ((attr_name, getattr(node, attr_name)) for attr_name in render_attrs)
+            ((a_name, getattr(node, a_name)) for a_name in render_attrs)
         )
 
     def list_nodes(self):

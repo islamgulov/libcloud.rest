@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import simplejson as json
 
+
 class LibcloudRestError(Exception):
     """
     Base class for other Libcloud REST exceptions.
@@ -30,17 +31,15 @@ class LibcloudRestError(Exception):
         }
         return json.dumps(data)
 
-
     def __str__(self):
         return '%d (%s) - %s' % (self.code, self.name, self.message)
-
 
 
 class ProviderNotSupportedError(LibcloudRestError):
     code = 1001
     code = 'ProviderNotSupported'
     message = 'Provider %(provider)s does not supported.'
-    http_status_code= 400
+    http_status_code = 400
 
 
 class InternalError(LibcloudRestError):
@@ -48,4 +47,3 @@ class InternalError(LibcloudRestError):
     code = 'InternalError'
     message = 'We encountered an internal error.'
     http_status_code = 500
-

@@ -6,5 +6,5 @@ __all__ = [
     ]
 
 versions = {
-    libcloud.__version__: '0.1', #FIXME: it's just for test
+    libcloud.__version__: '0.1',  # FIXME: it's just for test
 }

@@ -16,17 +16,20 @@ __all__ = [
 prefix = '/%s' % versions[libcloud.__version__]
 
 compute_urls = Submount(prefix + '/compute/', [
-    Rule('/providers', endpoint=(ComputeHandler, 'providers'), methods=['GET']),
+    Rule('/providers', endpoint=(ComputeHandler, 'providers'),
+         methods=['GET']),
     Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'list_nodes'),
-        methods=['GET']),
+         methods=['GET']),
     ])
 
 storage_urls = Submount(prefix + '/storage/', [
-    Rule('/providers', endpoint=(StorageHandler, 'providers'), methods=['GET']),
+    Rule('/providers', endpoint=(StorageHandler, 'providers'),
+        methods=['GET']),
     ])
 
 loadbalancer_urls = Submount(prefix + '/loadbalancer/', [
-    Rule('/providers', endpoint=(LoabBalancerHandler, 'providers'), methods=['GET']),
+    Rule('/providers', endpoint=(LoabBalancerHandler, 'providers'),
+         methods=['GET']),
     ])
 
 dns_urls = Submount(prefix + '/dns/', [
@@ -40,4 +43,3 @@ urls = Map([
     loadbalancer_urls,
     dns_urls,
     ])
-

@@ -19,7 +19,7 @@ def get_providers_names(providers):
 
     @return C{list} of C{str} objects
     """
-    return [prov for prov in providers.__dict__.keys() if not prov.startswith('_')]
+    return [pr for pr in providers.__dict__.keys() if not pr.startswith('_')]
 
 
 def get_driver_by_provider_name(drivers, providers, provider_name):
