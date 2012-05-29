@@ -9,7 +9,7 @@ class LibcloudRestError(Exception):
 
     code = 1000
     name = 'UnknownError'
-    message = "An unknown error occurred."
+    message = 'An unknown error occurred.'
     http_status_code = 500
 
     def __init__(self, **kwargs):
@@ -32,26 +32,20 @@ class LibcloudRestError(Exception):
 
 
     def __str__(self):
-        return ("<"
-                + str(self.code)
-                + " "
-                + self.name
-                + " "
-                + self.message
-                + ">")
+        return '%d (%s) - %s' % (self.code, self.name, self.message)
 
 
 
 class ProviderNotSupportedError(LibcloudRestError):
     code = 1001
-    code = "ProviderNotSupported"
-    message = "Provider %(provider)s does not supported."
+    code = 'ProviderNotSupported'
+    message = 'Provider %(provider)s does not supported.'
     http_status_code= 400
 
 
 class InternalError(LibcloudRestError):
     code = 1002
-    code = "InternalError"
-    message = "We encountered an internal error."
+    code = 'InternalError'
+    message = 'We encountered an internal error.'
     http_status_code = 500
 

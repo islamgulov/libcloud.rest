@@ -5,8 +5,8 @@ from libcloud.utils.misc import get_driver
 from libcloud_rest.exception import ProviderNotSupportedError
 
 __all__ = [
-    "get_providers_names",
-    "get_driver_by_provider_name",
+    'get_providers_names',
+    'get_driver_by_provider_name',
     ]
 
 
@@ -39,11 +39,10 @@ def get_driver_by_provider_name(drivers, providers, provider_name):
 
     """
     provider_name = provider_name.upper()
-    try:
-        provider = getattr(providers, provider_name)
-        Driver = get_driver(drivers, provider)
-    except AttributeError:
+    provider = getattr(providers, provider_name, None)
+    if provider is None:
         raise ProviderNotSupportedError(provider=provider_name)
+    Driver = get_driver(drivers, provider)
     return Driver
 
 

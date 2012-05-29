@@ -27,28 +27,28 @@ class ApplicationHandler(BaseHandler):
         @return:
         """
         response = {
-            "Project strategic plan": "http://goo.gl/TIxkg",
-            "GitHub page": "https://github.com/islamgulov/libcloud.rest",
-            "libcloud_version": libcloud.__version__,
-            "api_version": versions[libcloud.__version__]
+            'Project strategic plan': 'http://goo.gl/TIxkg',
+            'GitHub page': 'https://github.com/islamgulov/libcloud.rest',
+            'libcloud_version': libcloud.__version__,
+            'api_version': versions[libcloud.__version__]
         }
         return self.json_response(response)
 
 
 class BaseServiceHandler(BaseHandler):
     """
-    To use this class inherit from it and define _DRIVERS and _Provider.
+    To use this class inherit from it and define _DRIVERS and _Providers.
     """
     _DRIVERS = None
-    _Provider = None
+    _Providers = None
 
 
     def _get_driver_instance(self):
-        provider_name = self.params.get("provider")
+        provider_name = self.params.get('provider')
         headers = self.request.headers
-        username = headers.get("x-auth-user", None)
-        api_key = headers.get("x-api-key", None)
-        Driver = get_driver_by_provider_name(self._DRIVERS, self._Provider, provider_name)
+        username = headers.get('x-auth-user', None)
+        api_key = headers.get('x-api-key', None)
+        Driver = get_driver_by_provider_name(self._DRIVERS, self._Providers, provider_name)
         return get_driver_instance(Driver, username, api_key)
 
     def providers(self):
@@ -57,13 +57,13 @@ class BaseServiceHandler(BaseHandler):
         @return:
         """
         response = {
-            'providers': get_providers_names(self._Provider),
+            'providers': get_providers_names(self._Providers),
             }
         return self.json_response(response)
 
 
 class ComputeHandler(BaseServiceHandler):
-    from libcloud.compute.providers import Provider as _Provider
+    from libcloud.compute.providers import Provider as _Providers
     from libcloud.compute.providers import DRIVERS as _DRIVERS
 
     @staticmethod
@@ -85,14 +85,15 @@ class ComputeHandler(BaseServiceHandler):
 
 
 class StorageHandler(BaseServiceHandler):
-    from libcloud.storage.providers import Provider as _Provider
+    from libcloud.storage.providers import Provider as _Providers
     from libcloud.storage.providers import DRIVERS as _DRIVERS
 
 
 class LoabBalancerHandler(BaseServiceHandler):
-    from libcloud.loadbalancer.providers import Provider as _Provider
+    from libcloud.loadbalancer.providers import Provider as _Providers
     from libcloud.loadbalancer.providers import DRIVERS as _DRIVERS
 
+
 class DNSHandler(BaseServiceHandler):
-    from libcloud.dns.providers import Provider as _Provider
+    from libcloud.dns.providers import Provider as _Providers
     from libcloud.dns.providers import DRIVERS as _DRIVERS
