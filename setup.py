@@ -5,6 +5,79 @@ import sys
 from setuptools import setup
 from setuptools import Command
 from subprocess import call
+from unittest import TextTestRunner, TestLoader
+from glob import glob
+from os.path import splitext, basename, join as pjoin
+
+
+LIBCLOUD_TESTS_DIR = "/home/ilgiz/dev/libcloud/test"
+TEST_PATHS = ['tests', 'tests/compute',]
+
+class TestCommand(Command):
+    description = "run test suite"
+    user_options = []
+
+    def initialize_options(self):
+        THIS_DIR = os.path.abspath(os.path.split(__file__)[0])
+        sys.path.insert(0, THIS_DIR)
+        for test_path in TEST_PATHS:
+            sys.path.insert(0, pjoin(THIS_DIR, test_path))
+        self._dir = os.getcwd()
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        try:
+            import mock
+
+            mock
+        except ImportError:
+            print('Missing "mock" library. mock is library is needed '
+                  'to run the tests. You can install it using pip: '
+                  'pip install mock')
+            sys.exit(1)
+
+        status = self._run_tests()
+        sys.exit(status)
+
+    def _run_tests(self):
+        pre_python26 = (sys.version_info[0] == 2
+                        and sys.version_info[1] < 6)
+        if pre_python26:
+            missing = []
+            # test for dependencies
+            try:
+                import simplejson
+                simplejson              # silence pyflakes
+            except ImportError:
+                missing.append("simplejson")
+
+            try:
+                import ssl
+                ssl                     # silence pyflakes
+            except ImportError:
+                missing.append("ssl")
+
+            if missing:
+                print("Missing dependencies: " + ", ".join(missing))
+                sys.exit(1)
+
+        testfiles = []
+        for test_path in TEST_PATHS:
+            for t in glob(pjoin(self._dir, test_path, 'test_*.py')):
+                print t
+                testfiles.append('.'.join(
+                    [test_path.replace('/', '.'), splitext(basename(t))[0]]))
+
+        tests = TestLoader().loadTestsFromNames(testfiles)
+
+        #        for test_module in DOC_TEST_MODULES:
+        #            tests.addTests(doctest.DocTestSuite(test_module))
+
+        t = TextTestRunner(verbosity=2)
+        res = t.run(tests)
+        return not res.wasSuccessful()
 
 
 class Pep8Command(Command):
@@ -23,12 +96,12 @@ class Pep8Command(Command):
             pep8
         except ImportError:
             print ('Missing "pep8" library. You can install it using pip: '
-                  'pip install pep8')
+                   'pip install pep8')
             sys.exit(1)
 
         cwd = os.getcwd()
         retcode = call(('pep8 %s/libcloud_rest/ %s/tests/' %
-                (cwd, cwd)).split(' '))
+                        (cwd, cwd)).split(' '))
         sys.exit(retcode)
 
 setup(
@@ -43,7 +116,6 @@ setup(
         'Werkzeug==0.8.3',
         'apache-libcloud>=0.9.1',
         'argparse==1.2.1',
-        'simplejson==2.5.2',
         'wsgiref==0.1.2',
         ],
     url='https://github.com/islamgulov/libcloud.rest/',
@@ -57,5 +129,6 @@ setup(
             ''',
     cmdclass={
         'pep8': Pep8Command,
+        'test': TestCommand,
     },
 )

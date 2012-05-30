@@ -1,6 +1,10 @@
 # -*- coding:utf-8 -*-
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from werkzeug.wrappers import Response
-import simplejson as json
 import libcloud
 
 from libcloud_rest.utils import get_providers_names

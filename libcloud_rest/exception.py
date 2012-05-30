@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 
 class LibcloudRestError(Exception):

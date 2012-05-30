@@ -47,7 +47,8 @@ class LibcloudRestApp(object):
         urls = self.url_map.bind_to_environ(environ)
 
         try:
-            logger.debug('%s - %s %s' % (request.remote_addr, request.method, request.url))
+            logger.debug('%s - %s %s' %
+                         (request.remote_addr, request.method, request.url))
             endpoint, params = urls.match()
 
             (controller_class, action) = endpoint
