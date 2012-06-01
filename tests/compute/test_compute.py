@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import sys
-import unittest
+import unittest2
 
 try:
     import simplejson as json
@@ -16,8 +16,7 @@ from libcloud_rest.application import LibcloudRestApp
 from tests.file_fixtures import FileFixtures
 
 
-
-class ComputeTest(unittest.TestCase):
+class ComputeTest(unittest2.TestCase):
     def setUp(self):
         self.client = Client(LibcloudRestApp(), BaseResponse)
         self.fixtures = FileFixtures('compute')
@@ -27,8 +26,8 @@ class ComputeTest(unittest.TestCase):
         resp = self.client.get(url)
         data = json.loads(self.fixtures.load('providers.json'))
         resp_data = json.loads(resp.data)
-        self.assertEqual(data, resp_data)
+        self.assertItemsEqual(data['providers'], resp_data['providers'])
         self.assertEqual(resp.status, '200 OK')
 
 if __name__ == '__main__':
-    sys.exit(unittest.main())
+    sys.exit(unittest2.main())

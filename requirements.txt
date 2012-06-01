@@ -1,5 +1,4 @@
 pep8
-Werkzeug==0.8.3
+Werkzeug>=0.8.3
 apache-libcloud>=0.9.1
-argparse==1.2.1
 wsgiref==0.1.2

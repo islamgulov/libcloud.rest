@@ -13,13 +13,14 @@ FIXTURES_ROOT = {
     }
 
 FIXTURES_PREFIX_DIR = {
-    '0.10.1': 'v0_10', # libcloud version:folder
+    '0.10.1': 'v0_10',  # libcloud version:folder
+    '0.10.0': 'v0_10'
 }
+
 
 class FileFixtures(object):
     def __init__(self, fixtures_type, sub_dir=''):
         script_dir = os.path.abspath(os.path.split(__file__)[0])
-        print script_dir,
         self.root = os.path.join(
             script_dir,
             FIXTURES_ROOT[fixtures_type],
@@ -35,4 +36,3 @@ class FileFixtures(object):
                 return unicode(content)
         else:
             raise IOError(path)
-

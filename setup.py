@@ -9,9 +9,8 @@ from unittest import TextTestRunner, TestLoader
 from glob import glob
 from os.path import splitext, basename, join as pjoin
 
+TEST_PATHS = ['tests', 'tests/compute', ]
 
-LIBCLOUD_TESTS_DIR = "/home/ilgiz/dev/libcloud/test"
-TEST_PATHS = ['tests', 'tests/compute',]
 
 class TestCommand(Command):
     description = "run test suite"
@@ -93,6 +92,7 @@ class Pep8Command(Command):
     def run(self):
         try:
             import pep8
+
             pep8
         except ImportError:
             print ('Missing "pep8" library. You can install it using pip: '
@@ -130,5 +130,5 @@ setup(
     cmdclass={
         'pep8': Pep8Command,
         'test': TestCommand,
-    },
+        },
 )
