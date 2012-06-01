@@ -11,6 +11,14 @@ from os.path import splitext, basename, join as pjoin
 
 TEST_PATHS = ['tests', 'tests/compute', ]
 
+SUPPORTED_VERSIONS = ['2.5', '2.6', '2.7', 'PyPy', ]
+
+if sys.version_info <= (2, 4):
+    version = '.'.join([str(x) for x in sys.version_info[:3]])
+    print('Version ' + version + ' is not supported. Supported versions are ' +
+          ', '.join(SUPPORTED_VERSIONS))
+    sys.exit(1)
+
 
 class TestCommand(Command):
     description = "run test suite"
