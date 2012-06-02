@@ -12,6 +12,8 @@ from libcloud_rest.utils import get_driver_instance
 from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
 
+TEST_QUERY_STRING = 'test=1'
+
 
 class BaseHandler(object):
     def json_response(self, obj):
@@ -20,7 +22,7 @@ class BaseHandler(object):
         @param obj:
         @return:
         """
-        reply = json.dumps(obj)
+        reply = json.dumps(obj, sort_keys=True)
         return Response(reply, mimetype='application/json')
 
 
@@ -53,7 +55,10 @@ class BaseServiceHandler(BaseHandler):
         api_key = headers.get('x-api-key', None)
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
-        return get_driver_instance(Driver, username, api_key)
+        driver_instance =  get_driver_instance(Driver, username, api_key)
+        if self.request.query_string == TEST_QUERY_STRING:
+            pass
+        return driver_instance
 
     def providers(self):
         """

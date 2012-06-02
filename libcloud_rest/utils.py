@@ -58,7 +58,7 @@ def get_driver_instance(Driver, username, password):
         arg_spec = inspect.getargspec(Driver.__init__)
     else:
         arg_spec = inspect.getargspec(Driver.__new__)
-    if 'secure' in arg_spec.args:
+    if 'secure' in arg_spec[0]:
         driver = Driver(username, password)
     else:
         driver = Driver(username)
