@@ -55,7 +55,7 @@ class BaseServiceHandler(BaseHandler):
         api_key = headers.get('x-api-key', None)
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
-        driver_instance =  get_driver_instance(Driver, username, api_key)
+        driver_instance = get_driver_instance(Driver, username, api_key)
         if self.request.query_string == TEST_QUERY_STRING:
             pass
         return driver_instance
