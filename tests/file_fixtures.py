@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from __future__ import with_statement
+
 import os
 
 import libcloud
@@ -9,7 +11,6 @@ FIXTURES_ROOT = {
     'storage': 'storage/fixtures',
     'loadbalancer': 'loadbalancer/fixtures',
     'dns': 'dns/fixtures',
-    'openstack': 'compute/fixtures/openstack',
     }
 
 FIXTURES_PREFIX_DIR = {
