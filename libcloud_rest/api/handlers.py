@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+import copy
+
 try:
     import simplejson as json
 except ImportError:
@@ -55,9 +57,15 @@ class BaseServiceHandler(BaseHandler):
         api_data = parse_request_headers(headers)
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
-        driver_instance = get_driver_instance(Driver, **api_data)
         if self.request.query_string == TEST_QUERY_STRING:
-            pass
+            from tests.utils import get_driver_mock_http
+            Driver_copy = copy.deepcopy(Driver)
+            Driver_copy.connectionCls.conn_classes = get_driver_mock_http(
+                                                              Driver.__name__)
+            driver_instance = get_driver_instance(Driver_copy, **api_data)
+            driver_instance.list_nodes()
+        else:
+            driver_instance = get_driver_instance(Driver, **api_data)
         return driver_instance
 
     def providers(self):
@@ -78,7 +86,7 @@ class ComputeHandler(BaseServiceHandler):
 
     @staticmethod
     def _node_render(node):
-        render_attrs = ['uuid', 'name', 'state', 'public_ips']
+        render_attrs = ['id', 'name', 'state', 'public_ips']
         return dict(
             ((a_name, getattr(node, a_name)) for a_name in render_attrs)
         )
