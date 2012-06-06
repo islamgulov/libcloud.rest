@@ -40,13 +40,20 @@ class LibcloudRestError(Exception):
 
 class ProviderNotSupportedError(LibcloudRestError):
     code = 1001
-    code = 'ProviderNotSupported'
+    name = 'ProviderNotSupported'
     message = 'Provider %(provider)s does not supported.'
     http_status_code = 400
 
 
 class InternalError(LibcloudRestError):
     code = 1002
-    code = 'InternalError'
+    name = 'InternalError'
     message = 'We encountered an internal error.'
     http_status_code = 500
+
+
+class MissingHeaderError(LibcloudRestError):
+    code = 1003
+    name = 'MissingHeader'
+    message = 'Your request was missing a required header: %(header)s.'
+    http_status_code = 400

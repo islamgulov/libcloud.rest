@@ -33,8 +33,7 @@ class LibcloudRestApp(object):
             retval = action()
             return retval
         except LibcloudRestError, error:
-            error_json = error.to_json()
-            return Response(error_json, status=error.http_code,
+            return Response(error.to_json(), status=error.http_status_code,
                 mimetype='application/json')
         except BaseException, error:
             logger.debug(traceback.format_exc())

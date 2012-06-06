@@ -11,6 +11,7 @@ from libcloud_rest.utils import get_providers_names
 from libcloud_rest.utils import get_driver_instance
 from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
+from libcloud_rest.api.parser import parse_request_headers
 
 TEST_QUERY_STRING = 'test=1'
 
@@ -51,11 +52,10 @@ class BaseServiceHandler(BaseHandler):
     def _get_driver_instance(self):
         provider_name = self.params.get('provider')
         headers = self.request.headers
-        username = headers.get('x-auth-user', None)
-        api_key = headers.get('x-api-key', None)
+        api_data = parse_request_headers(headers)
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
-        driver_instance = get_driver_instance(Driver, username, api_key)
+        driver_instance = get_driver_instance(Driver, **api_data)
         if self.request.query_string == TEST_QUERY_STRING:
             pass
         return driver_instance
@@ -71,6 +71,7 @@ class BaseServiceHandler(BaseHandler):
         return self.json_response(response)
 
 
+#noinspection PyUnresolvedReferences
 class ComputeHandler(BaseServiceHandler):
     from libcloud.compute.providers import Provider as _Providers
     from libcloud.compute.providers import DRIVERS as _DRIVERS
@@ -93,16 +94,19 @@ class ComputeHandler(BaseServiceHandler):
         return self.json_response(resp)
 
 
+#noinspection PyUnresolvedReferences
 class StorageHandler(BaseServiceHandler):
     from libcloud.storage.providers import Provider as _Providers
     from libcloud.storage.providers import DRIVERS as _DRIVERS
 
 
+#noinspection PyUnresolvedReferences
 class LoabBalancerHandler(BaseServiceHandler):
     from libcloud.loadbalancer.providers import Provider as _Providers
     from libcloud.loadbalancer.providers import DRIVERS as _DRIVERS
 
 
+#noinspection PyUnresolvedReferences
 class DNSHandler(BaseServiceHandler):
     from libcloud.dns.providers import Provider as _Providers
     from libcloud.dns.providers import DRIVERS as _DRIVERS

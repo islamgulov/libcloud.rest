@@ -3,6 +3,8 @@ import inspect
 
 from libcloud.utils.misc import get_driver
 from libcloud_rest.exception import ProviderNotSupportedError
+from libcloud_rest.api.parser import get_method_requirements
+from libcloud_rest.api.validators import validate_header_arguments
 
 __all__ = [
     'get_providers_names',
@@ -46,20 +48,18 @@ def get_driver_by_provider_name(drivers, providers, provider_name):
     return Driver
 
 
-def get_driver_instance(Driver, username, password):
+def get_driver_instance(Driver, **kwargs):
     """
 
     @param Driver:
-    @param username:
-    @param password:
+    @param kwargs:
     @return:
     """
     if inspect.isbuiltin(Driver.__new__):
-        arg_spec = inspect.getargspec(Driver.__init__)
+        required_args = get_method_requirements(Driver.__init__)
     else:
-        arg_spec = inspect.getargspec(Driver.__new__)
-    if 'secure' in arg_spec[0]:
-        driver = Driver(username, password)
-    else:
-        driver = Driver(username)
+        required_args = get_method_requirements(Driver.__new__)
+    #FIXME:validate for extra args
+    validate_header_arguments(required_args, kwargs)
+    driver = Driver(**kwargs)
     return driver

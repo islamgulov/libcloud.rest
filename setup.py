@@ -73,7 +73,6 @@ class TestCommand(Command):
         testfiles = []
         for test_path in TEST_PATHS:
             for t in glob(pjoin(self._dir, test_path, 'test_*.py')):
-                print t
                 testfiles.append('.'.join(
                     [test_path.replace('/', '.'), splitext(basename(t))[0]]))
 
