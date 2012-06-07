@@ -63,7 +63,6 @@ class BaseServiceHandler(BaseHandler):
             Driver_copy.connectionCls.conn_classes = get_driver_mock_http(
                                                               Driver.__name__)
             driver_instance = get_driver_instance(Driver_copy, **api_data)
-            driver_instance.list_nodes()
         else:
             driver_instance = get_driver_instance(Driver, **api_data)
         return driver_instance

@@ -5,8 +5,9 @@ import inspect
 XHEADERS_TO_ARGS_DICT = {
     'x-auth-user': 'key',
     'x-api-key': 'secret',
-    'x-api-path': 'path',
-    'x-api-port': 'port',
+    'x-provider-path': 'path',
+    'x-provider-port': 'port',
+    'x-provider-host': 'host',
     'x-dummy-creds': 'creds',  # FIXME: for tests only
 }
 
