@@ -2,7 +2,7 @@
 import inspect
 
 from libcloud.utils.misc import get_driver
-from libcloud_rest.exception import ProviderNotSupportedError
+from libcloud_rest.errors import ProviderNotSupportedError
 from libcloud_rest.api.parser import get_method_requirements
 from libcloud_rest.api.validators import validate_header_arguments
 
