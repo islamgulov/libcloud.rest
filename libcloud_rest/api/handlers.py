@@ -60,8 +60,10 @@ class BaseServiceHandler(BaseHandler):
         if self.request.query_string == TEST_QUERY_STRING:
             from tests.utils import get_driver_mock_http
             Driver_copy = copy.deepcopy(Driver)
+#            print Driver.__init__.__doc__, 'init doc'
             Driver_copy.connectionCls.conn_classes = get_driver_mock_http(
                                                               Driver.__name__)
+#            print Driver_copy.__init__.__doc__, 'copy init doc'
             driver_instance = get_driver_instance(Driver_copy, **api_data)
         else:
             driver_instance = get_driver_instance(Driver, **api_data)

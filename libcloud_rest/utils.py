@@ -55,9 +55,9 @@ def get_driver_instance(Driver, **kwargs):
     @param kwargs:
     @return:
     """
-    if inspect.isbuiltin(Driver.__new__):
+    try:
         required_args = get_method_requirements(Driver.__init__)
-    else:
+    except NotImplementedError:
         required_args = get_method_requirements(Driver.__new__)
     #FIXME:validate for extra args
     validate_header_arguments(required_args, kwargs)
