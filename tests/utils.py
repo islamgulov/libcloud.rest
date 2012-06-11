@@ -17,6 +17,8 @@ def get_driver_mock_http(driver_name):
                 _mod = __import__(mod_name, globals(), locals(), [conn_name])
                 result.append(getattr(_mod, conn_name))
         return result
+    else:
+        raise NotImplementedError
 
 
 COMPUTE_MOCK_HTTP = {

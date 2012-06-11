@@ -20,6 +20,10 @@ compute_urls = Submount(prefix + '/compute/', [
          methods=['GET']),
     Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'list_nodes'),
          methods=['GET']),
+    Rule('/<string:provider>/sizes', endpoint=(ComputeHandler, 'list_sizes'),
+         methods=['GET']),
+    Rule('/<string:provider>/images', endpoint=(ComputeHandler, 'list_images'),
+         methods=['GET']),
     ])
 
 storage_urls = Submount(prefix + '/storage/', [

@@ -6,7 +6,7 @@ from libcloud_rest.api import parser
 
 class TestParser(unittest2.TestCase):
 
-    def test_get_method_parser(self):
+    def test_get_method_requirements(self):
         #valid input
         def t3():
             """

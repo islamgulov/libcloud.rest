@@ -31,6 +31,27 @@ class GoGridTests(unittest2.TestCase):
         self.assertEqual(resp.status, '200 OK')
         self.assertEqual(resp_data, test_data)
 
+    def test_list_sizes(self):
+        url = rest_versions[libcloud.__version__] +\
+              '/compute/gogrid/sizes?test=1'
+        headers = {'x-auth-user': 'a', 'x-api-key': 'b'}
+        resp = self.client.get(url, headers=headers)
+        resp_data = json.loads(resp.data)
+        test_data = json.loads(self.fixtures.load('list_sizes.json'))
+        self.assertEqual(resp.status, '200 OK')
+        self.assertItemsEqual(resp_data, test_data)
+
+    def test_list_images(self):
+        url = rest_versions[libcloud.__version__] +\
+              '/compute/gogrid/images?test=1'
+        headers = {'x-auth-user': 'a', 'x-api-key': 'b'}
+        resp = self.client.get(url, headers=headers)
+        resp_data = json.loads(resp.data)
+        test_data = json.loads(self.fixtures.load('list_images.json'))
+        self.assertEqual(resp.status, '200 OK')
+        self.assertItemsEqual(resp_data, test_data)
+
+
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())

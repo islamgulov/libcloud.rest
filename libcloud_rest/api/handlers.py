@@ -59,11 +59,10 @@ class BaseServiceHandler(BaseHandler):
             self._DRIVERS, self._Providers, provider_name)
         if self.request.query_string == TEST_QUERY_STRING:
             from tests.utils import get_driver_mock_http
+
             Driver_copy = copy.deepcopy(Driver)
-#            print Driver.__init__.__doc__, 'init doc'
             Driver_copy.connectionCls.conn_classes = get_driver_mock_http(
-                                                              Driver.__name__)
-#            print Driver_copy.__init__.__doc__, 'copy init doc'
+                Driver.__name__)
             driver_instance = get_driver_instance(Driver_copy, **api_data)
         else:
             driver_instance = get_driver_instance(Driver, **api_data)
@@ -86,10 +85,9 @@ class ComputeHandler(BaseServiceHandler):
     from libcloud.compute.providers import DRIVERS as _DRIVERS
 
     @staticmethod
-    def _node_render(node):
-        render_attrs = ['id', 'name', 'state', 'public_ips']
+    def _render(obj, render_attrs):
         return dict(
-            ((a_name, getattr(node, a_name)) for a_name in render_attrs)
+            ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
         )
 
     def list_nodes(self):
@@ -99,7 +97,32 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         nodes = driver.list_nodes()
-        resp = [self._node_render(node) for node in nodes]
+        render_attrs = ['id', 'name', 'state', 'public_ips']
+        resp = [self._render(node, render_attrs) for node in nodes]
+        return self.json_response(resp)
+
+    def list_sizes(self):
+        """
+
+        @return:
+        @rtype:
+        """
+        driver = self._get_driver_instance()
+        sizes = driver.list_sizes()
+        render_attrs = ['id', 'name', 'ram', 'bandwidth', 'price']
+        resp = [self._render(size, render_attrs) for size in sizes]
+        return self.json_response(resp)
+
+    def list_images(self):
+        """
+
+        @return:
+        @rtype:
+        """
+        driver = self._get_driver_instance()
+        images = driver.list_images()
+        render_attrs = ['id', 'name']
+        resp = [self._render(image, render_attrs) for image in images]
         return self.json_response(resp)
 
 
