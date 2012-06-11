@@ -27,4 +27,3 @@ def validate_integer(value):
         int(value)
     except (ValueError, TypeError):
         raise ValidationError('')
-

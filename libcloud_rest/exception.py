@@ -63,4 +63,3 @@ class ValidationError(LibcloudRestError):
     code = 1004
     name = 'Validation Error'
     message = 'An error while validating data.'
-

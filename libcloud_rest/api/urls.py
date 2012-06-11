@@ -24,11 +24,14 @@ compute_urls = Submount(prefix + '/compute/', [
          methods=['GET']),
     Rule('/<string:provider>/images', endpoint=(ComputeHandler, 'list_images'),
          methods=['GET']),
+    Rule('/<string:provider>/locations', endpoint=(ComputeHandler,
+                                                   'list_locations'),
+         methods=['GET']),
     ])
 
 storage_urls = Submount(prefix + '/storage/', [
     Rule('/providers', endpoint=(StorageHandler, 'providers'),
-        methods=['GET']),
+         methods=['GET']),
     ])
 
 loadbalancer_urls = Submount(prefix + '/loadbalancer/', [

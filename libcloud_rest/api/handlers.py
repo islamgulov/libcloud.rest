@@ -125,6 +125,18 @@ class ComputeHandler(BaseServiceHandler):
         resp = [self._render(image, render_attrs) for image in images]
         return self.json_response(resp)
 
+    def list_locations(self):
+        """
+
+        @return:
+        @rtype:
+        """
+        driver = self._get_driver_instance()
+        images = driver.list_locations()
+        render_attrs = ['id', 'name', 'country']
+        resp = [self._render(image, render_attrs) for image in images]
+        return self.json_response(resp)
+
 
 #noinspection PyUnresolvedReferences
 class StorageHandler(BaseServiceHandler):
