@@ -154,29 +154,24 @@ class ComputeHandler(BaseServiceHandler):
 
     def create_node(self):
         node_validator = valid.DictValidator({
-            'node':
-                valid.DictValidator({
-                    'name': valid.StringValidator(),
-                    'size': valid.IntegerValidator(),
-                    'image': valid.IntegerValidator(),
-                    'location': valid.IntegerValidator(required=False)
-                })
+            'name': valid.StringValidator(),
+            'size_id': valid.IntegerValidator(),
+            'image_id': valid.IntegerValidator(),
+            'location_id': valid.IntegerValidator(required=False)
         })
         driver = self._get_driver_instance()
         try:
-            raw_data = json.loads(self.request.data)
+            node_data = json.loads(self.request.data)
         except ValueError, e:
-            print e
             raise LibcloudRestError()  # FIXME
         try:
-            node_validator(raw_data)
+            node_validator(node_data)
         except ValidationError:
             raise LibcloudRestError()  # FIXME
-        node_attrs = raw_data['node']
-        node_name = node_attrs['name']
-        node_size = compute_base.NodeSize(node_attrs['size'],
+        node_name = node_data['name']
+        node_size = compute_base.NodeSize(node_data['size_id'],
                                           None, None, None, None, None, None)
-        node_image = compute_base.NodeImage(node_attrs['image'], None, None)
+        node_image = compute_base.NodeImage(node_data['image_id'], None, None)
         node = driver.create_node(name=node_name,
                                   image=node_image, size=node_size)
         return self.json_response(self._render(node))

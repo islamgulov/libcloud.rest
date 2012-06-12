@@ -1,7 +1,5 @@
-{"node":
-    {
-        "name": "test1",
-        "size" : 0,
-        "image": 1
-    }
+{
+    "name": "test1",
+    "size_id" : 0,
+    "image_id": 1
 }

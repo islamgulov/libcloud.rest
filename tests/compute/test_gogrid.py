@@ -64,7 +64,7 @@ class GoGridTests(unittest2.TestCase):
                                 data=json.dumps(test_request_json))
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status, '200 OK')
-        self.assertEqual(resp_data['name'], test_request_json['node']['name'])
+        self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
 
 if __name__ == '__main__':
