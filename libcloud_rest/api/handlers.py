@@ -168,12 +168,17 @@ class ComputeHandler(BaseServiceHandler):
             node_validator(node_data)
         except ValidationError:
             raise LibcloudRestError()  # FIXME
-        node_name = node_data['name']
-        node_size = compute_base.NodeSize(node_data['size_id'],
-                                          None, None, None, None, None, None)
-        node_image = compute_base.NodeImage(node_data['image_id'], None, None)
-        node = driver.create_node(name=node_name,
-                                  image=node_image, size=node_size)
+        create_node_kwargs = {}
+        create_node_kwargs['name'] = node_data['name']
+        create_node_kwargs['size'] = compute_base.NodeSize(
+            node_data['size_id'], None, None, None, None, None, None)
+        create_node_kwargs['image'] = compute_base.NodeImage(
+            node_data['image_id'], None, None)
+        localtion_id = node_data.get('localtion_id', None)
+        if localtion_id is not None:
+            create_node_kwargs['location'] = compute_base.NodeLocation(
+                node_data['location_id'], None, None, None)
+        node = driver.create_node(**create_node_kwargs)
         return self.json_response(self._render(node))
 
 
