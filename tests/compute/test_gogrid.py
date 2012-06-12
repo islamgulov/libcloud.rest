@@ -10,6 +10,7 @@ except ImportError:
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
+from test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
@@ -66,6 +67,20 @@ class GoGridTests(unittest2.TestCase):
         self.assertEqual(resp.status, '200 OK')
         self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
+
+    def test_reboot_node(self):
+        node_id = 90967
+        url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
+        resp = self.client.post(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status, '200 OK')
+
+    def test_reboot_node__not_successful(self):
+        GoGridMockHttp.type = 'FAIL'
+        node_id = 90967
+        url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
+        resp = self.client.post(url, headers=self.headers)
+        self.assertEqual(resp.status, '500 INTERNAL SERVER ERROR')
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())

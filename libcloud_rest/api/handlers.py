@@ -171,15 +171,26 @@ class ComputeHandler(BaseServiceHandler):
         create_node_kwargs = {}
         create_node_kwargs['name'] = node_data['name']
         create_node_kwargs['size'] = compute_base.NodeSize(
-            node_data['size_id'], None, None, None, None, None, None)
+            node_data['size_id'], None, None, None, None, None, driver)
         create_node_kwargs['image'] = compute_base.NodeImage(
-            node_data['image_id'], None, None)
+            node_data['image_id'], None, driver)
         location_id = node_data.get('localtion_id', None)
         if location_id is not None:
             create_node_kwargs['location'] = compute_base.NodeLocation(
-                node_data['location_id'], None, None, None)
+                node_data['location_id'], None, None, driver)
         node = driver.create_node(**create_node_kwargs)
         return self.json_response(self._render(node))
+
+    def reboot_node(self):
+        """
+
+        @return:This operation does not return a response body.
+        """
+        driver = self._get_driver_instance()
+        node_id = self.params.get('node_id', None)
+        node = compute_base.Node(node_id, None, None, None, None, driver)
+        driver.reboot_node(node)
+        return self.json_response("")
 
 
 #noinspection PyUnresolvedReferences

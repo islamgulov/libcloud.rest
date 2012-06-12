@@ -24,10 +24,13 @@ compute_urls = Submount(prefix + '/compute/', [
          methods=['GET']),
     Rule('/<string:provider>/images', endpoint=(ComputeHandler, 'list_images'),
          methods=['GET']),
-    Rule('/<string:provider>/locations', endpoint=(ComputeHandler,
-                                                   'list_locations'),
+    Rule('/<string:provider>/locations',
+         endpoint=(ComputeHandler, 'list_locations'),
          methods=['GET']),
     Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'create_node'),
+         methods=['POST']),
+    Rule('/<string:provider>/nodes/<int:node_id>/reboot',
+         endpoint=(ComputeHandler, 'reboot_node'),
          methods=['POST']),
     ])
 
