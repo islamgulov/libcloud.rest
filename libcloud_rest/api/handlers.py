@@ -174,8 +174,8 @@ class ComputeHandler(BaseServiceHandler):
             node_data['size_id'], None, None, None, None, None, None)
         create_node_kwargs['image'] = compute_base.NodeImage(
             node_data['image_id'], None, None)
-        localtion_id = node_data.get('localtion_id', None)
-        if localtion_id is not None:
+        location_id = node_data.get('localtion_id', None)
+        if location_id is not None:
             create_node_kwargs['location'] = compute_base.NodeLocation(
                 node_data['location_id'], None, None, None)
         node = driver.create_node(**create_node_kwargs)
