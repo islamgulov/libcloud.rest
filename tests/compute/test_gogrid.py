@@ -56,5 +56,16 @@ class GoGridTests(unittest2.TestCase):
         self.assertEqual(resp.status, '200 OK')
         self.assertItemsEqual(resp_data, test_data)
 
+    def test_create_node(self):
+        url = self.url_tmpl % 'nodes'
+        test_request = self.fixtures.load('create_node_request.json')
+        test_request_json = json.loads(test_request)
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(test_request_json))
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp_data['name'], test_request_json['node']['name'])
+        self.assertTrue(resp_data['id'] is not None)
+
 if __name__ == '__main__':
     sys.exit(unittest2.main())

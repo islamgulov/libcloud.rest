@@ -6,7 +6,6 @@ from libcloud_rest.exception import ValidationError
 
 
 class TestParser(unittest2.TestCase):
-
     def test_string(self):
         string_validator = validators.StringValidator()
         valid_string = 'abc'
@@ -32,3 +31,17 @@ class TestParser(unittest2.TestCase):
         self.assertTrue(dict_validator(valid_dict))
         self.assertRaises(ValidationError, dict_validator, invalid_dict)
         self.assertRaises(ValidationError, dict_validator, invalid_dict2)
+
+    def test_required(self):
+        req_string_validator = validators.StringValidator()
+        not_req_string_validator = validators.StringValidator(required=False)
+        dict_validator = validators.DictValidator({
+            'req': req_string_validator,
+            'opt': not_req_string_validator,
+            })
+        valid_dict = {'req': 'abc'}
+        valid_dict2 = {'req': 'abc', 'opt': 'def'}
+        invalid_dict = {'opt': 'def'}
+        self.assertTrue(dict_validator(valid_dict))
+        self.assertTrue(dict_validator(valid_dict2))
+        self.assertRaises(ValidationError, dict_validator, invalid_dict)

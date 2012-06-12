@@ -8,12 +8,17 @@ except ImportError:
 
 from werkzeug.wrappers import Response
 import libcloud
+from libcloud.compute import base as compute_base
 
 from libcloud_rest.utils import get_providers_names
 from libcloud_rest.utils import get_driver_instance
 from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
+from libcloud_rest.api import validators as valid
+from libcloud_rest.errors import LibcloudRestError
+from libcloud_rest.exception import ValidationError
+
 
 TEST_QUERY_STRING = 'test=1'
 
@@ -84,8 +89,21 @@ class ComputeHandler(BaseServiceHandler):
     from libcloud.compute.providers import Provider as _Providers
     from libcloud.compute.providers import DRIVERS as _DRIVERS
 
-    @staticmethod
-    def _render(obj, render_attrs):
+    obj_attrs = {
+        compute_base.Node: ['id', 'name', 'state', 'public_ips'],
+        compute_base.NodeSize: ['id', 'name', 'ram', 'bandwidth', 'price'],
+        compute_base.NodeImage: ['id', 'name']
+    }
+
+    @classmethod
+    def _render(cls, obj, render_attrs=None):
+        if render_attrs is None:
+            for obj_attr_cls in cls.obj_attrs:
+                if isinstance(obj, obj_attr_cls):
+                    render_attrs = cls.obj_attrs[obj_attr_cls]
+                    break
+            else:
+                raise KeyError('Unknown object type: %s' % str(type(obj)))
         return dict(
             ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
         )
@@ -97,8 +115,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         nodes = driver.list_nodes()
-        render_attrs = ['id', 'name', 'state', 'public_ips']
-        resp = [self._render(node, render_attrs) for node in nodes]
+        resp = [self._render(node) for node in nodes]
         return self.json_response(resp)
 
     def list_sizes(self):
@@ -109,8 +126,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         sizes = driver.list_sizes()
-        render_attrs = ['id', 'name', 'ram', 'bandwidth', 'price']
-        resp = [self._render(size, render_attrs) for size in sizes]
+        resp = [self._render(size) for size in sizes]
         return self.json_response(resp)
 
     def list_images(self):
@@ -121,8 +137,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         images = driver.list_images()
-        render_attrs = ['id', 'name']
-        resp = [self._render(image, render_attrs) for image in images]
+        resp = [self._render(image) for image in images]
         return self.json_response(resp)
 
     def list_locations(self):
@@ -136,6 +151,35 @@ class ComputeHandler(BaseServiceHandler):
         render_attrs = ['id', 'name', 'country']
         resp = [self._render(image, render_attrs) for image in images]
         return self.json_response(resp)
+
+    def create_node(self):
+        node_validator = valid.DictValidator({
+            'node':
+                valid.DictValidator({
+                    'name': valid.StringValidator(),
+                    'size': valid.IntegerValidator(),
+                    'image': valid.IntegerValidator(),
+                    'location': valid.IntegerValidator(required=False)
+                })
+        })
+        driver = self._get_driver_instance()
+        try:
+            raw_data = json.loads(self.request.data)
+        except ValueError, e:
+            print e
+            raise LibcloudRestError()  # FIXME
+        try:
+            node_validator(raw_data)
+        except ValidationError:
+            raise LibcloudRestError()  # FIXME
+        node_attrs = raw_data['node']
+        node_name = node_attrs['name']
+        node_size = compute_base.NodeSize(node_attrs['size'],
+                                          None, None, None, None, None, None)
+        node_image = compute_base.NodeImage(node_attrs['image'], None, None)
+        node = driver.create_node(name=node_name,
+                                  image=node_image, size=node_size)
+        return self.json_response(self._render(node))
 
 
 #noinspection PyUnresolvedReferences

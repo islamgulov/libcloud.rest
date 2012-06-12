@@ -27,6 +27,8 @@ compute_urls = Submount(prefix + '/compute/', [
     Rule('/<string:provider>/locations', endpoint=(ComputeHandler,
                                                    'list_locations'),
          methods=['GET']),
+    Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'create_node'),
+         methods=['POST']),
     ])
 
 storage_urls = Submount(prefix + '/storage/', [

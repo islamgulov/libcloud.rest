@@ -68,7 +68,6 @@ class StringValidator(BaseValidator):
 class DictValidator(BaseValidator):
 
     def __init__(self, *args, **kwargs):
-        print args[0]
         if not isinstance(args[0], dict):
             raise TypeError('Argument must be dict')
         self.items_validators = args[0]
