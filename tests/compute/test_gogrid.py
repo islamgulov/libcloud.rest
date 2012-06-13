@@ -9,6 +9,7 @@ except ImportError:
 
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
+from werkzeug.http import HTTP_STATUS_CODES
 import libcloud
 from test.compute.test_gogrid import GoGridMockHttp
 
@@ -30,7 +31,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_nodes.json'))
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_list_sizes(self):
@@ -38,7 +39,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_sizes.json'))
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_list_images(self):
@@ -46,7 +47,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_images.json'))
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_list_locations(self):
@@ -54,7 +55,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_locations.json'))
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_create_node(self):
@@ -64,7 +65,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json))
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
 
@@ -72,20 +73,20 @@ class GoGridTests(unittest2.TestCase):
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
         resp = self.client.post(url, headers=self.headers)
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
 
     def test_reboot_node__not_successful(self):
         GoGridMockHttp.type = 'FAIL'
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
         resp = self.client.post(url, headers=self.headers)
-        self.assertEqual(resp.status, '500 INTERNAL SERVER ERROR')
+        self.assertEqual(resp.status_code, 500)
 
     def test_destroy_node(self):
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id)])
         resp = self.client.delete(url, headers=self.headers)
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())

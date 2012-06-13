@@ -30,7 +30,7 @@ class CloudstackTests(unittest2.TestCase):
         resp = self.client.get(url, headers=headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_nodes.json'))
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp_data, test_data)
 
 

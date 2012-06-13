@@ -27,7 +27,7 @@ class ComputeTest(unittest2.TestCase):
         data = json.loads(self.fixtures.load('providers.json'))
         resp_data = json.loads(resp.data)
         self.assertItemsEqual(data['providers'], resp_data['providers'])
-        self.assertEqual(resp.status, '200 OK')
+        self.assertEqual(resp.status_code, 200)
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())
