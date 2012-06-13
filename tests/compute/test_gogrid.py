@@ -26,6 +26,12 @@ class GoGridTests(unittest2.TestCase):
         self.url_tmpl = rest_versions[libcloud.__version__] +\
                         '/compute/gogrid/%s?test=1'
 
+    def test_bad_headers(self):
+        url = self.url_tmpl % 'nodes'
+        headers = {'abs': 1, 'def': 2}
+        resp = self.client.get(url, headers=headers)
+        self.assertEqual(resp.status_code, 400)
+
     def test_list_nodes(self):
         url = self.url_tmpl % 'nodes'
         resp = self.client.get(url, headers=self.headers)

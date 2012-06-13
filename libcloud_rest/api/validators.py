@@ -1,14 +1,13 @@
 # -*- coding:utf-8 -*-
-from libcloud_rest.errors import MissingHeaderError
-from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT
-from libcloud_rest.exception import ValidationError
+from libcloud_rest.exception import ValidationError, MissingArguments
+from libcloud_rest.api.parser import get_method_requirements
 
 __all__ = [
     'validate_header_arguments',
     ]
 
 
-def validate_header_arguments(required_arguments, arguments):
+def validate_driver_arguments(Driver, arguments):
     """
     Validate that in all required arguments are existing.
     @param required_arguments:
@@ -16,11 +15,18 @@ def validate_header_arguments(required_arguments, arguments):
 
     @raise: L{MissingHeaderError}
     """
-    for arg_altertives in required_arguments:
+    #required args validate
+    try:
+        required_args = get_method_requirements(Driver.__init__)
+    except NotImplementedError:
+        required_args = get_method_requirements(Driver.__new__)
+    missing_args = []
+    for arg_altertives in required_args:
         if not any([arg in arguments for arg in arg_altertives]):
-            header_names = [ARGS_TO_XHEADERS_DICT[arg]
-                            for arg in arg_altertives]
-            raise MissingHeaderError(header=' or '.join(header_names))
+            missing_args.append(arg_altertives)
+    if missing_args:
+        raise MissingArguments(missing_args)
+    return True
 
 
 class BaseValidator(object):

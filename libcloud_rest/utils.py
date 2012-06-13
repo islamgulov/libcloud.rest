@@ -2,9 +2,10 @@
 import inspect
 
 from libcloud.utils.misc import get_driver
-from libcloud_rest.errors import ProviderNotSupportedError
-from libcloud_rest.api.parser import get_method_requirements
-from libcloud_rest.api.validators import validate_header_arguments
+from libcloud_rest.errors import ProviderNotSupportedError, MissingHeadersError
+from libcloud_rest.exception import MissingArguments
+from libcloud_rest.api.validators import validate_driver_arguments
+from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT
 
 __all__ = [
     'get_providers_names',
@@ -55,11 +56,14 @@ def get_driver_instance(Driver, **kwargs):
     @param kwargs:
     @return:
     """
-    try:
-        required_args = get_method_requirements(Driver.__init__)
-    except NotImplementedError:
-        required_args = get_method_requirements(Driver.__new__)
     #FIXME:validate for extra args
-    validate_header_arguments(required_args, kwargs)
+    try:
+        validate_driver_arguments(Driver, kwargs)
+    except MissingArguments, error:
+        str_repr = ', '.join((
+            ' or '.join(ARGS_TO_XHEADERS_DICT[arg] for arg in args)
+            for args in error.arguments
+            ))
+        raise MissingHeadersError(headers=str_repr)
     driver = Driver(**kwargs)
     return driver
