@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from __future__ import with_statement
+import functools
 
 import os
 
@@ -37,3 +38,6 @@ class FileFixtures(object):
                 return unicode(content)
         else:
             raise IOError(path)
+
+
+ComputeFixtures = functools.partial(FileFixtures, 'compute')

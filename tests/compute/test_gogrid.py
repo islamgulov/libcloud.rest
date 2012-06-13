@@ -15,13 +15,13 @@ from test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from tests.file_fixtures import FileFixtures
+from tests.file_fixtures import ComputeFixtures
 
 
 class GoGridTests(unittest2.TestCase):
     def setUp(self):
         self.client = Client(LibcloudRestApp(), BaseResponse)
-        self.fixtures = FileFixtures('compute', 'gogrid')
+        self.fixtures = ComputeFixtures('gogrid')
         self.headers = {'x-auth-user': 'a', 'x-api-key': 'b'}
         self.url_tmpl = rest_versions[libcloud.__version__] +\
                         '/compute/gogrid/%s?test=1'

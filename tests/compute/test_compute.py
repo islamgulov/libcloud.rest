@@ -13,13 +13,13 @@ import libcloud
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from tests.file_fixtures import FileFixtures
+from tests.file_fixtures import ComputeFixtures
 
 
 class ComputeTest(unittest2.TestCase):
     def setUp(self):
         self.client = Client(LibcloudRestApp(), BaseResponse)
-        self.fixtures = FileFixtures('compute')
+        self.fixtures = ComputeFixtures()
 
     def test_list_providers(self):
         url = rest_versions[libcloud.__version__] + '/compute/providers'
