@@ -195,6 +195,20 @@ class ComputeHandler(BaseServiceHandler):
         node = compute_base.Node(node_id, None, None, None, None, driver)
         try:
             driver.reboot_node(node)
+        except Exception, e:  # FIXME
+            raise LibcloudError(error=str(e))
+        return self.json_response("")
+
+    def destroy_node(self):
+        """
+
+        @return:This operation does not return a response body.
+        """
+        driver = self._get_driver_instance()
+        node_id = self.params.get('node_id', None)
+        node = compute_base.Node(node_id, None, None, None, None, driver)
+        try:
+            driver.destroy_node(node)
         except Exception, e:
             raise LibcloudError(error=str(e))
         return self.json_response("")

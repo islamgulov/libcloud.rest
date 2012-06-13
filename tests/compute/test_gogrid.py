@@ -72,7 +72,6 @@ class GoGridTests(unittest2.TestCase):
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
         resp = self.client.post(url, headers=self.headers)
-        resp_data = json.loads(resp.data)
         self.assertEqual(resp.status, '200 OK')
 
     def test_reboot_node__not_successful(self):
@@ -81,6 +80,12 @@ class GoGridTests(unittest2.TestCase):
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
         resp = self.client.post(url, headers=self.headers)
         self.assertEqual(resp.status, '500 INTERNAL SERVER ERROR')
+
+    def test_destroy_node(self):
+        node_id = 90967
+        url = self.url_tmpl % '/'.join(['nodes', str(node_id)])
+        resp = self.client.delete(url, headers=self.headers)
+        self.assertEqual(resp.status, '200 OK')
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())
