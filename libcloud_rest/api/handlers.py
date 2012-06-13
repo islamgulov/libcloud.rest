@@ -16,8 +16,9 @@ from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
-from libcloud_rest.errors import LibcloudRestError
+from libcloud_rest.errors import LibcloudRestError, LibcloudError
 from libcloud_rest.exception import ValidationError
+from libcloud_rest.log import logger
 
 
 TEST_QUERY_STRING = 'test=1'
@@ -92,7 +93,8 @@ class ComputeHandler(BaseServiceHandler):
     obj_attrs = {
         compute_base.Node: ['id', 'name', 'state', 'public_ips'],
         compute_base.NodeSize: ['id', 'name', 'ram', 'bandwidth', 'price'],
-        compute_base.NodeImage: ['id', 'name']
+        compute_base.NodeImage: ['id', 'name'],
+        compute_base.NodeLocation: ['id', 'name', 'country']
     }
 
     @classmethod
@@ -147,9 +149,8 @@ class ComputeHandler(BaseServiceHandler):
         @rtype:
         """
         driver = self._get_driver_instance()
-        images = driver.list_locations()
-        render_attrs = ['id', 'name', 'country']
-        resp = [self._render(image, render_attrs) for image in images]
+        locations = driver.list_locations()
+        resp = [self._render(location) for location in locations]
         return self.json_response(resp)
 
     def create_node(self):
@@ -178,7 +179,10 @@ class ComputeHandler(BaseServiceHandler):
         if location_id is not None:
             create_node_kwargs['location'] = compute_base.NodeLocation(
                 node_data['location_id'], None, None, driver)
-        node = driver.create_node(**create_node_kwargs)
+        try:
+            node = driver.create_node(**create_node_kwargs)
+        except Exception, e:
+            raise LibcloudError(error=str(e))
         return self.json_response(self._render(node))
 
     def reboot_node(self):
@@ -189,7 +193,10 @@ class ComputeHandler(BaseServiceHandler):
         driver = self._get_driver_instance()
         node_id = self.params.get('node_id', None)
         node = compute_base.Node(node_id, None, None, None, None, driver)
-        driver.reboot_node(node)
+        try:
+            driver.reboot_node(node)
+        except Exception, e:
+            raise LibcloudError(error=str(e))
         return self.json_response("")
 
 

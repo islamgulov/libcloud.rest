@@ -57,3 +57,10 @@ class MissingHeaderError(LibcloudRestError):
     name = 'MissingHeader'
     message = 'Your request was missing a required header: %(header)s.'
     http_status_code = 400
+
+
+class LibcloudError(LibcloudRestError):
+    code = 1004
+    name = "Internal Libcloud Error"
+    message = "%(error)s"
+    http_status_code = 500
