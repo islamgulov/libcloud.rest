@@ -2,7 +2,8 @@
 import unittest2
 
 from libcloud_rest.api import validators
-from libcloud_rest.exception import ValidationError, MissingArguments
+from libcloud_rest.exception import ValidationError, MissingArguments,\
+    UnknownArgument
 
 
 class TestParser(unittest2.TestCase):
@@ -48,12 +49,12 @@ class TestParser(unittest2.TestCase):
 
 
 class TestGetDriverArguments(unittest2.TestCase):
-
     def test_requires(self):
         class FakeDriver(object):
             def __init__(self):
                 "@requires: arg1, arg2"
                 pass
+
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver, ['arg1', 'arg2']))
         self.assertRaises(MissingArguments,
@@ -61,7 +62,7 @@ class TestGetDriverArguments(unittest2.TestCase):
                           FakeDriver, ['arg1']
         )
 
-    def test_init_new_requires_docs(self):
+    def test_init_or_new_requires_docs(self):
         class FakeDriver(object):
             def __init__(self):
                 "@requires: arg1, arg2"
@@ -70,9 +71,25 @@ class TestGetDriverArguments(unittest2.TestCase):
             def __new__(cls, *args, **kwargs):
                 "@requires: arg2, arg3"
                 pass
+
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver, ['arg1', 'arg2']))
         self.assertRaises(MissingArguments,
                           validators.validate_driver_arguments,
                           FakeDriver, ['arg2', 'arg3']
+        )
+
+    def test_optional(self):
+        class FakeDriver(object):
+            def __init__(self, key, secret=None, secure=True, host=None,
+                         path=None, port=None, *args, **kwargs):
+                "@requires: key, secret"
+                pass
+
+        self.assertTrue(
+            validators.validate_driver_arguments(FakeDriver,
+                                                 ['key', 'secret', 'host']))
+        self.assertRaises(UnknownArgument,
+                          validators.validate_driver_arguments,
+                          FakeDriver, ['key', 'secret', 'creds']
         )

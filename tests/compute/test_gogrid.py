@@ -32,6 +32,12 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=headers)
         self.assertEqual(resp.status_code, 400)
 
+    def test_bad_extra_headers(self):
+        url = self.url_tmpl % 'nodes'
+        headers = {'x-auth-user': 1, 'x-api-key': 2, 'creds xers': 3}
+        resp = self.client.get(url, headers=headers)
+        self.assertEqual(resp.status_code, 400)
+
     def test_list_nodes(self):
         url = self.url_tmpl % 'nodes'
         resp = self.client.get(url, headers=self.headers)

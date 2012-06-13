@@ -54,13 +54,20 @@ class InternalError(LibcloudRestError):
 
 class MissingHeadersError(LibcloudRestError):
     code = 1003
-    name = 'MissingsHeader'
+    name = 'MissingHeaders'
     message = 'Your request was missing a required headers: %(headers)s.'
     http_status_code = 400
 
 
-class LibcloudError(LibcloudRestError):
+class UnknownHeadersError(LibcloudRestError):
     code = 1004
+    name = 'UnknownHeaders'
+    message = 'Your request was containing a unknown headers: %(headers)s.'
+    http_status_code = 400
+
+
+class LibcloudError(LibcloudRestError):
+    code = 1005
     name = "Internal Libcloud Error"
     message = "%(error)s"
     http_status_code = 500
