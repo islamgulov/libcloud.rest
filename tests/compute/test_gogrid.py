@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import sys
 import unittest2
+from libcloud_rest.exception import UnknownHeadersError
 
 try:
     import simplejson as json
@@ -16,7 +17,6 @@ from test.compute.test_gogrid import GoGridMockHttp
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from tests.file_fixtures import ComputeFixtures
-from libcloud_rest.errors import UnknownHeadersError
 
 
 class GoGridTests(unittest2.TestCase):

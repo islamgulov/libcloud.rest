@@ -2,9 +2,8 @@
 import inspect
 
 from libcloud.utils.misc import get_driver
-from libcloud_rest.errors import ProviderNotSupportedError,\
-    MissingHeadersError, UnknownHeadersError
-from libcloud_rest.exception import MissingArguments, UnknownArgument
+from libcloud_rest.exception import MissingArguments, UnknownArgument,\
+    ProviderNotSupportedError, MissingHeadersError, UnknownHeadersError
 from libcloud_rest.api.validators import validate_driver_arguments
 from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT
 

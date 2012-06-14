@@ -6,9 +6,9 @@ from werkzeug.wrappers import Request
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException
 
-from libcloud_rest.errors import LibcloudRestError
 from libcloud_rest.api.urls import urls
 from libcloud_rest.log import logger
+from libcloud_rest.exception import LibcloudRestError
 
 
 class LibcloudRestApp(object):

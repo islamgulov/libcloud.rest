@@ -16,8 +16,8 @@ from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
-from libcloud_rest.errors import LibcloudRestError, LibcloudError
-from libcloud_rest.exception import ValidationError
+from libcloud_rest.exception import ValidationError, LibcloudRestError,\
+    LibcloudError
 from libcloud_rest.log import logger
 
 

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import inspect
 
-from libcloud_rest.errors import UnknownHeadersError
+from libcloud_rest.exception import UnknownHeadersError
 
 #map between request header name and libcloud's internal attribute name
 XHEADERS_TO_ARGS_DICT = {
