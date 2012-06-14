@@ -16,6 +16,7 @@ from test.compute.test_gogrid import GoGridMockHttp
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from tests.file_fixtures import ComputeFixtures
+from libcloud_rest.errors import UnknownHeadersError
 
 
 class GoGridTests(unittest2.TestCase):
@@ -34,9 +35,11 @@ class GoGridTests(unittest2.TestCase):
 
     def test_bad_extra_headers(self):
         url = self.url_tmpl % 'nodes'
-        headers = {'x-auth-user': 1, 'x-api-key': 2, 'creds xers': 3}
+        headers = {'x-auth-user': 1, 'x-api-key': 2, 'x-dummy-creds': 3}
         resp = self.client.get(url, headers=headers)
+        resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp_data['error']['code'], UnknownHeadersError.code)
 
     def test_list_nodes(self):
         url = self.url_tmpl % 'nodes'

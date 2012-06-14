@@ -93,3 +93,19 @@ class TestGetDriverArguments(unittest2.TestCase):
                           validators.validate_driver_arguments,
                           FakeDriver, ['key', 'secret', 'creds']
         )
+
+    def test_extra(self):
+        class FakeDriver(object):
+            def __init__(self, key):
+                """
+                @requires: key
+                """
+        self.assertTrue(
+            validators.validate_driver_arguments(FakeDriver,
+                ['key']))
+        self.assertRaises(UnknownArgument,
+                          validators.validate_driver_arguments,
+                          FakeDriver, ['key','secret']
+        )
+
+
