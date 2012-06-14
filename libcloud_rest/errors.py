@@ -62,7 +62,7 @@ class MissingHeadersError(LibcloudRestError):
 class UnknownHeadersError(LibcloudRestError):
     code = 1004
     name = 'UnknownHeaders'
-    message = 'Your request was containing a unknown headers: %(headers)s.'
+    message = 'Your request is containing a unknown headers: %(headers)s.'
     http_status_code = 400
 
 

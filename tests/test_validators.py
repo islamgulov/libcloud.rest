@@ -105,7 +105,5 @@ class TestGetDriverArguments(unittest2.TestCase):
                 ['key']))
         self.assertRaises(UnknownArgument,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['key','secret']
+                          FakeDriver, ['key', 'secret']
         )
-
-
