@@ -25,14 +25,16 @@ TEST_QUERY_STRING = 'test=1'
 
 
 class BaseHandler(object):
-    def json_response(self, obj):
+    def json_response(self, obj, status_code=None):
         """
 
         @param obj:
         @return:
         """
         reply = json.dumps(obj, sort_keys=True)
-        return Response(reply, mimetype='application/json')
+        if status_code is None:
+            status_code = 200
+        return Response(reply, mimetype='application/json', status=status_code)
 
 
 class ApplicationHandler(BaseHandler):
@@ -182,7 +184,7 @@ class ComputeHandler(BaseServiceHandler):
             node = driver.create_node(**create_node_kwargs)
         except Exception, e:
             raise LibcloudError(error=str(e))
-        return self.json_response(self._render(node))
+        return self.json_response(self._render(node), status_code=201)
 
     def reboot_node(self):
         """
@@ -210,7 +212,7 @@ class ComputeHandler(BaseServiceHandler):
             driver.destroy_node(node)
         except Exception, e:
             raise LibcloudError(error=str(e))
-        return self.json_response("")
+        return self.json_response("", status_code=204)
 
 
 #noinspection PyUnresolvedReferences

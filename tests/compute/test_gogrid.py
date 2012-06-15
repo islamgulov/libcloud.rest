@@ -80,7 +80,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json))
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
 
@@ -101,7 +101,7 @@ class GoGridTests(unittest2.TestCase):
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id)])
         resp = self.client.delete(url, headers=self.headers)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 204)
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())
