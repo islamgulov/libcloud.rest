@@ -62,6 +62,21 @@ class TestParser(unittest2.TestCase):
         self.assertTrue(const_validator(valid_data))
         self.assertRaises(ValidationError, const_validator, invalid_data)
 
+    def test_name(self):
+        int_validator = validators.IntegerValidator(name='test')
+        invalid_data = 'abc'
+        self.assertRaisesRegexp(ValidationError, 'test.*',
+                                int_validator, invalid_data)
+        dict_validator = validators.DictValidator({
+            'test_name': validators.ConstValidator('333')
+        })
+        self.assertRaisesRegexp(ValidationError, 'test_name .*',
+                                dict_validator, {})
+        str_validator = validators.StringValidator()
+        self.assertRaisesRegexp(ValidationError,
+                                '%s .*' % str_validator.default_name,
+                                str_validator, {})
+
 
 class TestGetDriverArguments(unittest2.TestCase):
     def test_requires(self):

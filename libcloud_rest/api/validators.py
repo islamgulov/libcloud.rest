@@ -56,6 +56,18 @@ class BaseValidator(object):
 
     def configure(self, args, kwargs):
         self.required = kwargs.pop('required', True)
+        self.default_name = kwargs.pop('default_name', 'Data')
+        self._name = kwargs.pop('name', None)
+
+    def _get_name(self):
+        if self._name is not None:
+            return self._name
+        return self.default_name
+
+    def _set_name(self, new_name):
+        self._name = new_name
+
+    name = property(_get_name, _set_name)
 
     def __call__(self, data):
         """
@@ -89,17 +101,19 @@ class IntegerValidator(BaseValidator):
         try:
             i = int(self.raw_data)
         except (ValueError, TypeError):
-            raise ValidationError('Data must be integer')
+            raise ValidationError('%s must be integer' % self.name)
         if self.max is not None and i > self.max:
-            raise ValidationError('Data must be smaller than %i' % self.max)
+            raise ValidationError('%s must be smaller than %i' % (self.name,
+                                                                  self.max))
         if self.max is not None and i < self.min:
-            raise ValidationError('Data must be larger than %i' % self.min)
+            raise ValidationError('%s must be larger than %i' % (self.name,
+                                                                 self.min))
 
 
 class StringValidator(BaseValidator):
     def _check_data(self):
         if not isinstance(self.raw_data, basestring):
-            raise ValidationError('Data must be string')
+            raise ValidationError('%s must be string' % self.name)
 
 
 class ConstValidator(BaseValidator):
@@ -109,7 +123,8 @@ class ConstValidator(BaseValidator):
 
     def _check_data(self):
         if self.const != self.raw_data:
-            raise ValidationError('Data must be equal to %s' % str(self.const))
+            raise ValidationError('%s must be equal to %s' % (self.name,
+                                                              str(self.const)))
 
 
 class DictValidator(BaseValidator):
@@ -117,10 +132,13 @@ class DictValidator(BaseValidator):
         if not isinstance(args[0], dict):
             raise TypeError('Argument must be dict')
         self.items_validators = args[0]
+        for key, validator in self.items_validators.iteritems():
+            if validator.name == validator.default_name:
+                validator.name = key
         super(DictValidator, self).configure(args, kwargs)
 
     def _check_data(self):
         if not isinstance(self.raw_data, dict):
-            raise ValidationError('Data must be dict')
+            raise ValidationError('%s must be dict' % self.name)
         for key, validator in self.items_validators.iteritems():
             validator(self.raw_data.get(key, None))

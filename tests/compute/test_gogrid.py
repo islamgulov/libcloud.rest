@@ -10,7 +10,6 @@ except ImportError:
 
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
-from werkzeug.http import HTTP_STATUS_CODES
 import libcloud
 from test.compute.test_gogrid import GoGridMockHttp
 
@@ -102,9 +101,6 @@ class GoGridTests(unittest2.TestCase):
                                 data=content,
                                 content_type='application/json')
         self.assertEqual(resp.status_code, 500)
-
-
-
 
     def test_reboot_node(self):
         node_id = 90967
