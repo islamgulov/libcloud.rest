@@ -55,6 +55,13 @@ class TestParser(unittest2.TestCase):
         self.assertTrue(dict_validator(valid_dict2))
         self.assertRaises(ValidationError, dict_validator, invalid_dict)
 
+    def test_const(self):
+        const_validator = validators.ConstValidator({'a': 1})
+        valid_data = {'a': 1}
+        invalid_data = {'a': '1'}
+        self.assertTrue(const_validator(valid_data))
+        self.assertRaises(ValidationError, const_validator, invalid_data)
+
 
 class TestGetDriverArguments(unittest2.TestCase):
     def test_requires(self):
@@ -96,7 +103,7 @@ class TestGetDriverArguments(unittest2.TestCase):
 
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver,
-                                                 ['key', 'secret', 'host']))
+                ['key', 'secret', 'host']))
         self.assertRaises(UnknownArgument,
                           validators.validate_driver_arguments,
                           FakeDriver, ['key', 'secret', 'creds']
@@ -108,6 +115,7 @@ class TestGetDriverArguments(unittest2.TestCase):
                 """
                 @requires: key
                 """
+
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver,
                 ['key']))

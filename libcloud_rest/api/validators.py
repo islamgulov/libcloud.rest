@@ -26,14 +26,14 @@ def validate_driver_arguments(Driver, arguments):
     except NotImplementedError:
         required_args = get_method_requirements(Driver.__new__)
         method_with_docstring = Driver.__init__
-    #required args validate
+        #required args validate
     missing_args = []
     for arg_altertives in required_args:
         if not any([arg in arguments for arg in arg_altertives]):
             missing_args.append(arg_altertives)
     if missing_args:
         raise MissingArguments(missing_args)
-    #optional args validate
+        #optional args validate
     method_args_spec = inspect.getargspec(method_with_docstring)
     method_args = method_args_spec[0][1:]  # with removing 'self' or 'cls' arg
     if method_args_spec[2]:
@@ -99,8 +99,17 @@ class StringValidator(BaseValidator):
             raise ValidationError('Data must be string')
 
 
-class DictValidator(BaseValidator):
+class ConstValidator(BaseValidator):
+    def __init__(self, *args, **kwargs):
+        self.const = args[0]
+        super(ConstValidator, self).__init__(args, kwargs)
 
+    def _check_data(self):
+        if self.const != self.raw_data:
+            raise ValidationError('Data must be equal to %s' % str(self.const))
+
+
+class DictValidator(BaseValidator):
     def __init__(self, *args, **kwargs):
         if not isinstance(args[0], dict):
             raise TypeError('Argument must be dict')
