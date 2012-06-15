@@ -22,6 +22,14 @@ class TestParser(unittest2.TestCase):
         self.assertTrue(integer_validator(valid_integer))
         self.assertTrue(integer_validator(valid_integer2))
         self.assertRaises(ValidationError, integer_validator, invalid_integer)
+        #test max and min
+        max_int_validator = validators.IntegerValidator(max=100, min=0)
+        valid_integer = 50
+        invalid_integer = -1
+        invalid_integer2 = 101
+        self.assertTrue(max_int_validator(valid_integer))
+        self.assertRaises(ValidationError, max_int_validator, invalid_integer)
+        self.assertRaises(ValidationError, max_int_validator, invalid_integer2)
 
     def test_dict(self):
         dict_validator = validators.DictValidator(

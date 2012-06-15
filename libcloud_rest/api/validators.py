@@ -77,11 +77,20 @@ class BaseValidator(object):
 
 
 class IntegerValidator(BaseValidator):
+    def __init__(self, *args, **kwargs):
+        self.max = kwargs.pop('max', None)
+        self.min = kwargs.pop('min', None)
+        super(IntegerValidator, self).__init__(args, kwargs)
+
     def _check_data(self):
         try:
-            _ = int(self.raw_data)
+            i = int(self.raw_data)
         except (ValueError, TypeError):
             raise ValidationError('Data must be integer')
+        if self.max is not None and i > self.max:
+            raise ValidationError('Data must be smaller than %i' % self.max)
+        if self.max is not None and i < self.min:
+            raise ValidationError('Data must be larger than %i' % self.min)
 
 
 class StringValidator(BaseValidator):
