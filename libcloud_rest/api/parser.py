@@ -11,7 +11,8 @@ XHEADERS_TO_ARGS_DICT = {
     'x-provider-port': 'port',
     'x-provider-host': 'host',
     'x-dummy-creds': 'creds',  # FIXME: for tests only
-    'x-provider-key': 'key'
+    'x-provider-key': 'key',
+    'x-provider-uri': 'uri',
 }
 
 #FIXME: GK?
