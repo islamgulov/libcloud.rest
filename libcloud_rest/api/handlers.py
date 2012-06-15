@@ -17,7 +17,7 @@ from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import LibcloudRestError,\
-    LibcloudError
+    LibcloudError, MalformedJSONError
 from libcloud_rest.log import logger
 
 
@@ -165,7 +165,7 @@ class ComputeHandler(BaseServiceHandler):
         try:
             node_data = json.loads(self.request.data)
         except ValueError, e:
-            raise LibcloudRestError()  # FIXME
+            raise MalformedJSONError(msg=e.message)
         node_validator(node_data)
         create_node_kwargs = {}
         create_node_kwargs['name'] = node_data['name']

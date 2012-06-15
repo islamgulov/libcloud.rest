@@ -97,3 +97,10 @@ class ValidationError(LibcloudRestError):
     code = 1006
     name = 'ValidationError'
     http_status_code = 400
+
+
+class MalformedJSONError(LibcloudRestError):
+    code = 1007
+    name = 'MalformedJSON'
+    http_status_code = 400
+    message = 'The JSON you provided is not well-formed.'

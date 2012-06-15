@@ -15,7 +15,8 @@ from test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.exception import UnknownHeadersError
+from libcloud_rest.exception import UnknownHeadersError, ValidationError, \
+    MalformedJSONError
 from tests.file_fixtures import ComputeFixtures
 
 
@@ -92,7 +93,18 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json),
                                 content_type='application/json')
+        resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp_data['error']['code'], ValidationError.code)
+
+    def test_malformed_json(self):
+        url = self.url_tmpl % 'nodes'
+        resp = self.client.post(url, headers=self.headers,
+                                data="",
+                                content_type='application/json')
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp_data['error']['code'], MalformedJSONError.code)
 
     def test_bad_content_type(self):
         url = self.url_tmpl % 'nodes'
@@ -101,15 +113,19 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json),
                                 content_type='application/xml')
+        resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
     def test_bad_content_length(self):
         url = self.url_tmpl % 'nodes'
-        content = os.urandom(1024)
+        content = os.urandom(1000)
         resp = self.client.post(url, headers=self.headers,
                                 data=content,
                                 content_type='application/json')
+        resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
     def test_reboot_node(self):
         node_id = 90967
