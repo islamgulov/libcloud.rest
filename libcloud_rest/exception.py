@@ -5,10 +5,6 @@ except ImportError:
     import json
 
 
-class ValidationError(Exception):
-    pass
-
-
 class MissingArguments(Exception):
 
     def __init__(self, arguments):
@@ -89,6 +85,18 @@ class UnknownHeadersError(LibcloudRestError):
 
 class LibcloudError(LibcloudRestError):
     code = 1005
-    name = "Internal Libcloud Error"
+    name = "InternalLibcloudError"
     message = "%(error)s"
     http_status_code = 500
+
+class ValidationError(LibcloudRestError):
+    def __init__(self, message):
+        self.message = message
+
+    code = 1006
+    name = 'ValidationError'
+    http_status_code = 400
+
+
+
+

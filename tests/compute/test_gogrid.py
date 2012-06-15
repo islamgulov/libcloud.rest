@@ -92,7 +92,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json),
                                 content_type='application/xml')
-        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(resp.status_code, 400)
 
     def test_bad_content_length(self):
         url = self.url_tmpl % 'nodes'
@@ -100,7 +100,8 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=content,
                                 content_type='application/json')
-        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(resp.status_code, 400)
+
 
     def test_reboot_node(self):
         node_id = 90967
