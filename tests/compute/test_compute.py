@@ -25,8 +25,9 @@ class ComputeTest(unittest2.TestCase):
         url = rest_versions[libcloud.__version__] + '/compute/providers'
         resp = self.client.get(url)
         data = json.loads(self.fixtures.load('providers.json'))
-        resp_data = json.loads(resp.data)
-        self.assertItemsEqual(data['providers'], resp_data['providers'])
+        data_json = json.dumps(data)
+        resp_data = json.dumps(json.loads(resp.data))
+        self.assertItemsEqual(data_json, resp_data)
         self.assertEqual(resp.status_code, 200)
 
 if __name__ == '__main__':

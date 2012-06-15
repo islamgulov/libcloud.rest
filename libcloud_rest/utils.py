@@ -1,6 +1,4 @@
 # -*- coding:utf-8 -*-
-import inspect
-
 from libcloud.utils.misc import get_driver
 from libcloud_rest.exception import MissingArguments, UnknownArgument,\
     ProviderNotSupportedError, MissingHeadersError, UnknownHeadersError
@@ -13,16 +11,30 @@ __all__ = [
     ]
 
 
-def get_providers_names(providers):
+def get_providers_dict(drivers, providers):
     """
     List of all supported providers.
 
     @param providers: object that contain supported providers.
     @type  providers: L{libcloud.types.Provider}
 
-    @return C{list} of C{str} objects
+    @return C{list} of C{dict} objects
     """
-    return [pr for pr in providers.__dict__.keys() if not pr.startswith('_')]
+    result = []
+    for provider_name in providers.__dict__.keys():
+        if not provider_name.startswith('_'):
+            provider_name = provider_name.upper()
+            try:
+                Driver = get_driver_by_provider_name(drivers,
+                                                     providers, provider_name)
+                result.append({
+                    'id': provider_name.upper(),
+                    'friendly_name': getattr(Driver, 'name', ''),
+                    #TODO: add website
+                })
+            except ProviderNotSupportedError:
+                pass
+    return result
 
 
 def get_driver_by_provider_name(drivers, providers, provider_name):
@@ -43,9 +55,10 @@ def get_driver_by_provider_name(drivers, providers, provider_name):
     """
     provider_name = provider_name.upper()
     provider = getattr(providers, provider_name, None)
-    if provider is None:
+    try:
+        Driver = get_driver(drivers, provider)
+    except AttributeError:
         raise ProviderNotSupportedError(provider=provider_name)
-    Driver = get_driver(drivers, provider)
     return Driver
 
 

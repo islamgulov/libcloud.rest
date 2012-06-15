@@ -10,7 +10,7 @@ from werkzeug.wrappers import Response
 import libcloud
 from libcloud.compute import base as compute_base
 
-from libcloud_rest.utils import get_providers_names
+from libcloud_rest.utils import get_providers_dict
 from libcloud_rest.utils import get_driver_instance
 from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
@@ -79,9 +79,8 @@ class BaseServiceHandler(BaseHandler):
 
         @return:
         """
-        response = {
-            'providers': get_providers_names(self._Providers),
-            }
+        response = get_providers_dict(self._DRIVERS,
+                                      self._Providers)
         return self.json_response(response)
 
 
