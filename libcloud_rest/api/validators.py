@@ -52,6 +52,9 @@ class BaseValidator(object):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+        self.configure(args, kwargs)
+
+    def configure(self, args, kwargs):
         self.required = kwargs.pop('required', True)
 
     def __call__(self, data):
@@ -77,10 +80,10 @@ class BaseValidator(object):
 
 
 class IntegerValidator(BaseValidator):
-    def __init__(self, *args, **kwargs):
+    def configure(self, args, kwargs):
         self.max = kwargs.pop('max', None)
         self.min = kwargs.pop('min', None)
-        super(IntegerValidator, self).__init__(args, kwargs)
+        super(IntegerValidator, self).configure(args, kwargs)
 
     def _check_data(self):
         try:
@@ -100,9 +103,9 @@ class StringValidator(BaseValidator):
 
 
 class ConstValidator(BaseValidator):
-    def __init__(self, *args, **kwargs):
+    def configure(self, args, kwargs):
         self.const = args[0]
-        super(ConstValidator, self).__init__(args, kwargs)
+        super(ConstValidator, self).configure(args, kwargs)
 
     def _check_data(self):
         if self.const != self.raw_data:
@@ -110,11 +113,11 @@ class ConstValidator(BaseValidator):
 
 
 class DictValidator(BaseValidator):
-    def __init__(self, *args, **kwargs):
+    def configure(self, args, kwargs):
         if not isinstance(args[0], dict):
             raise TypeError('Argument must be dict')
         self.items_validators = args[0]
-        super(DictValidator, self).__init__(args, kwargs)
+        super(DictValidator, self).configure(args, kwargs)
 
     def _check_data(self):
         if not isinstance(self.raw_data, dict):
