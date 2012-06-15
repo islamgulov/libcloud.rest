@@ -7,6 +7,7 @@ from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException
 
 from libcloud_rest.api.urls import urls
+from libcloud_rest.api import validators as valid
 from libcloud_rest.log import logger
 from libcloud_rest.exception import LibcloudRestError
 
@@ -26,10 +27,16 @@ class LibcloudRestApp(object):
         @param params:
         @return:
         """
+        request_header_validator = valid.DictValidator({
+            'Content-Length': valid.IntegerValidator(max=512),
+            'Content-Type': valid.ConstValidator('application/json'),
+        })
         controller.request = request
         controller.params = params
         action = getattr(controller, action_name)
         try:
+            if request.method in ['POST', 'PUT']:
+                request_header_validator(dict(request.headers))
             retval = action()
             return retval
         except LibcloudRestError, error:

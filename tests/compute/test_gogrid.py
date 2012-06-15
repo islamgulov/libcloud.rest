@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import sys
+import os
 import unittest2
-from libcloud_rest.exception import UnknownHeadersError
 
 try:
     import simplejson as json
@@ -16,6 +16,7 @@ from test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
+from libcloud_rest.exception import UnknownHeadersError
 from tests.file_fixtures import ComputeFixtures
 
 
@@ -78,23 +79,46 @@ class GoGridTests(unittest2.TestCase):
         test_request = self.fixtures.load('create_node_request.json')
         test_request_json = json.loads(test_request)
         resp = self.client.post(url, headers=self.headers,
-                                data=json.dumps(test_request_json))
+                                data=json.dumps(test_request_json),
+                                content_type='application/json')
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
 
+    def test_bad_content_type(self):
+        url = self.url_tmpl % 'nodes'
+        test_request = self.fixtures.load('create_node_request.json')
+        test_request_json = json.loads(test_request)
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(test_request_json),
+                                content_type='application/xml')
+        self.assertEqual(resp.status_code, 500)
+
+    def test_bad_content_length(self):
+        url = self.url_tmpl % 'nodes'
+        content = os.urandom(1024)
+        resp = self.client.post(url, headers=self.headers,
+                                data=content,
+                                content_type='application/json')
+        self.assertEqual(resp.status_code, 500)
+
+
+
+
     def test_reboot_node(self):
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
-        resp = self.client.post(url, headers=self.headers)
+        resp = self.client.post(url, headers=self.headers,
+                                content_type='application/json')
         self.assertEqual(resp.status_code, 200)
 
     def test_reboot_node__not_successful(self):
         GoGridMockHttp.type = 'FAIL'
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
-        resp = self.client.post(url, headers=self.headers)
+        resp = self.client.post(url, headers=self.headers,
+                                content_type='application/json')
         self.assertEqual(resp.status_code, 500)
 
     def test_destroy_node(self):
