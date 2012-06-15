@@ -29,10 +29,10 @@ compute_urls = Submount(prefix + '/compute/', [
          methods=['GET']),
     Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'create_node'),
          methods=['POST']),
-    Rule('/<string:provider>/nodes/<int:node_id>/reboot',
+    Rule('/<string:provider>/nodes/<string:node_id>/reboot',
          endpoint=(ComputeHandler, 'reboot_node'),
          methods=['POST']),
-    Rule('/<string:provider>/nodes/<int:node_id>',
+    Rule('/<string:provider>/nodes/<string:node_id>',
          endpoint=(ComputeHandler, 'destroy_node'),
          methods=['DELETE']),
     ])
