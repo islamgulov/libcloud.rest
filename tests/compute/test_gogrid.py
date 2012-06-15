@@ -85,6 +85,15 @@ class GoGridTests(unittest2.TestCase):
         self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
 
+    def test_create_node_not_successful(self):
+        url = self.url_tmpl % 'nodes'
+        test_request = self.fixtures.load('create_node_request_invalid.json')
+        test_request_json = json.loads(test_request)
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(test_request_json),
+                                content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+
     def test_bad_content_type(self):
         url = self.url_tmpl % 'nodes'
         test_request = self.fixtures.load('create_node_request.json')
@@ -109,7 +118,7 @@ class GoGridTests(unittest2.TestCase):
                                 content_type='application/json')
         self.assertEqual(resp.status_code, 200)
 
-    def test_reboot_node__not_successful(self):
+    def test_reboot_node_not_successful(self):
         GoGridMockHttp.type = 'FAIL'
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
