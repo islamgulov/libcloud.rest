@@ -1,6 +1,6 @@
 {
     "name": "test1",
-    "size_id" : 0,
-    "image_id": 1,
-    "location_id": 2
+    "size_id" : "0",
+    "image_id": "1",
+    "location_id": "2"
 }

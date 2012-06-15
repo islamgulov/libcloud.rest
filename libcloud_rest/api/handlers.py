@@ -157,9 +157,9 @@ class ComputeHandler(BaseServiceHandler):
     def create_node(self):
         node_validator = valid.DictValidator({
             'name': valid.StringValidator(),
-            'size_id': valid.IntegerValidator(),
-            'image_id': valid.IntegerValidator(),
-            'location_id': valid.IntegerValidator(required=False)
+            'size_id': valid.StringValidator(),
+            'image_id': valid.StringValidator(),
+            'location_id': valid.StringValidator(required=False)
         })
         driver = self._get_driver_instance()
         try:
