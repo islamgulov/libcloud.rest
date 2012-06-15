@@ -102,7 +102,6 @@ class GoGridTests(unittest2.TestCase):
                                 content_type='application/json')
         self.assertEqual(resp.status_code, 400)
 
-
     def test_reboot_node(self):
         node_id = 90967
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])

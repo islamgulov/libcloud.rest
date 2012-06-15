@@ -89,6 +89,7 @@ class LibcloudError(LibcloudRestError):
     message = "%(error)s"
     http_status_code = 500
 
+
 class ValidationError(LibcloudRestError):
     def __init__(self, message):
         self.message = message
@@ -96,7 +97,3 @@ class ValidationError(LibcloudRestError):
     code = 1006
     name = 'ValidationError'
     http_status_code = 400
-
-
-
-
