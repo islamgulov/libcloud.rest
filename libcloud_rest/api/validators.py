@@ -25,15 +25,17 @@ def validate_driver_arguments(Driver, arguments):
         method_with_docstring = Driver.__init__
     except NotImplementedError:
         required_args = get_method_requirements(Driver.__new__)
-        method_with_docstring = Driver.__init__
-        #required args validate
+        method_with_docstring = Driver.__new__
+
+    #required args validate
     missing_args = []
     for arg_altertives in required_args:
         if not any([arg in arguments for arg in arg_altertives]):
             missing_args.append(arg_altertives)
     if missing_args:
         raise MissingArguments(missing_args)
-        #optional args validate
+
+    #optional args validate
     method_args_spec = inspect.getargspec(method_with_docstring)
     method_args = method_args_spec[0][1:]  # with removing 'self' or 'cls' arg
     if method_args_spec[2]:

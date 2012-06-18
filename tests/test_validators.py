@@ -109,9 +109,41 @@ class TestGetDriverArguments(unittest2.TestCase):
                           FakeDriver, ['arg2', 'arg3']
         )
 
-    def test_optional(self):
+    def test_init_or_new_optional(self):
+        class FakeDriver(object):
+            def __init__(self, arg1):
+                "@requires: arg1"
+                pass
+
+            def __new__(cls, arg1, arg2):
+                "@requires: arg1, arg2"
+                pass
+
+        self.assertTrue(
+            validators.validate_driver_arguments(FakeDriver, ['arg1']))
+        self.assertRaises(UnknownArgument,
+                          validators.validate_driver_arguments,
+                          FakeDriver, ['arg1', 'arg2']
+        )
+
+    def test_init_optional(self):
         class FakeDriver(object):
             def __init__(self, key, secret=None, secure=True, host=None,
+                         path=None, port=None, *args, **kwargs):
+                "@requires: key, secret"
+                pass
+
+        self.assertTrue(
+            validators.validate_driver_arguments(FakeDriver,
+                ['key', 'secret', 'host']))
+        self.assertRaises(UnknownArgument,
+                          validators.validate_driver_arguments,
+                          FakeDriver, ['key', 'secret', 'creds']
+        )
+
+    def test_new_optional(self):
+        class FakeDriver(object):
+            def __new__(cls, key, secret=None, secure=True, host=None,
                          path=None, port=None, *args, **kwargs):
                 "@requires: key, secret"
                 pass

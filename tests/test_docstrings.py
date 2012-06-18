@@ -16,20 +16,24 @@ class TestDocstring(unittest2.TestCase):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS
         for provider_name in providers.__dict__.keys():
-            if not provider_name.startswith('_'):
-                provider_name = provider_name.upper()
+            if provider_name.startswith('_'):
+                continue
+
+            provider_name = provider_name.upper()
+            try:
+                Driver = get_driver_by_provider_name(drivers,
+                                                     providers,
+                                                     provider_name)
+            except ProviderNotSupportedError:
+                continue
+
+            for method in [Driver.__init__, Driver.__new__]:
                 try:
-                    Driver = get_driver_by_provider_name(drivers,
-                                                         providers,
-                                                         provider_name)
-                    try:
-                        get_method_requirements(Driver.__init__)
-                    except NotImplementedError:
-                        try:
-                            get_method_requirements(Driver.__new__)
-                        except NotImplementedError:
-                            raise NotImplementedError(
-                                '%s provider has not @requires docstrign'
-                                % provider_name)
-                except ProviderNotSupportedError:
+                    get_method_requirements(method)
+                    break
+                except NotImplementedError:
                     pass
+            else:
+                raise NotImplementedError(
+                    '%s provider has not @requires docstrign'
+                    % provider_name)

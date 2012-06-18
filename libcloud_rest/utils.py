@@ -22,18 +22,19 @@ def get_providers_dict(drivers, providers):
     """
     result = []
     for provider_name in providers.__dict__.keys():
-        if not provider_name.startswith('_'):
-            provider_name = provider_name.upper()
-            try:
-                Driver = get_driver_by_provider_name(drivers,
-                                                     providers, provider_name)
-                result.append({
-                    'id': provider_name.upper(),
-                    'friendly_name': getattr(Driver, 'name', ''),
-                    #TODO: add website
-                })
-            except ProviderNotSupportedError:
-                pass
+        if provider_name.startswith('_'):
+            continue
+        provider_name = provider_name.upper()
+        try:
+            Driver = get_driver_by_provider_name(drivers,
+                                                 providers, provider_name)
+            result.append({
+                'id': provider_name.upper(),
+                'friendly_name': getattr(Driver, 'name', ''),
+                #TODO: add website
+            })
+        except ProviderNotSupportedError:
+            pass
     return result
 
 
