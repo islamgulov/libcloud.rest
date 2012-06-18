@@ -31,7 +31,7 @@ def get_providers_dict(drivers, providers):
             result.append({
                 'id': provider_name.upper(),
                 'friendly_name': getattr(Driver, 'name', ''),
-                #TODO: add website
+                'website': getattr(Driver, 'website', ''),
             })
         except ProviderNotSupportedError:
             pass

@@ -12,9 +12,10 @@ class TestDocstring(unittest2.TestCase):
     """
     Check @required docstring in providers classes
     """
-    def test_compute_requires(self):
-        providers = compute_providers.Provider
-        drivers = compute_providers.DRIVERS
+
+    @staticmethod
+    def _get_drivers(providers, drivers):
+        result = []
         for provider_name in providers.__dict__.keys():
             if provider_name.startswith('_'):
                 continue
@@ -24,9 +25,15 @@ class TestDocstring(unittest2.TestCase):
                 Driver = get_driver_by_provider_name(drivers,
                                                      providers,
                                                      provider_name)
+                result.append(Driver)
             except ProviderNotSupportedError:
                 continue
+        return result
 
+    @classmethod
+    def _check_requires(cls, providers, drivers):
+        Drivers = cls._get_drivers(providers, drivers)
+        for Driver in Drivers:
             for method in [Driver.__init__, Driver.__new__]:
                 try:
                     get_method_requirements(method)
@@ -35,5 +42,30 @@ class TestDocstring(unittest2.TestCase):
                     pass
             else:
                 raise NotImplementedError(
-                    '%s provider has not @requires docstrign'
-                    % (provider_name))
+                    '%s driver has not @requires docstrign'
+                    % (str(Driver)))
+
+    @classmethod
+    def _check_website(cls, providers, drivers):
+        Drivers = cls._get_drivers(providers, drivers)
+        without_website_attr = []
+        for Driver in Drivers:
+            website = getattr(Driver, 'website', None)
+            if website is None:
+                without_website_attr.append(Driver)
+        if without_website_attr:
+            raise NotImplementedError(
+                '%s drivers have not website attribute'
+                % (str(without_website_attr)))
+
+
+
+    def test_compute_requires(self):
+        providers = compute_providers.Provider
+        drivers = compute_providers.DRIVERS
+        self._check_requires(providers, drivers)
+
+    def test_compute_provider_website(self):
+        providers = compute_providers.Provider
+        drivers = compute_providers.DRIVERS
+        self._check_website(providers, drivers)
