@@ -36,4 +36,4 @@ class TestDocstring(unittest2.TestCase):
             else:
                 raise NotImplementedError(
                     '%s provider has not @requires docstrign'
-                    % provider_name)
+                    % (provider_name))

@@ -74,7 +74,7 @@ class TestParser(unittest2.TestCase):
                                 dict_validator, {})
         str_validator = validators.StringValidator()
         self.assertRaisesRegexp(ValidationError,
-                                '%s .*' % str_validator.default_name,
+                                '%s .*' % (str_validator.default_name),
                                 str_validator, {})
 
 

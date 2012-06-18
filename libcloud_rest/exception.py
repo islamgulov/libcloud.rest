@@ -13,7 +13,7 @@ class MissingArguments(Exception):
         self.arguments = arguments
 
     def __str__(self):
-        return "Missing arguments: %s" % str(self.arguments)
+        return "Missing arguments: %s" % (str(self.arguments))
 
 
 class UnknownArgument(Exception):
@@ -21,7 +21,7 @@ class UnknownArgument(Exception):
         self.arguments = arguments
 
     def __str__(self):
-        return "Unknown arguments: %s" % str(self.arguments)
+        return "Unknown arguments: %s" % (str(self.arguments))
 
 
 class LibcloudRestError(Exception):

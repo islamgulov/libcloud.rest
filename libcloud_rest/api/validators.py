@@ -103,7 +103,7 @@ class IntegerValidator(BaseValidator):
         try:
             i = int(self.raw_data)
         except (ValueError, TypeError):
-            raise ValidationError('%s must be integer' % self.name)
+            raise ValidationError('%s must be integer' % (self.name))
         if self.max is not None and i > self.max:
             raise ValidationError('%s must be smaller than %i' % (self.name,
                                                                   self.max))
@@ -115,7 +115,7 @@ class IntegerValidator(BaseValidator):
 class StringValidator(BaseValidator):
     def _check_data(self):
         if not isinstance(self.raw_data, basestring):
-            raise ValidationError('%s must be string' % self.name)
+            raise ValidationError('%s must be string' % (self.name))
 
 
 class ConstValidator(BaseValidator):
@@ -141,6 +141,6 @@ class DictValidator(BaseValidator):
 
     def _check_data(self):
         if not isinstance(self.raw_data, dict):
-            raise ValidationError('%s must be dict' % self.name)
+            raise ValidationError('%s must be dict' % (self.name))
         for key, validator in self.items_validators.iteritems():
             validator(self.raw_data.get(key, None))
