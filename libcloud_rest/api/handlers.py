@@ -32,7 +32,7 @@ class BaseHandler(object):
         @param obj:
         @return:
         """
-        reply = json.dumps(obj, sort_keys=True)
+        reply = json.dumps(obj, sort_keys=True, indent=4)
         return Response(reply, mimetype='application/json', status=status_code)
 
 
