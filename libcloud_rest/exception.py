@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+import httplib
+
 try:
     import simplejson as json
 except ImportError:
@@ -31,7 +33,7 @@ class LibcloudRestError(Exception):
     code = 1000
     name = 'UnknownError'
     message = 'An unknown error occurred.'
-    http_status_code = 500
+    http_status_code = httplib.INTERNAL_SERVER_ERROR
 
     def __init__(self, **kwargs):
         self.message = self.message % kwargs
@@ -59,35 +61,35 @@ class ProviderNotSupportedError(LibcloudRestError):
     code = 1001
     name = 'ProviderNotSupported'
     message = 'Provider %(provider)s does not supported.'
-    http_status_code = 400
+    http_status_code = httplib.BAD_REQUEST
 
 
 class InternalError(LibcloudRestError):
     code = 1002
     name = 'InternalError'
     message = 'We encountered an internal error.'
-    http_status_code = 500
+    http_status_code = httplib.INTERNAL_SERVER_ERROR
 
 
 class MissingHeadersError(LibcloudRestError):
     code = 1003
     name = 'MissingHeaders'
     message = 'Your request was missing a required headers: %(headers)s.'
-    http_status_code = 400
+    http_status_code = httplib.BAD_REQUEST
 
 
 class UnknownHeadersError(LibcloudRestError):
     code = 1004
     name = 'UnknownHeaders'
     message = 'Your request is containing a unknown headers: %(headers)s.'
-    http_status_code = 400
+    http_status_code = httplib.BAD_REQUEST
 
 
 class LibcloudError(LibcloudRestError):
     code = 1005
     name = "InternalLibcloudError"
     message = "%(error)s"
-    http_status_code = 500
+    http_status_code = httplib.INTERNAL_SERVER_ERROR
 
 
 class ValidationError(LibcloudRestError):
@@ -96,11 +98,11 @@ class ValidationError(LibcloudRestError):
 
     code = 1006
     name = 'ValidationError'
-    http_status_code = 400
+    http_status_code = httplib.BAD_REQUEST
 
 
 class MalformedJSONError(LibcloudRestError):
     code = 1007
     name = 'MalformedJSON'
-    http_status_code = 400
+    http_status_code = httplib.BAD_REQUEST
     message = 'The JSON you provided is not well-formed.'

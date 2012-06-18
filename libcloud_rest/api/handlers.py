@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import copy
+import httplib
 
 try:
     import simplejson as json
@@ -18,22 +19,20 @@ from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import LibcloudRestError,\
     LibcloudError, MalformedJSONError
-from libcloud_rest.log import logger
 
 
 TEST_QUERY_STRING = 'test=1'
 
 
 class BaseHandler(object):
-    def json_response(self, obj, status_code=None):
+    def json_response(self, obj, status_code=httplib.OK):
         """
 
+        @param status_code:
         @param obj:
         @return:
         """
         reply = json.dumps(obj, sort_keys=True)
-        if status_code is None:
-            status_code = 200
         return Response(reply, mimetype='application/json', status=status_code)
 
 
@@ -181,7 +180,8 @@ class ComputeHandler(BaseServiceHandler):
             node = driver.create_node(**create_node_kwargs)
         except Exception, e:
             raise LibcloudError(error=str(e))
-        return self.json_response(self._render(node), status_code=201)
+        return self.json_response(self._render(node),
+                                  status_code=httplib.CREATED)
 
     def reboot_node(self):
         """
@@ -209,7 +209,7 @@ class ComputeHandler(BaseServiceHandler):
             driver.destroy_node(node)
         except Exception, e:
             raise LibcloudError(error=str(e))
-        return self.json_response("", status_code=204)
+        return self.json_response("", status_code=httplib.NO_CONTENT)
 
 
 #noinspection PyUnresolvedReferences

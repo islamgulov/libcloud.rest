@@ -2,6 +2,7 @@
 import sys
 import os
 import unittest2
+import httplib
 
 try:
     import simplejson as json
@@ -32,14 +33,14 @@ class GoGridTests(unittest2.TestCase):
         url = self.url_tmpl % 'nodes'
         headers = {'abs': 1, 'def': 2}
         resp = self.client.get(url, headers=headers)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
 
     def test_bad_extra_headers(self):
         url = self.url_tmpl % 'nodes'
         headers = {'x-auth-user': 1, 'x-api-key': 2, 'x-dummy-creds': 3}
         resp = self.client.get(url, headers=headers)
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], UnknownHeadersError.code)
 
     def test_list_nodes(self):
@@ -47,7 +48,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_nodes.json'))
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_list_sizes(self):
@@ -55,7 +56,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_sizes.json'))
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_list_images(self):
@@ -63,7 +64,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_images.json'))
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_list_locations(self):
@@ -71,7 +72,7 @@ class GoGridTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_locations.json'))
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
         self.assertItemsEqual(resp_data, test_data)
 
     def test_create_node(self):
@@ -82,7 +83,7 @@ class GoGridTests(unittest2.TestCase):
                                 data=json.dumps(test_request_json),
                                 content_type='application/json')
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.status_code, httplib.CREATED)
         self.assertEqual(resp_data['name'], test_request_json['name'])
         self.assertTrue(resp_data['id'] is not None)
 
@@ -94,7 +95,7 @@ class GoGridTests(unittest2.TestCase):
                                 data=json.dumps(test_request_json),
                                 content_type='application/json')
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
     def test_malformed_json(self):
@@ -103,7 +104,7 @@ class GoGridTests(unittest2.TestCase):
                                 data="",
                                 content_type='application/json')
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], MalformedJSONError.code)
 
     def test_bad_content_type(self):
@@ -114,7 +115,7 @@ class GoGridTests(unittest2.TestCase):
                                 data=json.dumps(test_request_json),
                                 content_type='application/xml')
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
     def test_bad_content_length(self):
@@ -124,7 +125,7 @@ class GoGridTests(unittest2.TestCase):
                                 data=content,
                                 content_type='application/json')
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
     def test_reboot_node(self):
@@ -132,7 +133,7 @@ class GoGridTests(unittest2.TestCase):
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
         resp = self.client.post(url, headers=self.headers,
                                 content_type='application/json')
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
 
     def test_reboot_node_not_successful(self):
         GoGridMockHttp.type = 'FAIL'
@@ -140,7 +141,7 @@ class GoGridTests(unittest2.TestCase):
         url = self.url_tmpl % '/'.join(['nodes', str(node_id), 'reboot'])
         resp = self.client.post(url, headers=self.headers,
                                 content_type='application/json')
-        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
 
     def test_destroy_node(self):
         node_id = 90967

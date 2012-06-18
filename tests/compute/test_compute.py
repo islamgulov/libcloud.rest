@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import sys
 import unittest2
+import httplib
 
 try:
     import simplejson as json
@@ -28,7 +29,7 @@ class ComputeTest(unittest2.TestCase):
         data_json = json.dumps(data)
         resp_data = json.dumps(json.loads(resp.data))
         self.assertItemsEqual(data_json, resp_data)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())

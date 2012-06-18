@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import sys
 import unittest2
+import httplib
 
 try:
     import simplejson as json
@@ -31,14 +32,14 @@ class CloudstackTests(unittest2.TestCase):
         resp = self.client.get(url, headers=headers)
         resp_data = json.loads(resp.data)
         test_data = json.loads(self.fixtures.load('list_nodes.json'))
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(resp_data, test_data)
 
     def test_bad_headers(self):
         url = self.url_tmpl % 'nodes'
         headers = {'x-auth-user': 'apikey'}
         resp = self.client.get(url, headers=headers)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
 
 
 if __name__ == '__main__':
