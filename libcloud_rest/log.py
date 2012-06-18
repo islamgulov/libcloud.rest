@@ -12,4 +12,3 @@ def get_logger(handler, level):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
-

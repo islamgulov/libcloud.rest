@@ -10,6 +10,7 @@ from libcloud_rest.api.urls import urls
 from libcloud_rest.api import validators as valid
 from libcloud_rest.log import logger
 from libcloud_rest.exception import LibcloudRestError
+from libcloud_rest.constants import MAX_BODY_LENGTH
 
 
 class LibcloudRestApp(object):
@@ -28,7 +29,7 @@ class LibcloudRestApp(object):
         @return:
         """
         request_header_validator = valid.DictValidator({
-            'Content-Length': valid.IntegerValidator(max=512),
+            'Content-Length': valid.IntegerValidator(max=MAX_BODY_LENGTH),
             'Content-Type': valid.ConstValidator('application/json'),
         })
         controller.request = request

@@ -55,6 +55,7 @@ def setup_logger(log_level, log_file):
     libcloud_rest.log.logger = new_logger
     return new_logger
 
+
 def main():
     usage = 'usage: %prog'
     parser = OptionParser(usage=usage)
@@ -88,6 +89,7 @@ def main():
     logger = setup_logger(log_level=level, log_file=log_file)
     start_server(host=options.host, port=int(options.port),
                  logger=logger, debug=options.debug)
+
 
 if __name__ == '__main__':
     main()
