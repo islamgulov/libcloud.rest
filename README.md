@@ -5,8 +5,6 @@ through a RESTful API. Currently Libcloud has a big limitation - you can only
 use it with Python. REST interface allows users to leverage Libcloud 
 functionality through an arbitrary language which knows how to talk HTTP.
 
-REST Interface for [Libcloud](http://libcloud.apache.org/)
-
 Note: This is an Apache Google Summer of Code 2012 project.
 
 ## Deploying
