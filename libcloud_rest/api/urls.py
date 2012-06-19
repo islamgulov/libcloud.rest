@@ -49,6 +49,8 @@ loadbalancer_urls = Submount(prefix + '/loadbalancer/', [
 
 dns_urls = Submount(prefix + '/dns/', [
     Rule('/providers', endpoint=(DNSHandler, 'providers'), methods=['GET']),
+    Rule('/<string:provider>/zones', endpoint=(DNSHandler, 'list_zones'),
+         methods=['GET']),
     ])
 
 urls = Map([

@@ -32,3 +32,10 @@ COMPUTE_MOCK_HTTP = {
 }
 
 DRIVERS_MOCK_HTTP = COMPUTE_MOCK_HTTP
+
+DNS_MOCK_HTTP = {
+    'RackspaceUSDNSDriver':
+        [None, ('test.dns.test_rackspace', 'RackspaceMockHttp')],
+}
+
+DRIVERS_MOCK_HTTP.update(DNS_MOCK_HTTP)

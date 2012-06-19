@@ -2,6 +2,7 @@
 import unittest2
 
 from libcloud.compute import providers as compute_providers
+from libcloud.dns import providers as dns_providers
 
 from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.exception import ProviderNotSupportedError
@@ -61,6 +62,11 @@ class TestDocstring(unittest2.TestCase):
     def test_compute_requires(self):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS
+        self._check_requires(providers, drivers)
+
+    def test_dns_requires(self):
+        providers = dns_providers.Provider
+        drivers = dns_providers.DRIVERS
         self._check_requires(providers, drivers)
 
     def test_compute_provider_website(self):

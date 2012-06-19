@@ -11,6 +11,7 @@ except ImportError:
 from werkzeug.wrappers import Response
 import libcloud
 from libcloud.compute import base as compute_base
+from libcloud.dns import base as dns_base
 
 from libcloud_rest.utils import get_providers_dict
 from libcloud_rest.utils import get_driver_instance
@@ -197,3 +198,9 @@ class LoabBalancerHandler(BaseServiceHandler):
 class DNSHandler(BaseServiceHandler):
     from libcloud.dns.providers import Provider as _Providers
     from libcloud.dns.providers import DRIVERS as _DRIVERS
+
+    obj_attrs = {
+        dns_base.Zone: ['id', 'domain', 'type', 'ttl'],
+    }
+
+    list_zones = lambda self: self._list_objects_request_execute('list_zones')
