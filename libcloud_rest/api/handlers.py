@@ -20,9 +20,7 @@ from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import LibcloudRestError,\
     LibcloudError, MalformedJSONError
 from libcloud_rest.utils import ExtJSONEndoder
-
-
-TEST_QUERY_STRING = 'test=1'
+from libcloud_rest.constants import TEST_QUERY_STRING
 
 
 class BaseHandler(object):

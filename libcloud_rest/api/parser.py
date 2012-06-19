@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import inspect
 
-from libcloud_rest.exception import UnknownHeadersError
+from libcloud_rest.constants import REQUIRES_FIELD
 
 #map between request header name and libcloud's internal attribute name
 XHEADERS_TO_ARGS_DICT = {
@@ -18,8 +18,6 @@ XHEADERS_TO_ARGS_DICT = {
 #FIXME: GK?
 ARGS_TO_XHEADERS_DICT = dict(
     ([k, v] for v, k in XHEADERS_TO_ARGS_DICT.items()))
-
-_REQUIRES_FIELD = '@requires:'
 
 
 def parse_request_headers(headers):
@@ -45,13 +43,13 @@ def get_method_requirements(method):
     """
     method_docstring = inspect.getdoc(method)
     if method_docstring is None:
-        raise NotImplementedError('Missing %s docstring' % _REQUIRES_FIELD)
+        raise NotImplementedError('Missing %s docstring' % REQUIRES_FIELD)
     for docstring_line in method_docstring.splitlines():
-        if docstring_line.startswith(_REQUIRES_FIELD):
+        if docstring_line.startswith(REQUIRES_FIELD):
             _, args = docstring_line.split(':')
             args_list = []
             for alt_arg in args.split(','):
                 args_list.append([arg.strip() for arg in alt_arg.split('or')])
             return args_list
     else:
-        raise NotImplementedError('Missing %s docstring' % _REQUIRES_FIELD)
+        raise NotImplementedError('Missing %s docstring' % REQUIRES_FIELD)

@@ -12,8 +12,7 @@ from gevent import wsgi
 
 import libcloud_rest.log
 from libcloud_rest.log import get_logger
-
-VALID_LOG_LEVELS = ['DEBUG', 'ERROR', 'FATAL', 'CRITICAL', 'INFO', 'WARNING']
+from libcloud_rest.constants import VALID_LOG_LEVELS
 
 
 def start_server(host, port, logger, debug):
