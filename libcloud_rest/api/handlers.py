@@ -60,6 +60,7 @@ class BaseServiceHandler(BaseHandler):
     """
     _DRIVERS = None
     _Providers = None
+    _providers_list_response = None
 
     def _get_driver_instance(self):
         provider_name = self.params.get('provider')
@@ -83,9 +84,12 @@ class BaseServiceHandler(BaseHandler):
 
         @return:
         """
-        response = get_providers_dict(self._DRIVERS,
+        if self._providers_list_response is None:
+            providers_dict = get_providers_dict(self._DRIVERS,
                                       self._Providers)
-        return self.json_response(response)
+            response = self.json_response(providers_dict)
+            self.__class__._providers_list_response = response
+        return self._providers_list_response
 
 
 #noinspection PyUnresolvedReferences
