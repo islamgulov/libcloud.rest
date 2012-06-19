@@ -33,10 +33,12 @@ class LibcloudRestError(Exception):
     code = 1000
     name = 'UnknownError'
     message = 'An unknown error occurred.'
+    detail = ''
     http_status_code = httplib.INTERNAL_SERVER_ERROR
 
     def __init__(self, **kwargs):
         self.message = self.message % kwargs
+        self.detail = kwargs.pop('detail', '')
         super(LibcloudRestError, self).__init__()
 
     def to_json(self):
@@ -49,6 +51,7 @@ class LibcloudRestError(Exception):
                         'code': self.code,
                         'name': self.name,
                         'message': self.message,
+                        'detail': self.detail,
                         }
         }
         return json.dumps(data)
@@ -87,8 +90,8 @@ class UnknownHeadersError(LibcloudRestError):
 
 class LibcloudError(LibcloudRestError):
     code = 1005
-    name = "InternalLibcloudError"
-    message = "%(error)s"
+    name = 'InternalLibcloudError'
+    message = 'We encountered an internal error in libcloud.'
     http_status_code = httplib.INTERNAL_SERVER_ERROR
 
 

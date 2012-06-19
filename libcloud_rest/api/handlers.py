@@ -154,7 +154,7 @@ class ComputeHandler(BaseServiceHandler):
         try:
             node_data = json.loads(self.request.data)
         except ValueError, e:
-            raise MalformedJSONError(msg=e.message)
+            raise MalformedJSONError(detail=str(e))
         node_validator(node_data)
         create_node_kwargs = {}
         create_node_kwargs['name'] = node_data['name']
@@ -169,7 +169,7 @@ class ComputeHandler(BaseServiceHandler):
         try:
             node = driver.create_node(**create_node_kwargs)
         except Exception, e:
-            raise LibcloudError(error=str(e))
+            raise LibcloudError(detail=str(e))
         return self.json_response(node,
                                   status_code=httplib.CREATED)
 
@@ -184,7 +184,7 @@ class ComputeHandler(BaseServiceHandler):
         try:
             driver.reboot_node(node)
         except Exception, e:  # FIXME
-            raise LibcloudError(error=str(e))
+            raise LibcloudError(detail=str(e))
         return self.json_response("")
 
     def destroy_node(self):

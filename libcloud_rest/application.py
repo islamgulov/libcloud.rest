@@ -42,11 +42,12 @@ class LibcloudRestApp(object):
             return retval
         except LibcloudRestError, error:
             logger.debug(traceback.format_exc())
+            print error.to_json()
             return Response(error.to_json(), status=error.http_status_code,
                 mimetype='application/json')
         except BaseException, error:
-            logger.debug(traceback.format_exc())
-            fake_error = LibcloudRestError()  # FIXME
+            logger.error(traceback.format_exc())
+            fake_error = LibcloudRestError(detail = str(error))  # FIXME
             return Response(
                 fake_error.to_json(), status=fake_error.http_status_code,
                 mimetype='application/json')  # FIXME: response error generator
