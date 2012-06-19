@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import copy
 import httplib
+import inspect
 
 try:
     import simplejson as json
@@ -17,7 +18,7 @@ from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
-from libcloud_rest.exception import LibcloudRestError,\
+from libcloud_rest.exception import InternalError,\
     LibcloudError, MalformedJSONError
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
@@ -79,6 +80,21 @@ class BaseServiceHandler(BaseHandler):
             driver_instance = get_driver_instance(Driver, **api_data)
         return driver_instance
 
+    def _execute_driver_method(self, method_name, *args, **kwargs):
+        driver = self._get_driver_instance()
+        method = getattr(driver, method_name, None)
+        if not inspect.ismethod(method):
+            raise IndentationError(detail='Unknown method %s' % (method_name))
+        try:
+            result = method(*args, **kwargs)
+        except Exception, e:
+            raise LibcloudError(detail=str(e))
+        return result
+
+    def _list_objects_request_execute(self, method_name):
+        data = self._execute_driver_method(method_name)
+        return self.json_response(data)
+
     def providers(self):
         """
 
@@ -104,44 +120,12 @@ class ComputeHandler(BaseServiceHandler):
         compute_base.NodeLocation: ['id', 'name', 'country']
     }
 
-    def list_nodes(self):
-        """
-
-        @return:
-        """
-        driver = self._get_driver_instance()
-        nodes = driver.list_nodes()
-        return self.json_response(nodes)
-
-    def list_sizes(self):
-        """
-
-        @return:
-        @rtype:
-        """
-        driver = self._get_driver_instance()
-        sizes = driver.list_sizes()
-        return self.json_response(sizes)
-
-    def list_images(self):
-        """
-
-        @return:
-        @rtype:
-        """
-        driver = self._get_driver_instance()
-        images = driver.list_images()
-        return self.json_response(images)
-
-    def list_locations(self):
-        """
-
-        @return:
-        @rtype:
-        """
-        driver = self._get_driver_instance()
-        locations = driver.list_locations()
-        return self.json_response(locations)
+    list_nodes = lambda self: self._list_objects_request_execute('list_nodes')
+    list_sizes = lambda self: self._list_objects_request_execute('list_sizes')
+    list_locations = lambda self: self._list_objects_request_execute(
+        'list_locations')
+    list_images = lambda self: self._list_objects_request_execute(
+        'list_images')
 
     def create_node(self):
         node_validator = valid.DictValidator({
@@ -150,26 +134,24 @@ class ComputeHandler(BaseServiceHandler):
             'image_id': valid.StringValidator(),
             'location_id': valid.StringValidator(required=False)
         })
-        driver = self._get_driver_instance()
         try:
             node_data = json.loads(self.request.data)
         except ValueError, e:
             raise MalformedJSONError(detail=str(e))
+
         node_validator(node_data)
+
         create_node_kwargs = {}
         create_node_kwargs['name'] = node_data['name']
         create_node_kwargs['size'] = compute_base.NodeSize(
-            node_data['size_id'], None, None, None, None, None, driver)
+            node_data['size_id'], None, None, None, None, None, None)
         create_node_kwargs['image'] = compute_base.NodeImage(
-            node_data['image_id'], None, driver)
+            node_data['image_id'], None, None)
         location_id = node_data.get('location_id', None)
         if location_id is not None:
             create_node_kwargs['location'] = compute_base.NodeLocation(
-                node_data['location_id'], None, None, driver)
-        try:
-            node = driver.create_node(**create_node_kwargs)
-        except Exception, e:
-            raise LibcloudError(detail=str(e))
+                node_data['location_id'], None, None, None)
+        node = self._execute_driver_method('create_node', **create_node_kwargs)
         return self.json_response(node,
                                   status_code=httplib.CREATED)
 
@@ -178,13 +160,9 @@ class ComputeHandler(BaseServiceHandler):
 
         @return:This operation does not return a response body.
         """
-        driver = self._get_driver_instance()
         node_id = self.params.get('node_id', None)
-        node = compute_base.Node(node_id, None, None, None, None, driver)
-        try:
-            driver.reboot_node(node)
-        except Exception, e:  # FIXME
-            raise LibcloudError(detail=str(e))
+        node = compute_base.Node(node_id, None, None, None, None, None)
+        self._execute_driver_method('reboot_node', node)
         return self.json_response("")
 
     def destroy_node(self):
@@ -192,13 +170,9 @@ class ComputeHandler(BaseServiceHandler):
 
         @return:This operation does not return a response body.
         """
-        driver = self._get_driver_instance()
         node_id = self.params.get('node_id', None)
-        node = compute_base.Node(node_id, None, None, None, None, driver)
-        try:
-            driver.destroy_node(node)
-        except Exception, e:
-            raise LibcloudError(error=str(e))
+        node = compute_base.Node(node_id, None, None, None, None, None)
+        self._execute_driver_method('destroy_node', node)
         return self.json_response("", status_code=httplib.NO_CONTENT)
 
 
