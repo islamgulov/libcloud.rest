@@ -58,8 +58,6 @@ class TestDocstring(unittest2.TestCase):
                 '%s drivers have not website attribute'
                 % (str(without_website_attr)))
 
-
-
     def test_compute_requires(self):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS

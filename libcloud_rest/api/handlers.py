@@ -19,12 +19,15 @@ from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import LibcloudRestError,\
     LibcloudError, MalformedJSONError
+from libcloud_rest.utils import ExtJSONEndoder
 
 
 TEST_QUERY_STRING = 'test=1'
 
 
 class BaseHandler(object):
+    obj_attrs = {}
+
     def json_response(self, obj, status_code=httplib.OK):
         """
 
@@ -32,7 +35,8 @@ class BaseHandler(object):
         @param obj:
         @return:
         """
-        reply = json.dumps(obj, sort_keys=True, indent=4)
+        encoder = ExtJSONEndoder(self.obj_attrs)
+        reply = encoder.encode(obj)
         return Response(reply, mimetype='application/json', status=status_code)
 
 
@@ -53,7 +57,8 @@ class ApplicationHandler(BaseHandler):
 
 class BaseServiceHandler(BaseHandler):
     """
-    To use this class inherit from it and define _DRIVERS and _Providers.
+    To use this class inherit from it and define _DRIVERS and _Providers
+    Also to encode to json response custom object add them to obj_attrs dict.
     """
     _DRIVERS = None
     _Providers = None
@@ -97,19 +102,6 @@ class ComputeHandler(BaseServiceHandler):
         compute_base.NodeLocation: ['id', 'name', 'country']
     }
 
-    @classmethod
-    def _render(cls, obj, render_attrs=None):
-        if render_attrs is None:
-            for obj_attr_cls in cls.obj_attrs:
-                if isinstance(obj, obj_attr_cls):
-                    render_attrs = cls.obj_attrs[obj_attr_cls]
-                    break
-            else:
-                raise KeyError('Unknown object type: %s' % str(type(obj)))
-        return dict(
-            ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
-        )
-
     def list_nodes(self):
         """
 
@@ -117,8 +109,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         nodes = driver.list_nodes()
-        resp = [self._render(node) for node in nodes]
-        return self.json_response(resp)
+        return self.json_response(nodes)
 
     def list_sizes(self):
         """
@@ -128,8 +119,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         sizes = driver.list_sizes()
-        resp = [self._render(size) for size in sizes]
-        return self.json_response(resp)
+        return self.json_response(sizes)
 
     def list_images(self):
         """
@@ -139,8 +129,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         images = driver.list_images()
-        resp = [self._render(image) for image in images]
-        return self.json_response(resp)
+        return self.json_response(images)
 
     def list_locations(self):
         """
@@ -150,8 +139,7 @@ class ComputeHandler(BaseServiceHandler):
         """
         driver = self._get_driver_instance()
         locations = driver.list_locations()
-        resp = [self._render(location) for location in locations]
-        return self.json_response(resp)
+        return self.json_response(locations)
 
     def create_node(self):
         node_validator = valid.DictValidator({
@@ -180,7 +168,7 @@ class ComputeHandler(BaseServiceHandler):
             node = driver.create_node(**create_node_kwargs)
         except Exception, e:
             raise LibcloudError(error=str(e))
-        return self.json_response(self._render(node),
+        return self.json_response(node,
                                   status_code=httplib.CREATED)
 
     def reboot_node(self):

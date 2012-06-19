@@ -1,4 +1,9 @@
 # -*- coding:utf-8 -*-
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from libcloud.utils.misc import get_driver
 from libcloud_rest.exception import MissingArguments, UnknownArgument,\
     ProviderNotSupportedError, MissingHeadersError, UnknownHeadersError
@@ -82,3 +87,21 @@ def get_driver_instance(Driver, **kwargs):
         raise UnknownHeadersError(headers=str(error.arguments))
     driver = Driver(**kwargs)
     return driver
+
+
+class ExtJSONEndoder(json.JSONEncoder):
+    def __init__(self, obj_attrs, *args, **kwargs):
+        self.obj_attrs = obj_attrs
+        indent = kwargs.pop('indent', 4)
+        super(ExtJSONEndoder, self).__init__(indent=indent, *args, **kwargs)
+
+    def default(self, obj):
+        for obj_attr_cls in self.obj_attrs:
+            if isinstance(obj, obj_attr_cls):
+                render_attrs = self.obj_attrs[obj_attr_cls]
+                break
+        else:
+            raise KeyError('Unknown object type: %s' % str(type(obj)))
+        return dict(
+            ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
+        )
