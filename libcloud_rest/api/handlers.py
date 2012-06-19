@@ -95,6 +95,15 @@ class BaseServiceHandler(BaseHandler):
         data = self._execute_driver_method(method_name)
         return self.json_response(data)
 
+    def _load_json(self, data, validator=None):
+        try:
+            json_data = json.loads(self.request.data)
+        except ValueError, e:
+            raise MalformedJSONError(detail=str(e))
+        if validator is not None:
+            validator(json_data)
+        return json_data
+
     def providers(self):
         """
 
@@ -134,12 +143,7 @@ class ComputeHandler(BaseServiceHandler):
             'image_id': valid.StringValidator(),
             'location_id': valid.StringValidator(required=False)
         })
-        try:
-            node_data = json.loads(self.request.data)
-        except ValueError, e:
-            raise MalformedJSONError(detail=str(e))
-
-        node_validator(node_data)
+        node_data = self._load_json(self.request.data, node_validator)
 
         create_node_kwargs = {}
         create_node_kwargs['name'] = node_data['name']
