@@ -18,7 +18,7 @@ def get_driver_mock_http(driver_name):
                 result.append(getattr(_mod, conn_name))
         return result
     else:
-        raise NotImplementedError
+        raise NotImplementedError('Unknown driver %s' % (driver_name))
 
 
 COMPUTE_MOCK_HTTP = {

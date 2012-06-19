@@ -84,7 +84,7 @@ class BaseServiceHandler(BaseHandler):
         driver = self._get_driver_instance()
         method = getattr(driver, method_name, None)
         if not inspect.ismethod(method):
-            raise IndentationError(detail='Unknown method %s' % (method_name))
+            raise InternalError(detail='Unknown method %s' % (method_name))
         try:
             result = method(*args, **kwargs)
         except Exception, e:

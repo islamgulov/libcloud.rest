@@ -57,7 +57,8 @@ class LibcloudRestError(Exception):
         return json.dumps(data)
 
     def __str__(self):
-        return '%d (%s) - %s' % (self.code, self.name, self.message)
+        return '%d (%s) - %s "%s"' % \
+            (self.code, self.name, self.message, self.detail)
 
 
 class ProviderNotSupportedError(LibcloudRestError):
