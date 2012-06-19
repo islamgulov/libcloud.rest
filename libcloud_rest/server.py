@@ -7,18 +7,18 @@ from optparse import OptionParser
 sys.path.append(os.sep.join(
     os.path.dirname(os.path.abspath(__file__)).split(os.sep)[:-1]))
 
-from gevent.monkey import patch_all
-from gevent import wsgi
-
 import libcloud_rest.log
 from libcloud_rest.log import get_logger
 from libcloud_rest.constants import VALID_LOG_LEVELS
+
+DEBUG = False
 
 
 def start_server(host, port, logger, debug):
     from werkzeug.serving import run_simple
     from libcloud_rest.application import LibcloudRestApp
     import werkzeug
+
     app = LibcloudRestApp()
 
     if debug:
@@ -26,8 +26,11 @@ def start_server(host, port, logger, debug):
         run_simple(host, port, app,
                    use_debugger=True, use_reloader=True)
     else:
-        logger.info('HTTP server listening on %s:%s' % (host, port))
+        from gevent.monkey import patch_all
+        from gevent import wsgi
+
         patch_all()
+        logger.info('HTTP server listening on %s:%s' % (host, port))
 
         @werkzeug.serving.run_with_reloader
         def run_server():
@@ -35,6 +38,7 @@ def start_server(host, port, logger, debug):
                 @staticmethod
                 def write(*args, **kwargs):
                     logger.debug(*args, **kwargs)
+
             ws = wsgi.WSGIServer((host, port), app, log=debug_logger)
             ws.serve_forever()
 
@@ -82,6 +86,8 @@ def main():
 
     if options.debug:
         log_level = 'DEBUG'
+        global DEBUG
+        DEBUG = True
 
     level = getattr(logging, log_level, logging.INFO)
 

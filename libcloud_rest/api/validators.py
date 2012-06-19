@@ -7,11 +7,6 @@ from libcloud_rest.exception import ValidationError, MissingArguments,\
 from libcloud_rest.api.parser import get_method_requirements
 
 
-__all__ = [
-    'validate_header_arguments',
-    ]
-
-
 def validate_driver_arguments(Driver, arguments):
     """
     Validate that in all required arguments are existing.

@@ -22,6 +22,7 @@ from libcloud_rest.exception import InternalError,\
     LibcloudError, MalformedJSONError
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
+from libcloud_rest.server import DEBUG
 
 
 class BaseHandler(object):
@@ -69,7 +70,7 @@ class BaseServiceHandler(BaseHandler):
         api_data = parse_request_headers(headers)
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
-        if self.request.query_string == TEST_QUERY_STRING:
+        if self.request.query_string == TEST_QUERY_STRING and DEBUG:
             from tests.utils import get_driver_mock_http
 
             Driver_copy = copy.deepcopy(Driver)
