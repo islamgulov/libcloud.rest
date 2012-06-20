@@ -1,8 +1,12 @@
 # -*- coding:utf-8 -*-
+import copy
 
-__all__ = [
-    'get_driver_mock_http',
-]
+
+def patch_driver(Driver):
+    Driver_copy = copy.deepcopy(Driver)
+    Driver_copy.connectionCls.conn_classes = get_driver_mock_http(
+        Driver.__name__)
+    return Driver_copy
 
 
 def get_driver_mock_http(driver_name):

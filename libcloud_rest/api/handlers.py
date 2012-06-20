@@ -72,11 +72,8 @@ class BaseServiceHandler(BaseHandler):
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
         if self.request.query_string == TEST_QUERY_STRING and DEBUG:
-            from tests.utils import get_driver_mock_http
-
-            Driver_copy = copy.deepcopy(Driver)
-            Driver_copy.connectionCls.conn_classes = get_driver_mock_http(
-                Driver.__name__)
+            from tests.utils import patch_driver
+            Driver_copy = patch_driver(Driver)
             driver_instance = get_driver_instance(Driver_copy, **api_data)
         else:
             driver_instance = get_driver_instance(Driver, **api_data)
