@@ -206,12 +206,7 @@ class DNSHandler(BaseServiceHandler):
 
     def list_records(self):
         zone_id = self.params.get('zone_id', None)
-        zones = self._execute_driver_method('list_zones')
-        for zone in zones:
-            if zone.id == zone_id:
-                break
-        else:
-            raise LibcloudRestError(detail='Unknown zone id')
+        zone = self._execute_driver_method('get_zone', zone_id)
         return self._list_objects_request_execute('list_records', zone=zone)
 
     def create_zone(self):

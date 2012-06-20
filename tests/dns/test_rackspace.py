@@ -75,8 +75,9 @@ class RackspaceUSTests(unittest2.TestCase):
         RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
         url = self.url_tmpl % '/'.join(['zones', str(zone_id), 'records'])
         resp = self.client.get(url, headers=self.headers)
-        records = json.loads(resp.data)
+        resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
+        self.assertEqual(resp_data['error']['code'], LibcloudError.code)
 
 
 if __name__ == '__main__':
