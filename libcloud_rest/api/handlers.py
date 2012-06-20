@@ -20,7 +20,7 @@ from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import InternalError,\
-    LibcloudError, MalformedJSONError, LibcloudRestError
+    LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
@@ -87,8 +87,12 @@ class BaseServiceHandler(BaseHandler):
         try:
             result = method(*args, **kwargs)
         except Exception, e:
-            logger.debug(traceback.format_exc())
-            raise LibcloudError(detail=str(e))
+            for libcloud_error, error  in INTERNAL_LIBCLOUD_ERRORS_MAP.items():
+                if isinstance(e, libcloud_error):
+                    raise error()
+            else:
+                logger.debug(traceback.format_exc())
+                raise LibcloudError(detail=str(e))
         return result
 
     def _list_objects_request_execute(self, method_name, *args, **kwargs):

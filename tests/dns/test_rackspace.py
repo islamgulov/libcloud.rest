@@ -16,7 +16,7 @@ from test.dns.test_rackspace import RackspaceMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.exception import LibcloudError
+from libcloud_rest.exception import NoSuchZoneError, LibcloudError
 from tests.file_fixtures import DNSFixtures
 
 
@@ -76,8 +76,9 @@ class RackspaceUSTests(unittest2.TestCase):
         url = self.url_tmpl % '/'.join(['zones', str(zone_id), 'records'])
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
-        self.assertEqual(resp_data['error']['code'], LibcloudError.code)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
+        print resp_data
 
 
 if __name__ == '__main__':

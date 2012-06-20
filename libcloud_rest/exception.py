@@ -6,6 +6,7 @@ try:
 except ImportError:
     import json
 
+from libcloud.dns import types
 
 class MissingArguments(Exception):
 
@@ -110,3 +111,34 @@ class MalformedJSONError(LibcloudRestError):
     name = 'MalformedJSON'
     http_status_code = httplib.BAD_REQUEST
     message = 'The JSON you provided is not well-formed.'
+
+class NoSuchZoneError(LibcloudRestError):
+    code = 1008
+    name = 'NoSuchZone'
+    http_status_code = httplib.NOT_FOUND
+    message = 'The specified zone does not exist'
+
+class ZoneAlreadyExistsError(LibcloudError):
+    code = 1009
+    name = 'ZoneAlreadyExists'
+    http_status_code = httplib.CONFLICT
+    message = 'The requested zone already exists.'
+
+class NoSuchRecordError(LibcloudRestError):
+    code = 1009
+    name = 'NoSuchRecord'
+    http_status_code = httplib.NOT_FOUND
+    message = 'The specified record does not exist'
+
+class RecordAlreadyExistsError(LibcloudError):
+    code = 1010
+    name = 'RecordAlreadyExists'
+    http_status_code = httplib.CONFLICT
+    message = 'The requested record already exists.'
+
+INTERNAL_LIBCLOUD_ERRORS_MAP = {
+    types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
+    types.ZoneDoesNotExistError: NoSuchZoneError,
+    types.RecordAlreadyExistsError: RecordAlreadyExistsError,
+    types.RecordDoesNotExistError: NoSuchRecordError,
+    }
