@@ -78,7 +78,19 @@ class RackspaceUSTests(unittest2.TestCase):
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
         self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
-        print resp_data
+
+    def test_update_zone_not_successful(self):
+        url = self.url_tmpl % 'zones'
+        zones_resp = self.client.get(url, headers=self.headers)
+        zones_resp_data = json.loads(zones_resp.data)
+        zone_id = zones_resp_data[0]['id']
+        url = self.url_tmpl % '/'.join(['zones', str(zone_id)])
+        resp = self.client.put(url, headers=self.headers,
+                               data='{"domain": "libcloud.org"}',
+                               content_type='application/json')
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
+        self.assertEqual(resp_data['error']['code'], LibcloudError.code)
 
 
 if __name__ == '__main__':

@@ -56,6 +56,9 @@ dns_urls = Submount(prefix + '/dns/', [
          methods=['GET']),
     Rule('/<string:provider>/zones', endpoint=(DNSHandler, 'create_zone'),
          methods=['POST']),
+    Rule('/<string:provider>/zones/<string:zone_id>',
+         endpoint=(DNSHandler, 'update_zone'),
+         methods=['PUT']),
     ])
 
 urls = Map([

@@ -87,7 +87,7 @@ class BaseServiceHandler(BaseHandler):
         try:
             result = method(*args, **kwargs)
         except Exception, e:
-            for libcloud_error, error  in INTERNAL_LIBCLOUD_ERRORS_MAP.items():
+            for libcloud_error, error in INTERNAL_LIBCLOUD_ERRORS_MAP.items():
                 if isinstance(e, libcloud_error):
                     raise error()
             else:
@@ -228,3 +228,20 @@ class DNSHandler(BaseServiceHandler):
         zone = self._execute_driver_method('create_zone', **create_zone_args)
         return self.json_response(zone,
                                   status_code=httplib.CREATED)
+
+    def update_zone(self):
+        update_zone_validator = valid.DictValidator({
+            'domain': valid.StringValidator(required=False),
+            'type': valid.StringValidator(required=False),
+            'ttl': valid.IntegerValidator(required=False)
+        })
+        zone_id = self.params.get('zone_id', None)
+        zone = self._execute_driver_method('get_zone', zone_id)
+        zone_data = self._load_json(self.request.data, update_zone_validator)
+        update_zone_args = {}
+        for arg in update_zone_validator.items_validators.keys():
+            if zone_data.get(arg, None):
+                update_zone_args[arg] = zone_data[arg]
+        updated_zone = self._execute_driver_method('update_zone',
+                                                   zone, **update_zone_args)
+        return self.json_response(updated_zone)

@@ -37,7 +37,7 @@ def get_providers_dict(drivers, providers):
                 'id': provider_name.upper(),
                 'friendly_name': getattr(Driver, 'name', ''),
                 'website': getattr(Driver, 'website', ''),
-            })
+                })
         except ProviderNotSupportedError:
             pass
     return result
@@ -101,7 +101,12 @@ class ExtJSONEndoder(json.JSONEncoder):
                 render_attrs = self.obj_attrs[obj_attr_cls]
                 break
         else:
-            raise KeyError('Unknown object type: %s' % str(type(obj)))
+            try:
+                iterable = iter(obj)
+            except TypeError:
+                raise KeyError('Unknown object type: %s' % str(type(obj)))
+            else:
+                return list(iterable)
         return dict(
             ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
         )

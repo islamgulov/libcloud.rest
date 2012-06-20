@@ -67,6 +67,24 @@ class ZerigoTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
+    def test_update_zone_success(self):
+        ZerigoMockHttp.type = None
+        url = self.url_tmpl % 'zones'
+        zones_resp = self.client.get(url, headers=self.headers)
+        zones_resp_data = json.loads(zones_resp.data)
+        zone = zones_resp_data[0]
+        url = self.url_tmpl % '/'.join(['zones', zone['id']])
+        resp = self.client.put(url, headers=self.headers,
+                               data='{"ttl": 10}',
+                               content_type='application/json')
+        updated_zone = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(updated_zone['id'], zone['id'])
+        self.assertEqual(updated_zone['domain'], 'example.com')
+        self.assertEqual(updated_zone['type'], zone['type'])
+        self.assertEqual(updated_zone['ttl'], 10)
+
+
 if __name__ == '__main__':
     import tests
     sys.exit(unittest2.main())
