@@ -11,6 +11,7 @@ except ImportError:
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
+from libcloud.dns.types import RecordType
 from test.dns.test_rackspace import RackspaceMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
@@ -25,9 +26,10 @@ class RackspaceUSTests(unittest2.TestCase):
                         '/dns/RACKSPACE_US/%s?test=1'
         self.client = Client(LibcloudRestApp(), BaseResponse)
         self.fixtures = ComputeFixtures('rackspace_us')
-        self.headers = {'x-auth-user': 'a', 'x-api-key': 'b'}
+        self.headers = {'x-auth-user': 'user', 'x-api-key': 'key'}
 
     def test_list_zones(self):
+        RackspaceMockHttp.type = None
         url = self.url_tmpl % 'zones'
         resp = self.client.get(url, headers=self.headers)
         zones = json.loads(resp.data)
@@ -51,5 +53,34 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(len(zones), 0)
         self.assertEqual(resp.status_code, httplib.OK)
 
+    def test_list_records_success(self):
+        RackspaceMockHttp.type = None
+        url = self.url_tmpl % 'zones'
+        zones_resp = self.client.get(url, headers=self.headers)
+        zones_resp_data = json.loads(zones_resp.data)
+        zone_id = zones_resp_data[0]['id']
+        url = self.url_tmpl % '/'.join(['zones', str(zone_id), 'records'])
+        resp = self.client.get(url, headers=self.headers)
+        records = json.loads(resp.data)
+        self.assertEqual(len(records), 3)
+        self.assertEqual(records[0]['name'], 'test3')
+        self.assertEqual(records[0]['type'], RecordType.A)
+        self.assertEqual(records[0]['data'], '127.7.7.7')
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_list_records_zone_does_not_exist(self):
+        RackspaceMockHttp.type = None
+        url = self.url_tmpl % 'zones'
+        zones_resp = self.client.get(url, headers=self.headers)
+        zones_resp_data = json.loads(zones_resp.data)
+        zone_id = zones_resp_data[0]['id']
+        RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
+        url = self.url_tmpl % '/'.join(['zones', str(zone_id), 'records'])
+        resp = self.client.get(url, headers=self.headers)
+        records = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
+
+
 if __name__ == '__main__':
+    import tests
     sys.exit(unittest2.main())

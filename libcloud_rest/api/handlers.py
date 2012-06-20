@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import httplib
 import inspect
+import traceback
 
 try:
     import simplejson as json
@@ -19,10 +20,11 @@ from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import InternalError,\
-    LibcloudError, MalformedJSONError
+    LibcloudError, MalformedJSONError, LibcloudRestError
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
+from libcloud_rest.log import logger
 
 
 class BaseHandler(object):
@@ -85,11 +87,12 @@ class BaseServiceHandler(BaseHandler):
         try:
             result = method(*args, **kwargs)
         except Exception, e:
+            logger.debug(traceback.format_exc())
             raise LibcloudError(detail=str(e))
         return result
 
-    def _list_objects_request_execute(self, method_name):
-        data = self._execute_driver_method(method_name)
+    def _list_objects_request_execute(self, method_name, *args, **kwargs):
+        data = self._execute_driver_method(method_name, *args, **kwargs)
         return self.json_response(data)
 
     def _load_json(self, data, validator=None):
@@ -196,6 +199,17 @@ class DNSHandler(BaseServiceHandler):
 
     obj_attrs = {
         dns_base.Zone: ['id', 'domain', 'type', 'ttl'],
+        dns_base.Record: ['id', 'name', 'type', 'data']
     }
 
     list_zones = lambda self: self._list_objects_request_execute('list_zones')
+
+    def list_records(self):
+        zone_id = self.params.get('zone_id', None)
+        zones = self._execute_driver_method('list_zones')
+        for zone in zones:
+            if zone.id == zone_id:
+                break
+        else:
+            raise LibcloudRestError(detail='Unknown zone id')
+        return self._list_objects_request_execute('list_records', zone=zone)
