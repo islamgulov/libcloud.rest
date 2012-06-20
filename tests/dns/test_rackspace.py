@@ -11,9 +11,11 @@ except ImportError:
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
+from test.dns.test_rackspace import RackspaceMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
+from libcloud_rest.exception import LibcloudError
 from tests.file_fixtures import ComputeFixtures
 
 
@@ -31,6 +33,22 @@ class RackspaceUSTests(unittest2.TestCase):
         zones = json.loads(resp.data)
         self.assertEqual(len(zones), 6)
         self.assertEqual(zones[0]['domain'], 'foo4.bar.com')
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_list_zones_not_successful(self):
+        RackspaceMockHttp.type = '413'
+        url = self.url_tmpl % 'zones'
+        resp = self.client.get(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
+        self.assertEqual(resp_data['error']['code'], LibcloudError.code)
+
+    def test_list_zones_no_result(self):
+        RackspaceMockHttp.type = 'NO_RESULTS'
+        url = self.url_tmpl % 'zones'
+        resp = self.client.get(url, headers=self.headers)
+        zones = json.loads(resp.data)
+        self.assertEqual(len(zones), 0)
         self.assertEqual(resp.status_code, httplib.OK)
 
 if __name__ == '__main__':

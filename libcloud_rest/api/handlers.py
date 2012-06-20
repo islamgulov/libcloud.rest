@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import copy
 import httplib
 import inspect
 
@@ -72,9 +71,8 @@ class BaseServiceHandler(BaseHandler):
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
         if self.request.query_string == TEST_QUERY_STRING and DEBUG:
-            from tests.utils import patch_driver
-            Driver_copy = patch_driver(Driver)
-            driver_instance = get_driver_instance(Driver_copy, **api_data)
+            from tests.utils import get_test_driver_instance
+            driver_instance = get_test_driver_instance(Driver, **api_data)
         else:
             driver_instance = get_driver_instance(Driver, **api_data)
         return driver_instance
