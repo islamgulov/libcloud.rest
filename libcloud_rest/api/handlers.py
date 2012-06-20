@@ -213,3 +213,19 @@ class DNSHandler(BaseServiceHandler):
         else:
             raise LibcloudRestError(detail='Unknown zone id')
         return self._list_objects_request_execute('list_records', zone=zone)
+
+    def create_zone(self):
+        zone_validator = valid.DictValidator({
+            'domain': valid.StringValidator(),
+            'type': valid.StringValidator(),
+            'ttl': valid.IntegerValidator(required=False)
+        })
+        zone_data = self._load_json(self.request.data, zone_validator)
+        create_zone_args = {
+            'domain': zone_data['domain'],
+            'type': zone_data['type'],
+            'ttl': zone_data.get('ttl', None)
+        }
+        zone = self._execute_driver_method('create_zone', **create_zone_args)
+        return self.json_response(zone,
+                                  status_code=httplib.CREATED)

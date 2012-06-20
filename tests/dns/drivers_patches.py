@@ -1,8 +1,11 @@
 # -*- coding:utf-8 -*-
 from libcloud.dns.drivers.rackspace import RackspaceUSDNSDriver
 from test.dns.test_rackspace import RackspaceMockHttp
+from libcloud.dns.drivers.zerigo import ZerigoDNSDriver
+from test.dns.test_zerigo import ZerigoMockHttp
 
-from tests.patch import BaseDriverPatch
+
+from tests.patch import BaseDriverPatch, ConnClassDriverPatch
 
 
 class RackspaceDNSPatch(BaseDriverPatch):
@@ -24,5 +27,7 @@ class RackspaceDNSPatch(BaseDriverPatch):
         RackspaceMockHttp.type = self._mock_type
 
 PATCHES = {
-    RackspaceUSDNSDriver.__name__: RackspaceDNSPatch()
+    RackspaceUSDNSDriver.__name__: RackspaceDNSPatch(),
+    ZerigoDNSDriver.__name__: ConnClassDriverPatch(None, ZerigoMockHttp)
+
 }

@@ -1,0 +1,5 @@
+{
+    "domain": "foo.bar.com",
+    "type": "master",
+    "ttl": "str"
+}

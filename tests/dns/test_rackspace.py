@@ -17,7 +17,7 @@ from test.dns.test_rackspace import RackspaceMockHttp
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from libcloud_rest.exception import LibcloudError
-from tests.file_fixtures import ComputeFixtures
+from tests.file_fixtures import DNSFixtures
 
 
 class RackspaceUSTests(unittest2.TestCase):
@@ -25,11 +25,11 @@ class RackspaceUSTests(unittest2.TestCase):
         self.url_tmpl = rest_versions[libcloud.__version__] +\
                         '/dns/RACKSPACE_US/%s?test=1'
         self.client = Client(LibcloudRestApp(), BaseResponse)
-        self.fixtures = ComputeFixtures('rackspace_us')
+        self.fixtures = DNSFixtures('rackspace_us')
         self.headers = {'x-auth-user': 'user', 'x-api-key': 'key'}
+        RackspaceMockHttp.type = None
 
     def test_list_zones(self):
-        RackspaceMockHttp.type = None
         url = self.url_tmpl % 'zones'
         resp = self.client.get(url, headers=self.headers)
         zones = json.loads(resp.data)
@@ -54,7 +54,6 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_records_success(self):
-        RackspaceMockHttp.type = None
         url = self.url_tmpl % 'zones'
         zones_resp = self.client.get(url, headers=self.headers)
         zones_resp_data = json.loads(zones_resp.data)
@@ -69,7 +68,6 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_records_zone_does_not_exist(self):
-        RackspaceMockHttp.type = None
         url = self.url_tmpl % 'zones'
         zones_resp = self.client.get(url, headers=self.headers)
         zones_resp_data = json.loads(zones_resp.data)

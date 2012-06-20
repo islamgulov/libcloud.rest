@@ -41,3 +41,4 @@ class FileFixtures(object):
 
 
 ComputeFixtures = functools.partial(FileFixtures, 'compute')
+DNSFixtures = functools.partial(FileFixtures, 'dns')
