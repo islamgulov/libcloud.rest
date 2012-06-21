@@ -73,3 +73,8 @@ class TestDocstring(unittest2.TestCase):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS
         self._check_website(providers, drivers)
+
+    def test_dns_provider_website(self):
+        providers = dns_providers.Provider
+        drivers = dns_providers.DRIVERS
+        self._check_website(providers, drivers)
