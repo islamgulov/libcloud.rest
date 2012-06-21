@@ -15,12 +15,12 @@ class RackspaceDNSPatch(BaseDriverPatch):
     """
     conn_classes = (None, RackspaceMockHttp)
 
-    def preprocess(self, Driver):
+    def pre_process(self, Driver):
         self._mock_type = RackspaceMockHttp.type
         RackspaceMockHttp.type = None
         Driver.connectionCls.conn_classes = self.conn_classes
 
-    def postprocess(self, driver):
+    def post_process(self, driver):
         driver.connection.poll_interval = 0.0
         # normally authentication happens lazily, but we force it here
         driver.connection._populate_hosts_and_request_paths()
