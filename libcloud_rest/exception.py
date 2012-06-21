@@ -39,7 +39,7 @@ class LibcloudRestError(Exception):
     http_status_code = httplib.INTERNAL_SERVER_ERROR
 
     def __init__(self, **kwargs):
-        self.message = self.message % kwargs
+        self.message = self.message % (kwargs)
         self.detail = kwargs.pop('detail', '')
         super(LibcloudRestError, self).__init__()
 

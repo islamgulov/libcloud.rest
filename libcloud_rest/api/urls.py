@@ -13,7 +13,7 @@ __all__ = [
     'urls',
     ]
 
-prefix = '/%s' % versions[libcloud.__version__]
+prefix = '/%s' % (versions[libcloud.__version__])
 
 compute_urls = Submount(prefix + '/compute/', [
     Rule('/providers', endpoint=(ComputeHandler, 'providers'),

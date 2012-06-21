@@ -104,7 +104,7 @@ class ExtJSONEndoder(json.JSONEncoder):
             try:
                 iterable = iter(obj)
             except TypeError:
-                raise KeyError('Unknown object type: %s' % str(type(obj)))
+                raise KeyError('Unknown object type: %s' % (str(type(obj))))
             else:
                 return list(iterable)
         return dict(

@@ -30,7 +30,7 @@ class ZerigoTests(unittest2.TestCase):
 
     def test_create_zone_success(self):
         ZerigoMockHttp.type = 'CREATE_ZONE'
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         test_request = self.fixtures.load('create_zone_valid.json')
         test_request_json = json.loads(test_request)
         resp = self.client.post(url,
@@ -44,7 +44,7 @@ class ZerigoTests(unittest2.TestCase):
 
     def test_create_zone_libcloud_error(self):
         ZerigoMockHttp.type = 'CREATE_ZONE_VALIDATION_ERROR'
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         test_request = self.fixtures.load('create_zone_bad_ttl.json')
         test_request_json = json.loads(test_request)
         resp = self.client.post(url,
@@ -56,7 +56,7 @@ class ZerigoTests(unittest2.TestCase):
         self.assertEqual(resp_data['error']['code'], LibcloudError.code)
 
     def test_create_zone_validation_error(self):
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         test_request = self.fixtures.load('create_zone_invalid.json')
         test_request_json = json.loads(test_request)
         resp = self.client.post(url,
@@ -69,11 +69,11 @@ class ZerigoTests(unittest2.TestCase):
 
     def test_update_zone_success(self):
         ZerigoMockHttp.type = None
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         zones_resp = self.client.get(url, headers=self.headers)
         zones_resp_data = json.loads(zones_resp.data)
         zone = zones_resp_data[0]
-        url = self.url_tmpl % '/'.join(['zones', zone['id']])
+        url = self.url_tmpl % ('/'.join(['zones', zone['id']]))
         resp = self.client.put(url, headers=self.headers,
                                data='{"ttl": 10}',
                                content_type='application/json')

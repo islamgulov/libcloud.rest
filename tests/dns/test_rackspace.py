@@ -30,7 +30,7 @@ class RackspaceUSTests(unittest2.TestCase):
         RackspaceMockHttp.type = None
 
     def test_list_zones(self):
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         resp = self.client.get(url, headers=self.headers)
         zones = json.loads(resp.data)
         self.assertEqual(len(zones), 6)
@@ -39,7 +39,7 @@ class RackspaceUSTests(unittest2.TestCase):
 
     def test_list_zones_not_successful(self):
         RackspaceMockHttp.type = '413'
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
@@ -47,18 +47,18 @@ class RackspaceUSTests(unittest2.TestCase):
 
     def test_list_zones_no_result(self):
         RackspaceMockHttp.type = 'NO_RESULTS'
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         resp = self.client.get(url, headers=self.headers)
         zones = json.loads(resp.data)
         self.assertEqual(len(zones), 0)
         self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_records_success(self):
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         zones_resp = self.client.get(url, headers=self.headers)
         zones_resp_data = json.loads(zones_resp.data)
         zone_id = zones_resp_data[0]['id']
-        url = self.url_tmpl % '/'.join(['zones', str(zone_id), 'records'])
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
         resp = self.client.get(url, headers=self.headers)
         records = json.loads(resp.data)
         self.assertEqual(len(records), 3)
@@ -68,23 +68,23 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_records_zone_does_not_exist(self):
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         zones_resp = self.client.get(url, headers=self.headers)
         zones_resp_data = json.loads(zones_resp.data)
         zone_id = zones_resp_data[0]['id']
         RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
-        url = self.url_tmpl % '/'.join(['zones', str(zone_id), 'records'])
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
         resp = self.client.get(url, headers=self.headers)
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
         self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
 
     def test_update_zone_not_successful(self):
-        url = self.url_tmpl % 'zones'
+        url = self.url_tmpl % ('zones')
         zones_resp = self.client.get(url, headers=self.headers)
         zones_resp_data = json.loads(zones_resp.data)
         zone_id = zones_resp_data[0]['id']
-        url = self.url_tmpl % '/'.join(['zones', str(zone_id)])
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id)]))
         resp = self.client.put(url, headers=self.headers,
                                data='{"domain": "libcloud.org"}',
                                content_type='application/json')

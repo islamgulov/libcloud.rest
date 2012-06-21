@@ -25,7 +25,7 @@ class CloudstackTests(unittest2.TestCase):
         self.fixtures = ComputeFixtures('cloudstack')
 
     def test_list_nodes(self):
-        url = self.url_tmpl % 'nodes'
+        url = self.url_tmpl % ('nodes')
         headers = {'x-auth-user': 'apikey', 'x-api-key': 'secret',
                    'x-provider-path': '/test/path',
                    'x-provider-host': 'api.dummy.com'}
@@ -36,7 +36,7 @@ class CloudstackTests(unittest2.TestCase):
         self.assertEqual(resp_data, test_data)
 
     def test_bad_headers(self):
-        url = self.url_tmpl % 'nodes'
+        url = self.url_tmpl % ('nodes')
         headers = {'x-auth-user': 'apikey'}
         resp = self.client.get(url, headers=headers)
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)

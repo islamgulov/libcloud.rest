@@ -44,7 +44,7 @@ def get_method_requirements(method):
     """
     method_docstring = inspect.getdoc(method)
     if method_docstring is None:
-        raise NotImplementedError('Missing %s docstring' % REQUIRES_FIELD)
+        raise NotImplementedError('Missing %s docstring' % (REQUIRES_FIELD))
     for docstring_line in method_docstring.splitlines():
         if docstring_line.startswith(REQUIRES_FIELD):
             _, args = docstring_line.split(':')
@@ -53,4 +53,4 @@ def get_method_requirements(method):
                 args_list.append([arg.strip() for arg in alt_arg.split('or')])
             return args_list
     else:
-        raise NotImplementedError('Missing %s docstring' % REQUIRES_FIELD)
+        raise NotImplementedError('Missing %s docstring' % (REQUIRES_FIELD))
