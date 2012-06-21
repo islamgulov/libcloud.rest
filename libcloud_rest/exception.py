@@ -129,14 +129,14 @@ class ZoneAlreadyExistsError(LibcloudError):
 
 
 class NoSuchRecordError(LibcloudRestError):
-    code = 1009
+    code = 1010
     name = 'NoSuchRecord'
     http_status_code = httplib.NOT_FOUND
     message = 'The specified record does not exist'
 
 
 class RecordAlreadyExistsError(LibcloudError):
-    code = 1010
+    code = 1011
     name = 'RecordAlreadyExists'
     http_status_code = httplib.CONFLICT
     message = 'The requested record already exists.'
