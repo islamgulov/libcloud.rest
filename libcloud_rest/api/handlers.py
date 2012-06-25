@@ -302,3 +302,12 @@ class DNSHandler(BaseServiceHandler):
         updated_record = self._execute_driver_method('update_record',
                                                 record, **update_record_args)
         return self.json_response(updated_record)
+
+    def delete_record(self):
+        zone_id = self.params.get('zone_id', None)
+        record_id = self.params.get('record_id', None)
+        record = self._execute_driver_method('get_record', zone_id=zone_id,
+                                             record_id=record_id)
+        self._execute_driver_method('delete_record', record)
+        return self.json_response("", status_code=httplib.NO_CONTENT)
+

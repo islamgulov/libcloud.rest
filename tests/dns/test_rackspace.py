@@ -20,7 +20,7 @@ from mock import patch
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from libcloud_rest.exception import NoSuchZoneError, LibcloudError, \
-    NoSuchRecordError, ValidationError
+    NoSuchRecordError, ValidationError, NoSuchRecordError
 from tests.file_fixtures import DNSFixtures
 
 
@@ -222,6 +222,48 @@ class RackspaceUSTests(unittest2.TestCase):
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
+
+    def test_delete_record_success(self):
+        zone_data = self.get_zones()[0]
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records']))
+        record_resp = self.client.get(url, headers=self.headers)
+        record_data = json.loads(record_resp.data)[0]
+        zone = Zone(zone_data['id'], zone_data['domain'], zone_data['type'],
+                    zone_data['ttl'], None)
+        record = Record(record_data['id'], record_data['name'],
+                        record_data['type'], record_data['data'],
+                        zone, None)
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records', str(record_data['id'])]))
+        with patch.object(RackspaceUSDNSDriver, 'get_record',
+                          mocksignature=True) as get_record_mock:
+            get_record_mock.return_value = record
+            resp = self.client.delete(url, headers=self.headers)
+        self.assertEqual(resp.status_code, 204)
+
+
+    def test_delete_record_does_not_exists(self):
+        zone_data = self.get_zones()[0]
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records']))
+        record_resp = self.client.get(url, headers=self.headers)
+        record_data = json.loads(record_resp.data)[0]
+        zone = Zone(zone_data['id'], zone_data['domain'], zone_data['type'],
+                    zone_data['ttl'], None)
+        record = Record(record_data['id'], record_data['name'],
+                        record_data['type'], record_data['data'],
+                        zone, None)
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records', str(record_data['id'])]))
+        RackspaceMockHttp.type = 'RECORD_DOES_NOT_EXIST'
+        with patch.object(RackspaceUSDNSDriver, 'get_record',
+                          mocksignature=True) as get_record_mock:
+            get_record_mock.return_value = record
+            resp = self.client.delete(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp_data['error']['code'], NoSuchRecordError.code)
 
 if __name__ == '__main__':
     import tests
