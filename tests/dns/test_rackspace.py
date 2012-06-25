@@ -92,6 +92,27 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
         self.assertEqual(resp_data['error']['code'], LibcloudError.code)
 
+    def test_delete_zone_success(self):
+        url = self.url_tmpl % ('zones')
+        zones_resp = self.client.get(url, headers=self.headers)
+        zones_resp_data = json.loads(zones_resp.data)
+        zone_id = zones_resp_data[0]['id']
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id)]))
+        resp = self.client.delete(url, headers=self.headers)
+        self.assertEqual(resp.status_code, 204)
+
+    def test_delete_does_not_exists(self):
+        url = self.url_tmpl % ('zones')
+        zones_resp = self.client.get(url, headers=self.headers)
+        zones_resp_data = json.loads(zones_resp.data)
+        zone_id = zones_resp_data[0]['id']
+        RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id)]))
+        resp = self.client.delete(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
+
 
 if __name__ == '__main__':
     import tests

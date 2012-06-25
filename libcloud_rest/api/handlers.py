@@ -208,6 +208,12 @@ class DNSHandler(BaseServiceHandler):
 
     list_zones = lambda self: self._list_objects_request_execute('list_zones')
 
+    def delete_zone(self):
+        zone_id = self.params.get('zone_id', None)
+        zone = self._execute_driver_method('get_zone', zone_id)
+        self._execute_driver_method('delete_zone', zone)
+        return self.json_response("", status_code=httplib.NO_CONTENT)
+
     def list_records(self):
         zone_id = self.params.get('zone_id', None)
         zone = self._execute_driver_method('get_zone', zone_id)
