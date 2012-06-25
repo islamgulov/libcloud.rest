@@ -14,7 +14,7 @@ from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.dns.types import RecordType
 from test.dns.test_rackspace import RackspaceMockHttp, RackspaceUSDNSDriver
-from libcloud.dns.base import Zone
+from libcloud.dns.base import Zone, Record
 from mock import patch
 
 from libcloud_rest.api.versions import versions as rest_versions
@@ -32,6 +32,11 @@ class RackspaceUSTests(unittest2.TestCase):
         self.fixtures = DNSFixtures('rackspace_us')
         self.headers = {'x-auth-user': 'user', 'x-api-key': 'key'}
         RackspaceMockHttp.type = None
+
+    def get_zones(self):
+        url = self.url_tmpl % ('zones')
+        zones_resp = self.client.get(url, headers=self.headers)
+        return json.loads(zones_resp.data)
 
     def test_list_zones(self):
         url = self.url_tmpl % ('zones')
@@ -58,10 +63,7 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_records_success(self):
-        url = self.url_tmpl % ('zones')
-        zones_resp = self.client.get(url, headers=self.headers)
-        zones_resp_data = json.loads(zones_resp.data)
-        zone_id = zones_resp_data[0]['id']
+        zone_id = self.get_zones()[0]['id']
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
         resp = self.client.get(url, headers=self.headers)
         records = json.loads(resp.data)
@@ -72,10 +74,7 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_records_zone_does_not_exist(self):
-        url = self.url_tmpl % ('zones')
-        zones_resp = self.client.get(url, headers=self.headers)
-        zones_resp_data = json.loads(zones_resp.data)
-        zone_id = zones_resp_data[0]['id']
+        zone_id = self.get_zones()[0]['id']
         RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
         resp = self.client.get(url, headers=self.headers)
@@ -84,10 +83,7 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
 
     def test_update_zone_not_successful(self):
-        url = self.url_tmpl % ('zones')
-        zones_resp = self.client.get(url, headers=self.headers)
-        zones_resp_data = json.loads(zones_resp.data)
-        zone_id = zones_resp_data[0]['id']
+        zone_id = self.get_zones()[0]['id']
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id)]))
         resp = self.client.put(url, headers=self.headers,
                                data='{"domain": "libcloud.org"}',
@@ -106,10 +102,7 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, 204)
 
     def test_delete_does_not_exists(self):
-        url = self.url_tmpl % ('zones')
-        zones_resp = self.client.get(url, headers=self.headers)
-        zones_resp_data = json.loads(zones_resp.data)
-        zone_id = zones_resp_data[0]['id']
+        zone_id = self.get_zones()[0]['id']
         RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id)]))
         resp = self.client.delete(url, headers=self.headers)
@@ -153,15 +146,13 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp_data['error']['code'], NoSuchRecordError.code)
 
     def test_create_record_success(self):
-        url = self.url_tmpl % ('zones')
-        zones_resp = self.client.get(url, headers=self.headers)
-        zone_data = json.loads(zones_resp.data)[0]
-        zone_id = zone_data['id']
-        zone = Zone(zone_id, zone_data['domain'], zone_data['type'],
+        zone_data = self.get_zones()[0]
+        zone = Zone(zone_data['id'], zone_data['domain'], zone_data['type'],
                     zone_data['ttl'], None)
 
         RackspaceMockHttp.type = 'CREATE_RECORD'
-        url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records']))
         test_request = self.fixtures.load('create_record.json')
         test_request_json = json.loads(test_request)
         with patch.object(RackspaceUSDNSDriver, 'get_zone',
@@ -189,6 +180,48 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
+    def test_update_record_success(self):
+        zone_data = self.get_zones()[0]
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records']))
+        record_resp = self.client.get(url, headers=self.headers)
+        record_data = json.loads(record_resp.data)[0]
+        zone = Zone(zone_data['id'], zone_data['domain'], zone_data['type'],
+                    zone_data['ttl'], None)
+        record = Record(record_data['id'], record_data['name'],
+                        record_data['type'], record_data['data'],
+                        zone, None)
+
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records', str(record.id)]))
+        with patch.object(RackspaceUSDNSDriver, 'get_record',
+                          mocksignature=True) as get_record_mock:
+            get_record_mock.return_value = record
+            resp = self.client.put(url, headers=self.headers,
+                                   data='{"data": "127.3.3.3"}',
+                                   content_type='application/json')
+        updated_record = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(record.name, 'test3')
+        self.assertEqual(record.data, '127.7.7.7')
+
+        self.assertEqual(updated_record['id'], record.id)
+        self.assertEqual(updated_record['name'], record.name)
+        self.assertEqual(updated_record['type'], record.type)
+        self.assertEqual(updated_record['data'], '127.3.3.3')
+
+    def test_create_record_validation_error(self):
+        zone_id = '123'
+        record_id = '123'
+        url = self.url_tmpl % ('/'.join(['zones', zone_id,
+                                         'records', record_id]))
+        resp = self.client.put(url, headers=self.headers,
+                               data='{"type": "127.3.3.3"}',
+                               content_type='application/json')
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(resp_data['error']['code'], ValidationError.code)
 
 if __name__ == '__main__':
     import tests

@@ -282,3 +282,23 @@ class DNSHandler(BaseServiceHandler):
                                              **create_record_args)
         return self.json_response(record,
                                   status_code=httplib.CREATED)
+
+    def update_record(self):
+        update_record_validator = valid.DictValidator({
+            'name': valid.StringValidator(required=False),
+            'type': valid.IntegerValidator(required=False),
+            'data': valid.StringValidator(required=False),
+            })
+        record_data = self._load_json(self.request.data,
+                                      update_record_validator)
+        zone_id = self.params.get('zone_id', None)
+        record_id = self.params.get('record_id', None)
+        record = self._execute_driver_method('get_record', zone_id=zone_id,
+                                             record_id=record_id)
+        update_record_args = {}
+        for arg in update_record_validator.items_validators.keys():
+            if record_data.get(arg, None):
+                update_record_args[arg] = record_data[arg]
+        updated_record = self._execute_driver_method('update_record',
+                                                record, **update_record_args)
+        return self.json_response(updated_record)
