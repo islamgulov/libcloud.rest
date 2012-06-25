@@ -16,7 +16,8 @@ from test.dns.test_rackspace import RackspaceMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.exception import NoSuchZoneError, LibcloudError
+from libcloud_rest.exception import NoSuchZoneError, LibcloudError, \
+    NoSuchRecordError
 from tests.file_fixtures import DNSFixtures
 
 
@@ -113,6 +114,40 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
         self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
 
+    def test_get_record_success(self):
+        RackspaceMockHttp.type = None
+        zone_id = '12345678'
+        record_id = '23456789'
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id),
+                                         'records', str(record_id)]))
+        resp = self.client.get(url, headers=self.headers)
+        record = json.loads(resp.data)
+        self.assertEqual(record['id'], 'A-7423034')
+        self.assertEqual(record['name'], 'test3')
+        self.assertEqual(record['type'], RecordType.A)
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_get_record_zone_does_not_exist(self):
+        RackspaceMockHttp.type = 'ZONE_DOES_NOT_EXIST'
+        zone_id = '444'
+        record_id = '23456789'
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id),
+                                         'records', str(record_id)]))
+        resp = self.client.get(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(resp_data['error']['code'], NoSuchZoneError.code)
+
+    def test_get_record_record_does_not_exist(self):
+        RackspaceMockHttp.type = 'RECORD_DOES_NOT_EXIST'
+        zone_id = '12345678'
+        record_id = '28536'
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id),
+                                         'records', str(record_id)]))
+        resp = self.client.get(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(resp_data['error']['code'], NoSuchRecordError.code)
 
 if __name__ == '__main__':
     import tests

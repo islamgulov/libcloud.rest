@@ -251,3 +251,10 @@ class DNSHandler(BaseServiceHandler):
         updated_zone = self._execute_driver_method('update_zone',
                                                    zone, **update_zone_args)
         return self.json_response(updated_zone)
+
+    def get_record(self):
+        zone_id = self.params.get('zone_id', None)
+        record_id = self.params.get('record_id', None)
+        record = self._execute_driver_method('get_record', zone_id=zone_id,
+                                             record_id=record_id)
+        return self.json_response(record)
