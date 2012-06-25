@@ -26,6 +26,9 @@ from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
 from libcloud_rest.log import logger
 
+if DEBUG:
+    import mock
+
 
 class BaseHandler(object):
     obj_attrs = {}
@@ -82,7 +85,8 @@ class BaseServiceHandler(BaseHandler):
     def _execute_driver_method(self, method_name, *args, **kwargs):
         driver = self._get_driver_instance()
         method = getattr(driver, method_name, None)
-        if not inspect.ismethod(method):
+        if not inspect.ismethod(method) and \
+           not (DEBUG and isinstance(method, mock.MagicMock)):
             raise InternalError(detail='Unknown method %s' % (method_name))
         try:
             result = method(*args, **kwargs)
@@ -241,9 +245,9 @@ class DNSHandler(BaseServiceHandler):
             'type': valid.StringValidator(required=False),
             'ttl': valid.IntegerValidator(required=False)
         })
+        zone_data = self._load_json(self.request.data, update_zone_validator)
         zone_id = self.params.get('zone_id', None)
         zone = self._execute_driver_method('get_zone', zone_id)
-        zone_data = self._load_json(self.request.data, update_zone_validator)
         update_zone_args = {}
         for arg in update_zone_validator.items_validators.keys():
             if zone_data.get(arg, None):
@@ -258,3 +262,23 @@ class DNSHandler(BaseServiceHandler):
         record = self._execute_driver_method('get_record', zone_id=zone_id,
                                              record_id=record_id)
         return self.json_response(record)
+
+    def create_record(self):
+        record_validator = valid.DictValidator({
+            'name': valid.StringValidator(),
+            'type': valid.IntegerValidator(),
+            'data': valid.StringValidator(),
+        })
+        record_data = self._load_json(self.request.data, record_validator)
+        zone_id = self.params.get('zone_id', None)
+        zone = self._execute_driver_method('get_zone', zone_id)
+        create_record_args = {
+            'name': record_data['name'],
+            'type': record_data['type'],
+            'data': record_data['data'],
+            'zone': zone,
+        }
+        record = self._execute_driver_method('create_record',
+                                             **create_record_args)
+        return self.json_response(record,
+                                  status_code=httplib.CREATED)

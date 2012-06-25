@@ -3,6 +3,8 @@ from libcloud.dns.drivers.rackspace import RackspaceUSDNSDriver
 from test.dns.test_rackspace import RackspaceMockHttp
 from libcloud.dns.drivers.zerigo import ZerigoDNSDriver
 from test.dns.test_zerigo import ZerigoMockHttp
+from libcloud.dns.drivers.linode import LinodeDNSDriver
+from test.dns.test_linode import LinodeMockHttp
 
 
 from tests.patch import BaseDriverPatch, ConnClassDriverPatch
@@ -28,6 +30,6 @@ class RackspaceDNSPatch(BaseDriverPatch):
 
 PATCHES = {
     RackspaceUSDNSDriver.__name__: RackspaceDNSPatch(),
-    ZerigoDNSDriver.__name__: ConnClassDriverPatch(None, ZerigoMockHttp)
-
+    ZerigoDNSDriver.__name__: ConnClassDriverPatch(None, ZerigoMockHttp),
+    LinodeDNSDriver.__name__: ConnClassDriverPatch(None, LinodeMockHttp),
 }

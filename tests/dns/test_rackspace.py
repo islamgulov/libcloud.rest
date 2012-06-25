@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from __future__ import with_statement
 import sys
 import unittest2
 import httplib
@@ -12,12 +13,14 @@ from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.dns.types import RecordType
-from test.dns.test_rackspace import RackspaceMockHttp
+from test.dns.test_rackspace import RackspaceMockHttp, RackspaceUSDNSDriver
+from libcloud.dns.base import Zone
+from mock import patch
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from libcloud_rest.exception import NoSuchZoneError, LibcloudError, \
-    NoSuchRecordError
+    NoSuchRecordError, ValidationError
 from tests.file_fixtures import DNSFixtures
 
 
@@ -148,6 +151,44 @@ class RackspaceUSTests(unittest2.TestCase):
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
         self.assertEqual(resp_data['error']['code'], NoSuchRecordError.code)
+
+    def test_create_record_success(self):
+        url = self.url_tmpl % ('zones')
+        zones_resp = self.client.get(url, headers=self.headers)
+        zone_data = json.loads(zones_resp.data)[0]
+        zone_id = zone_data['id']
+        zone = Zone(zone_id, zone_data['domain'], zone_data['type'],
+                    zone_data['ttl'], None)
+
+        RackspaceMockHttp.type = 'CREATE_RECORD'
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
+        test_request = self.fixtures.load('create_record.json')
+        test_request_json = json.loads(test_request)
+        with patch.object(RackspaceUSDNSDriver, 'get_zone',
+                          mocksignature=True) as get_zone_mock:
+            get_zone_mock.return_value = zone
+            resp = self.client.post(url, headers=self.headers,
+                                    data=json.dumps(test_request_json),
+                                    content_type='application/json')
+        record = json.loads(resp.data)
+        self.assertEqual(record['id'], 'A-7423317')
+        self.assertEqual(record['name'], 'www')
+        self.assertEqual(record['type'], RecordType.A)
+        self.assertEqual(record['data'], '127.1.1.1')
+        self.assertEqual(resp.status_code, httplib.CREATED)
+
+    def test_create_record_validation_error(self):
+        zone_id = '123'
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
+        test_request = self.fixtures.load('create_record_invalid.json')
+        test_request_json = json.loads(test_request)
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(test_request_json),
+                                content_type='application/json')
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(resp_data['error']['code'], ValidationError.code)
+
 
 if __name__ == '__main__':
     import tests
