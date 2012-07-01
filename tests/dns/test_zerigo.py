@@ -11,7 +11,7 @@ except ImportError:
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
-from test.dns.test_zerigo import ZerigoMockHttp
+from libcloud.test.dns.test_zerigo import ZerigoMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp

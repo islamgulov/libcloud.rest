@@ -310,4 +310,3 @@ class DNSHandler(BaseServiceHandler):
                                              record_id=record_id)
         self._execute_driver_method('delete_record', record)
         return self.json_response("", status_code=httplib.NO_CONTENT)
-

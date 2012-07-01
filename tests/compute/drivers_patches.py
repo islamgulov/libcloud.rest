@@ -2,9 +2,9 @@
 from libcloud.compute.drivers.dummy import DummyNodeDriver
 from libcloud.common.base import ConnectionKey
 from libcloud.compute.drivers.gogrid import GoGridNodeDriver
-from test.compute.test_gogrid import GoGridMockHttp
+from libcloud.test.compute.test_gogrid import GoGridMockHttp
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
-from test.compute.test_cloudstack import CloudStackMockHttp
+from libcloud.test.compute.test_cloudstack import CloudStackMockHttp
 from tests.patch import ConnClassDriverPatch
 
 PATCHES = {

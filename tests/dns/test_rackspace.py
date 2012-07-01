@@ -13,7 +13,8 @@ from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.dns.types import RecordType
-from test.dns.test_rackspace import RackspaceMockHttp, RackspaceUSDNSDriver
+from libcloud.test.dns.test_rackspace import RackspaceMockHttp, \
+    RackspaceUSDNSDriver
 from libcloud.dns.base import Zone, Record
 from mock import patch
 
@@ -242,7 +243,6 @@ class RackspaceUSTests(unittest2.TestCase):
             resp = self.client.delete(url, headers=self.headers)
         self.assertEqual(resp.status_code, 204)
 
-
     def test_delete_record_does_not_exists(self):
         zone_data = self.get_zones()[0]
         url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
@@ -266,5 +266,4 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp_data['error']['code'], NoSuchRecordError.code)
 
 if __name__ == '__main__':
-    import tests
     sys.exit(unittest2.main())

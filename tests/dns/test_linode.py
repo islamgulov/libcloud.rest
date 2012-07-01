@@ -14,7 +14,7 @@ from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.dns.types import RecordType
 from libcloud.dns.base import Zone
-from test.dns.test_linode import LinodeMockHttp, LinodeDNSDriver
+from libcloud.test.dns.test_linode import LinodeMockHttp, LinodeDNSDriver
 import mock
 
 from libcloud_rest.api.versions import versions as rest_versions

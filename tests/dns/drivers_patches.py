@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
 from libcloud.dns.drivers.rackspace import RackspaceUSDNSDriver
-from test.dns.test_rackspace import RackspaceMockHttp
+from libcloud.test.dns.test_rackspace import RackspaceMockHttp
 from libcloud.dns.drivers.zerigo import ZerigoDNSDriver
-from test.dns.test_zerigo import ZerigoMockHttp
+from libcloud.test.dns.test_zerigo import ZerigoMockHttp
 from libcloud.dns.drivers.linode import LinodeDNSDriver
-from test.dns.test_linode import LinodeMockHttp
+from libcloud.test.dns.test_linode import LinodeMockHttp
 
 
 from tests.patch import BaseDriverPatch, ConnClassDriverPatch
