@@ -25,13 +25,13 @@ class BasicEntry(object):
         return args
 
     @classmethod
-    def _get_object(cls, driver, arguments):
+    def _get_object(cls, arguments, driver):
         pass
 
     @classmethod
-    def from_json(cls, driver, params):
+    def from_json(cls, params, driver=None):
         args = cls.validate_input_json(params)
-        return cls._get_object(driver, args)
+        return cls._get_object(args, driver)
 
 
 class NodeEntry(BasicEntry):
@@ -39,7 +39,7 @@ class NodeEntry(BasicEntry):
     arguments = {'node_id': valid.StringValidator()}
 
     @classmethod
-    def _get_object(cls, driver, arguments):
+    def _get_object(cls, arguments, driver):
         nodes_list = driver.list_nodes()
         node_id = arguments['node_id']
         for node in nodes_list:
@@ -48,6 +48,28 @@ class NodeEntry(BasicEntry):
         raise NoSuchObjectError(obj_type='Node')
 
 
+class ZoneEntry(BasicEntry):
+    render_attrs = ['id', 'domain', 'type', 'ttl']
+    arguments = {'zone_id': valid.StringValidator()}
+
+    @classmethod
+    def _get_object(cls, driver, arguments):
+        zone_id = arguments['zone_id']
+        return driver.get_zone(zone_id)
+
+
+class ZoneIDEntry(BasicEntry):
+    render_attrs = ['zone_id']
+    arguments = {'zone_id': valid.StringValidator()}
+
+    @classmethod
+    def _get_object(cls, arguments, driver=None):
+        zone_id = arguments['zone_id']
+        return type('ZoneID', (), {'zone_id': zone_id})
+
+
 LIBCLOUD_TYPES_ENTRIES = {
     'L{Node}': NodeEntry,
+    'L{Zone}': ZoneEntry,
+    'zone_id': ZoneIDEntry,
 }

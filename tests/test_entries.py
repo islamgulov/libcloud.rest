@@ -17,7 +17,6 @@ class TestNodeEntry(unittest2.TestCase):
                                                path='/test/path')
 
     def test_to_json(self):
-
         node = Node('111', 'test', NodeState.RUNNING, ['123.123.123.123'],
                     None, Node)
         json_data = self.entry.to_json(node)
@@ -28,18 +27,33 @@ class TestNodeEntry(unittest2.TestCase):
 
     def test_from_json(self):
         json_data = {'node_id': '2600'}
-        node = self.entry.from_json(self.driver, json_data)
+        node = self.entry.from_json(json_data, self.driver,)
         self.assertEqual(node.id, json_data['node_id'])
         bad_json_data = {'node_id': '0062'}
         self.assertRaises(NoSuchObjectError, self.entry.from_json,
-                          self.driver, bad_json_data)
+                          bad_json_data, self.driver)
 
     def test_validator(self):
         json_data = {'node_id': '2600', 'unknowd_arg': 123}
-        node = self.entry.from_json(self.driver, json_data)
+        node = self.entry.from_json(json_data, self.driver)
         bad_json_data = {'node': '2600'}
         self.assertRaises(ValidationError, self.entry.from_json,
-                          self.driver, bad_json_data)
+                          bad_json_data, self.driver)
         bad_json_data = {'node_id': 2600}
         self.assertRaises(ValidationError, self.entry.from_json,
-                          self.driver, bad_json_data)
+                          bad_json_data, self.driver)
+
+
+class TestZoneIDEntry(unittest2.TestCase):
+    def setUp(self):
+        self.entry = LIBCLOUD_TYPES_ENTRIES['zone_id']
+
+    def test_to_json(self):
+        zone_id = type('ZoneID', (), {'zone_id': '123'})
+        json_data = self.entry.to_json(zone_id)
+        self.assertEqual(zone_id.zone_id, json_data['zone_id'])
+
+    def test_from_json(self):
+        json_data = {'zone_id': '2600'}
+        zone_id = self.entry.from_json(json_data)
+        self.assertEqual(zone_id.zone_id, '2600')
