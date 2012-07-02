@@ -112,29 +112,33 @@ class MalformedJSONError(LibcloudRestError):
     message = 'The JSON you provided is not well-formed.'
 
 
-class NoSuchZoneError(LibcloudRestError):
+class NoSuchObjectError(LibcloudError):
     code = 1008
-    name = 'NoSuchZone'
+    name = 'NoSuchObject'
     http_status_code = httplib.NOT_FOUND
+    message = 'The specified %(obj_type)s does not exist'
+
+
+class NoSuchZoneError(NoSuchObjectError):
     message = 'The specified zone does not exist'
 
 
 class ZoneAlreadyExistsError(LibcloudError):
-    code = 1009
+    code = 1010
     name = 'ZoneAlreadyExists'
     http_status_code = httplib.CONFLICT
     message = 'The requested zone already exists.'
 
 
-class NoSuchRecordError(LibcloudRestError):
-    code = 1010
+class NoSuchRecordError(NoSuchObjectError):
+    code = 1011
     name = 'NoSuchRecord'
     http_status_code = httplib.NOT_FOUND
     message = 'The specified record does not exist'
 
 
 class RecordAlreadyExistsError(LibcloudError):
-    code = 1011
+    code = 1012
     name = 'RecordAlreadyExists'
     http_status_code = httplib.CONFLICT
     message = 'The requested record already exists.'

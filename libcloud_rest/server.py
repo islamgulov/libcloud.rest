@@ -11,7 +11,7 @@ import libcloud_rest.log
 from libcloud_rest.log import get_logger
 from libcloud_rest.constants import VALID_LOG_LEVELS
 
-DEBUG = False
+DEBUG = True
 
 
 def start_server(host, port, logger, debug):
