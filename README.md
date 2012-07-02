@@ -1,4 +1,4 @@
-# libcloud.rest
+# libcloud.rest [![Build Status](https://secure.travis-ci.org/islamgulov/libcloud.rest.png)](http://travis-ci.org/islamgulov/libcloud.rest)
 
 REST interface for [Libcloud][1] which exposes all the Libcloud functionality
 through a RESTful API. Currently Libcloud has a big limitation - you can only
