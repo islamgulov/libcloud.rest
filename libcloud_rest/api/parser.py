@@ -30,7 +30,7 @@ def parse_request_headers(headers):
     request_meta_keys = set(XHEADERS_TO_ARGS_DICT.keys())
     data_headers_keys = request_headers_keys.intersection(request_meta_keys)
     return dict(([XHEADERS_TO_ARGS_DICT[key], headers.get(key, None)]
-        for key in data_headers_keys))
+                for key in data_headers_keys))
 
 
 def get_method_requirements(method):

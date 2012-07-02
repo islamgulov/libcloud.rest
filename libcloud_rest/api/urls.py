@@ -11,7 +11,7 @@ from libcloud_rest.api.versions import versions
 
 __all__ = [
     'urls',
-    ]
+]
 
 prefix = '/%s' % (versions[libcloud.__version__])
 
@@ -35,17 +35,17 @@ compute_urls = Submount(prefix + '/compute/', [
     Rule('/<string:provider>/nodes/<string:node_id>',
          endpoint=(ComputeHandler, 'destroy_node'),
          methods=['DELETE']),
-    ])
+])
 
 storage_urls = Submount(prefix + '/storage/', [
     Rule('/providers', endpoint=(StorageHandler, 'providers'),
          methods=['GET']),
-    ])
+])
 
 loadbalancer_urls = Submount(prefix + '/loadbalancer/', [
     Rule('/providers', endpoint=(LoabBalancerHandler, 'providers'),
          methods=['GET']),
-    ])
+])
 
 dns_urls = Submount(prefix + '/dns/', [
     Rule('/providers', endpoint=(DNSHandler, 'providers'), methods=['GET']),
@@ -63,21 +63,21 @@ dns_urls = Submount(prefix + '/dns/', [
          endpoint=(DNSHandler, 'delete_zone'),
          methods=['DELETE']),
     Rule('/<string:provider>/zones/<string:zone_id>'
-                            '/records/<string:record_id>',
+         '/records/<string:record_id>',
          endpoint=(DNSHandler, 'get_record'),
          methods=['GET']),
     Rule('/<string:provider>/zones/<string:zone_id>/records',
          endpoint=(DNSHandler, 'create_record'),
          methods=['POST']),
     Rule('/<string:provider>/zones/<string:zone_id>/'
-                            'records/<string:record_id>',
+         'records/<string:record_id>',
          endpoint=(DNSHandler, 'update_record'),
          methods=['PUT']),
     Rule('/<string:provider>/zones/<string:zone_id>/'
          'records/<string:record_id>',
          endpoint=(DNSHandler, 'delete_record'),
          methods=['DELETE']),
-    ])
+])
 
 urls = Map([
     Rule('/', endpoint=(ApplicationHandler, 'index'), methods=['GET']),
@@ -85,4 +85,4 @@ urls = Map([
     storage_urls,
     loadbalancer_urls,
     dns_urls,
-    ])
+])

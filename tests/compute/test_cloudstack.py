@@ -20,7 +20,7 @@ from tests.file_fixtures import ComputeFixtures
 class CloudstackTests(unittest2.TestCase):
     def setUp(self):
         self.url_tmpl = rest_versions[libcloud.__version__] +\
-                        '/compute/cloudstack/%s?test=1'
+            '/compute/cloudstack/%s?test=1'
         self.client = Client(LibcloudRestApp(), BaseResponse)
         self.fixtures = ComputeFixtures('cloudstack')
 

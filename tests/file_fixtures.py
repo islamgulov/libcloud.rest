@@ -12,7 +12,7 @@ FIXTURES_ROOT = {
     'storage': 'storage/fixtures',
     'loadbalancer': 'loadbalancer/fixtures',
     'dns': 'dns/fixtures',
-    }
+}
 
 FIXTURES_PREFIX_DIR = {
     '0.10.1': 'v0_10',  # libcloud version:folder

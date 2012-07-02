@@ -28,7 +28,7 @@ from tests.file_fixtures import DNSFixtures
 class RackspaceUSTests(unittest2.TestCase):
     def setUp(self):
         self.url_tmpl = rest_versions[libcloud.__version__] +\
-                        '/dns/RACKSPACE_US/%s?test=1'
+            '/dns/RACKSPACE_US/%s?test=1'
         self.client = Client(LibcloudRestApp(), BaseResponse)
         self.fixtures = DNSFixtures('rackspace_us')
         self.headers = {'x-auth-user': 'user', 'x-api-key': 'key'}

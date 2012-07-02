@@ -48,13 +48,11 @@ class LibcloudRestError(Exception):
 
         @return:
         """
-        data = {'error':
-                        {
-                        'code': self.code,
-                        'name': self.name,
-                        'message': self.message,
-                        'detail': self.detail,
-                        }
+        data = {
+            'error': {'code': self.code,
+                      'name': self.name,
+                      'message': self.message,
+                      'detail': self.detail}
         }
         return json.dumps(data)
 
@@ -147,4 +145,4 @@ INTERNAL_LIBCLOUD_ERRORS_MAP = {
     types.ZoneDoesNotExistError: NoSuchZoneError,
     types.RecordAlreadyExistsError: RecordAlreadyExistsError,
     types.RecordDoesNotExistError: NoSuchRecordError,
-    }
+}

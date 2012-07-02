@@ -31,7 +31,7 @@ class LibcloudRestApp(object):
         request_header_validator = valid.DictValidator({
             'Content-Length': valid.IntegerValidator(max=MAX_BODY_LENGTH),
             'Content-Type': valid.ConstValidator('application/json'),
-            })
+        })
         controller.request = request
         controller.params = params
         action = getattr(controller, action_name)

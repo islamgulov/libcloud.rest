@@ -63,16 +63,17 @@ def main():
     usage = 'usage: %prog'
     parser = OptionParser(usage=usage)
     parser.add_option('--host', dest='host', default='localhost',
-                  help='Host to bind to', metavar='HOST')
+                      help='Host to bind to', metavar='HOST')
     parser.add_option('--port', dest='port', default=5000,
-                  help='Port to listen on', metavar='PORT')
+                      help='Port to listen on', metavar='PORT')
     parser.add_option('--log-level', dest='log_level', default='info',
-                  help='Log level', metavar='LEVEL')
+                      help='Log level', metavar='LEVEL')
     parser.add_option('--log-file', dest='log_file', default=None,
-                  help='Log file path. If not provided logs will go to stdout',
-                  metavar='PATH')
+                      help='Log file path. If not provided'
+                           ' logs will go to stdout',
+                      metavar='PATH')
     parser.add_option('--debug', dest='debug', default=False,
-                  action='store_true', help='Enable debug mode')
+                      action='store_true', help='Enable debug mode')
 
     (options, args) = parser.parse_args()
 
@@ -82,7 +83,7 @@ def main():
     if log_level not in VALID_LOG_LEVELS:
         valid_levels = [value.lower() for value in VALID_LOG_LEVELS]
         raise ValueError('Invalid log level: %s. Valid log levels are: %s' %
-                (options.log_level, ', ' .join(valid_levels)))
+                         (options.log_level, ', ' .join(valid_levels)))
 
     if options.debug:
         log_level = 'DEBUG'

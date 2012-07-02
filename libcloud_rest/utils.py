@@ -13,7 +13,7 @@ from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT
 __all__ = [
     'get_providers_names',
     'get_driver_by_provider_name',
-    ]
+]
 
 
 def get_providers_dict(drivers, providers):
@@ -37,7 +37,7 @@ def get_providers_dict(drivers, providers):
                 'id': provider_name.upper(),
                 'friendly_name': getattr(Driver, 'name', ''),
                 'website': getattr(Driver, 'website', ''),
-                })
+            })
         except ProviderNotSupportedError:
             pass
     return result
@@ -81,7 +81,7 @@ def get_driver_instance(Driver, **kwargs):
         str_repr = ', '.join((
             ' or '.join(ARGS_TO_XHEADERS_DICT[arg] for arg in args)
             for args in error.arguments
-            ))
+        ))
         raise MissingHeadersError(headers=str_repr)
     except UnknownArgument, error:
         raise UnknownHeadersError(headers=str(error.arguments))

@@ -22,7 +22,7 @@ from tests.file_fixtures import DNSFixtures
 class ZerigoTests(unittest2.TestCase):
     def setUp(self):
         self.url_tmpl = rest_versions[libcloud.__version__] +\
-                        '/dns/ZERIGO/%s?test=1'
+            '/dns/ZERIGO/%s?test=1'
         self.client = Client(LibcloudRestApp(), BaseResponse)
         self.fixtures = DNSFixtures('zerigo')
         self.headers = {'x-auth-user': 'email', 'x-api-key': 'api token'}
@@ -34,9 +34,9 @@ class ZerigoTests(unittest2.TestCase):
         test_request = self.fixtures.load('create_zone_valid.json')
         test_request_json = json.loads(test_request)
         resp = self.client.post(url,
-                                      headers=self.headers,
-                                      data=json.dumps(test_request_json),
-                                      content_type='application/json')
+                                headers=self.headers,
+                                data=json.dumps(test_request_json),
+                                content_type='application/json')
         zone = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.CREATED)
         self.assertEqual(zone['id'], '12345679')

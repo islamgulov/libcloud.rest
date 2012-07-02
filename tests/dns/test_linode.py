@@ -25,7 +25,7 @@ from tests.file_fixtures import DNSFixtures
 class LinodeTests(unittest2.TestCase):
     def setUp(self):
         self.url_tmpl = rest_versions[libcloud.__version__] +\
-                        '/dns/LINODE/%s?test=1'
+            '/dns/LINODE/%s?test=1'
         self.client = Client(LibcloudRestApp(), BaseResponse)
         self.fixtures = DNSFixtures('linode')
         self.headers = {'x-auth-user': 'user', 'x-api-key': 'key'}

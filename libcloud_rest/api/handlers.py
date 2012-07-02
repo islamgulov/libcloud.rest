@@ -86,7 +86,7 @@ class BaseServiceHandler(BaseHandler):
         driver = self._get_driver_instance()
         method = getattr(driver, method_name, None)
         if not inspect.ismethod(method) and \
-           not (DEBUG and isinstance(method, mock.MagicMock)):
+                not (DEBUG and isinstance(method, mock.MagicMock)):
             raise InternalError(detail='Unknown method %s' % (method_name))
         try:
             result = method(*args, **kwargs)
@@ -119,7 +119,7 @@ class BaseServiceHandler(BaseHandler):
         """
         if self._providers_list_response is None:
             providers_dict = get_providers_dict(self._DRIVERS,
-                                      self._Providers)
+                                                self._Providers)
             response = self.json_response(providers_dict)
             self.__class__._providers_list_response = response
         return self._providers_list_response
@@ -288,7 +288,7 @@ class DNSHandler(BaseServiceHandler):
             'name': valid.StringValidator(required=False),
             'type': valid.IntegerValidator(required=False),
             'data': valid.StringValidator(required=False),
-            })
+        })
         record_data = self._load_json(self.request.data,
                                       update_record_validator)
         zone_id = self.params.get('zone_id', None)
@@ -300,7 +300,8 @@ class DNSHandler(BaseServiceHandler):
             if record_data.get(arg, None):
                 update_record_args[arg] = record_data[arg]
         updated_record = self._execute_driver_method('update_record',
-                                                record, **update_record_args)
+                                                     record,
+                                                     **update_record_args)
         return self.json_response(updated_record)
 
     def delete_record(self):

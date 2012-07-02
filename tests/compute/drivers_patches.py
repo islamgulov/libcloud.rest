@@ -14,4 +14,4 @@ PATCHES = {
                                                     GoGridMockHttp),
     CloudStackNodeDriver.__name__: ConnClassDriverPatch(None,
                                                         CloudStackMockHttp),
-    }
+}

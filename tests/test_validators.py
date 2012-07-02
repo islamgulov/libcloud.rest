@@ -33,7 +33,7 @@ class TestParser(unittest2.TestCase):
 
     def test_dict(self):
         dict_validator = validators.DictValidator(
-                {'arg1': validators.StringValidator()})
+            {'arg1': validators.StringValidator()})
         valid_dict = {'arg1': 'str'}
         invalid_dict = {'arg1': 123}
         invalid_dict2 = {'abc': 'str'}
@@ -47,7 +47,7 @@ class TestParser(unittest2.TestCase):
         dict_validator = validators.DictValidator({
             'req': req_string_validator,
             'opt': not_req_string_validator,
-            })
+        })
         valid_dict = {'req': 'abc'}
         valid_dict2 = {'req': 'abc', 'opt': 'def'}
         invalid_dict = {'opt': 'def'}
@@ -89,8 +89,7 @@ class TestGetDriverArguments(unittest2.TestCase):
             validators.validate_driver_arguments(FakeDriver, ['arg1', 'arg2']))
         self.assertRaises(MissingArguments,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['arg1']
-        )
+                          FakeDriver, ['arg1'])
 
     def test_init_or_new_requires_docs(self):
         class FakeDriver(object):
@@ -106,8 +105,7 @@ class TestGetDriverArguments(unittest2.TestCase):
             validators.validate_driver_arguments(FakeDriver, ['arg1', 'arg2']))
         self.assertRaises(MissingArguments,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['arg2', 'arg3']
-        )
+                          FakeDriver, ['arg2', 'arg3'])
 
     def test_init_or_new_optional(self):
         class FakeDriver(object):
@@ -123,8 +121,7 @@ class TestGetDriverArguments(unittest2.TestCase):
             validators.validate_driver_arguments(FakeDriver, ['arg1']))
         self.assertRaises(UnknownArgument,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['arg1', 'arg2']
-        )
+                          FakeDriver, ['arg1', 'arg2'])
 
     def test_init_optional(self):
         class FakeDriver(object):
@@ -135,26 +132,24 @@ class TestGetDriverArguments(unittest2.TestCase):
 
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver,
-                ['key', 'secret', 'host']))
+                                                 ['key', 'secret', 'host']))
         self.assertRaises(UnknownArgument,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['key', 'secret', 'creds']
-        )
+                          FakeDriver, ['key', 'secret', 'creds'])
 
     def test_new_optional(self):
         class FakeDriver(object):
             def __new__(cls, key, secret=None, secure=True, host=None,
-                         path=None, port=None, *args, **kwargs):
+                        path=None, port=None, *args, **kwargs):
                 "@requires: key, secret"
                 pass
 
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver,
-                ['key', 'secret', 'host']))
+                                                 ['key', 'secret', 'host']))
         self.assertRaises(UnknownArgument,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['key', 'secret', 'creds']
-        )
+                          FakeDriver, ['key', 'secret', 'creds'])
 
     def test_extra(self):
         class FakeDriver(object):
@@ -165,8 +160,7 @@ class TestGetDriverArguments(unittest2.TestCase):
 
         self.assertTrue(
             validators.validate_driver_arguments(FakeDriver,
-                ['key']))
+                                                 ['key']))
         self.assertRaises(UnknownArgument,
                           validators.validate_driver_arguments,
-                          FakeDriver, ['key', 'secret']
-        )
+                          FakeDriver, ['key', 'secret'])

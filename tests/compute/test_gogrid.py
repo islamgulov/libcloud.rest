@@ -27,7 +27,7 @@ class GoGridTests(unittest2.TestCase):
         self.fixtures = ComputeFixtures('gogrid')
         self.headers = {'x-auth-user': 'a', 'x-api-key': 'b'}
         self.url_tmpl = rest_versions[libcloud.__version__] +\
-                        '/compute/gogrid/%s?test=1'
+            '/compute/gogrid/%s?test=1'
 
     def test_bad_headers(self):
         url = self.url_tmpl % ('nodes')
