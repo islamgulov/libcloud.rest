@@ -54,3 +54,26 @@ def get_method_requirements(method):
             return args_list
     else:
         raise NotImplementedError('Missing %s docstring' % (REQUIRES_FIELD))
+
+
+def get_method_docstring(cls, method_name):
+    """
+    return method  docstring
+    if method docstring is empty we get docstring from parent
+    @param method:
+    @type method:
+    @return:
+    @rtype:
+    """
+    method = getattr(cls, method_name, None)
+    if method is None:
+        return
+    docstrign = inspect.getdoc(method)
+    if docstrign is None:
+        for base in cls.__bases__:
+            docstrign = get_method_docstring(base, method_name)
+            if docstrign:
+                return docstrign
+        else:
+            return None
+    return docstrign

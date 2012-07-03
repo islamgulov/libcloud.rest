@@ -31,3 +31,19 @@ class TestParser(unittest2.TestCase):
 
         self.assertRaises(NotImplementedError,
                           parser.get_method_requirements, t2)
+
+    def test_get_docsring(self):
+        class A(object):
+            def foo(self):
+                """docstring"""
+            def bar(self):
+                pass
+
+        class B(A):
+            def foo(self):
+                pass
+
+            def bar(self):
+                pass
+        self.assertEqual(parser.get_method_docstring(B, 'foo'), 'docstring')
+        self.assertEqual(parser.get_method_docstring(B, 'bar'), None)
