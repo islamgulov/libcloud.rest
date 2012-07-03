@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from functools import partial
+
 from libcloud_rest.exception import NoSuchObjectError
 from libcloud_rest.api import validators as valid
 
@@ -58,18 +60,22 @@ class ZoneEntry(BasicEntry):
         return driver.get_zone(zone_id)
 
 
-class ZoneIDEntry(BasicEntry):
-    render_attrs = ['zone_id']
-    arguments = {'zone_id': valid.StringValidator()}
-
+def create_basic_entry(typename, validator):
     @classmethod
     def _get_object(cls, arguments, driver=None):
-        zone_id = arguments['zone_id']
-        return type('ZoneID', (), {'zone_id': zone_id})
+        val = arguments[typename]
+        return type(typename.capitalize(), (), {typename: val})
 
+    type_dict = {'render_attrs': [typename],
+                 'arguments': {typename: validator},
+                 '_get_object': _get_object}
+    return type(typename.capitalize() + 'Entry', (BasicEntry, ), type_dict)
+
+create_string_entry = partial(create_basic_entry,
+                              validator=valid.StringValidator())
 
 LIBCLOUD_TYPES_ENTRIES = {
     'L{Node}': NodeEntry,
     'L{Zone}': ZoneEntry,
-    'zone_id': ZoneIDEntry,
+    'zone_id': create_string_entry('zone_id'),
 }
