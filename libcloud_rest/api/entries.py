@@ -43,14 +43,14 @@ class StringField(Field):
     typename = 'string'
 
 
-class EntryBase(type):
+class LIbcloudObjectEntryBase(type):
     """
     Metaclass for all entries.
     """
 
     def __new__(cls, name, bases, attrs):
-        super_new = super(EntryBase, cls).__new__
-        parents = [b for b in bases if isinstance(b, EntryBase)]
+        super_new = super(LIbcloudObjectEntryBase, cls).__new__
+        parents = [b for b in bases if isinstance(b, LIbcloudObjectEntryBase)]
         if not parents:
             # If this isn't a subclass of Model, don't do anything special.
             return super_new(cls, name, bases, attrs)
@@ -73,44 +73,72 @@ class EntryBase(type):
             setattr(cls, name, value)
 
 
-class Entry(object):
-    __metaclass__ = EntryBase
+class BasicEntry(object):
+    """
+    Just describe interface.
+    """
 
     @classmethod
-    def validate(cls, data):
+    def get_json_and_validate(cls, data):
+        pass
+
+    @classmethod
+    def get_arguments(cls):
+        pass
+
+
+class LibcloudObjectEntry(object):
+    __metaclass__ = LIbcloudObjectEntryBase
+
+
+    @classmethod
+    def get_json_and_validate(cls, data):
         try:
             json_data = json.loads(data)
         except ValueError, e:
             raise MalformedJSONError(detail=str(e))
         for field in cls._fields:
             field.validate(json_data)
+        return json_data
 
     @classmethod
     def get_arguments(cls):
         return [field.get_description_dict() for field in cls._fields]
 
 
-class NodeEntry(Entry):
+class SimpleEntry(BasicEntry):
+    def __init__(self, name, typename, description):
+        self.name = name
+        self.field = simple_types_fields[typename](description, name)
+
+    def get_json_and_validate(self, data):
+        try:
+            json_data = json.loads(data)
+        except ValueError, e:
+            raise MalformedJSONError(detail=str(e))
+        self.field.validate(json_data)
+
+    def get_arguments(self):
+        return [self.field.get_description_dict()]
+
+
+class NodeEntry(LibcloudObjectEntry):
     node_id = StringField('ID of the size which should be used')
 
 
 simple_types_fields = {
     'C{str}': StringField,
-}
+    }
 
 complex_entries = {
     'L{Node}': NodeEntry,
-}
+    }
 
 
-def create_simple_entry(name, typename, description):
-    entry_name = name.capitalize() + 'Entry'
-    entry_field = simple_types_fields[typename](description)
-    return type(entry_name, (Entry,), {name: entry_field})
 
 
 def get_entry(name, typename, description=''):
     if typename in simple_types_fields:
-        return create_simple_entry(name, typename, description)
+        return SimpleEntry(name, typename, description)
     elif typename in complex_entries:
         raise NotImplementedError
