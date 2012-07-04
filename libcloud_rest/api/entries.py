@@ -1,11 +1,12 @@
 # -*- coding:utf-8 -*-
+
 try:
     import simplejson as json
 except ImportError:
     import json
 
 from libcloud_rest.api import validators as valid
-from libcloud_rest.exception import MalformedJSONError
+from libcloud_rest.exception import MalformedJSONError, ValidationError
 
 
 class Field(object):
@@ -43,20 +44,20 @@ class StringField(Field):
     typename = 'string'
 
 
-class LIbcloudObjectEntryBase(type):
+class LibcloudObjectEntryBase(type):
     """
     Metaclass for all entries.
     """
 
-    def __new__(cls, name, bases, attrs):
-        super_new = super(LIbcloudObjectEntryBase, cls).__new__
-        parents = [b for b in bases if isinstance(b, LIbcloudObjectEntryBase)]
+    def __new__(mcs, name, bases, attrs):
+        super_new = super(LibcloudObjectEntryBase, mcs).__new__
+        parents = [b for b in bases if isinstance(b, LibcloudObjectEntryBase)]
         if not parents:
             # If this isn't a subclass of Model, don't do anything special.
-            return super_new(cls, name, bases, attrs)
+            return super_new(mcs, name, bases, attrs)
             # Create the class.
         module = attrs.pop('__module__', None)
-        new_class = super_new(cls, name, bases, {'__module__': module})
+        new_class = super_new(mcs, name, bases, {'__module__': module})
         new_class.add_to_class('_fields', [])
 
         # Add all attributes to the class.
@@ -78,18 +79,29 @@ class BasicEntry(object):
     Just describe interface.
     """
 
-    @classmethod
-    def get_json_and_validate(cls, data):
+    def get_json_and_validate(self, data):
         pass
 
-    @classmethod
-    def get_arguments(cls):
+    def get_arguments(self):
+        pass
+
+    def to_json(self, obj):
         pass
 
 
-class LibcloudObjectEntry(object):
-    __metaclass__ = LIbcloudObjectEntryBase
+class LibcloudObjectEntry(BasicEntry):
+    __metaclass__ = LibcloudObjectEntryBase
+    render_attrs = None
 
+    @classmethod
+    def to_json(cls, obj):
+        try:
+            data = dict(((name, getattr(obj, name))
+                        for name in cls.render_attrs))
+        except AttributeError, e:
+            #FIXME: create new error class for this
+            raise ValueError('Can not represent object as json %s' % (str(e)))
+        return json.dumps(data)
 
     @classmethod
     def get_json_and_validate(cls, data):
@@ -121,24 +133,31 @@ class SimpleEntry(BasicEntry):
     def get_arguments(self):
         return [self.field.get_description_dict()]
 
+    def to_json(self, obj):
+        try:
+            json_data = json.dumps({self.name: obj})
+            self.get_json_and_validate(json_data)
+        except (MalformedJSONError, ValidationError), e:
+            raise ValueError('Can not represent object as json %s' % (str(e)))
+
 
 class NodeEntry(LibcloudObjectEntry):
+    render_attrs = ['id', 'name', 'state', 'public_ips']
     node_id = StringField('ID of the size which should be used')
 
 
 simple_types_fields = {
     'C{str}': StringField,
-    }
+}
 
 complex_entries = {
     'L{Node}': NodeEntry,
-    }
-
-
+}
 
 
 def get_entry(name, typename, description=''):
     if typename in simple_types_fields:
         return SimpleEntry(name, typename, description)
     elif typename in complex_entries:
-        raise NotImplementedError
+        return complex_entries[typename]
+    raise ValueError('Unknown typename')
