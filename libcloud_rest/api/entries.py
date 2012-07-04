@@ -13,6 +13,7 @@ class Field(object):
     Base class for all field types.
     """
     validator_cls = None
+    typename = None
 
     def __init__(self, description=None, name=None, required=True):
         self.description = description
@@ -30,9 +31,16 @@ class Field(object):
         self.name = name
         self.validator.name = name
 
+    def get_description_dict(self):
+        return {'name': self.name,
+                'description': self.description,
+                'type': self.typename,
+                'required': self.required}
+
 
 class StringField(Field):
     validator_cls = valid.StringValidator
+    typename = 'string'
 
 
 class EntryBase(type):
@@ -46,7 +54,7 @@ class EntryBase(type):
         if not parents:
             # If this isn't a subclass of Model, don't do anything special.
             return super_new(cls, name, bases, attrs)
-        # Create the class.
+            # Create the class.
         module = attrs.pop('__module__', None)
         new_class = super_new(cls, name, bases, {'__module__': module})
         new_class.add_to_class('_fields', [])
@@ -76,6 +84,10 @@ class Entry(object):
             raise MalformedJSONError(detail=str(e))
         for field in cls._fields:
             field.validate(json_data)
+
+    @classmethod
+    def get_arguments(cls):
+        return [field.get_description_dict() for field in cls._fields]
 
 
 class NodeEntry(Entry):

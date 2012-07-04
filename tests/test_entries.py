@@ -8,7 +8,7 @@ from libcloud_rest.exception import MalformedJSONError, ValidationError
 class StringEntryTests(unittest2.TestCase):
     def setUp(self):
         self.entry = get_entry('zone_id', 'C{str}',
-                               '"ID of the zone which is required')
+                               'ID of the zone which is required')
 
     def test_validate(self):
         valid_json = '{"zone_id": "123"}'
@@ -18,3 +18,11 @@ class StringEntryTests(unittest2.TestCase):
                           malformed_json)
         invalid_json = '{"zone_id": 123}'
         self.assertRaises(ValidationError, self.entry.validate, invalid_json)
+
+    def test_get_arguments(self):
+        argument = self.entry.get_arguments()[0]
+        self.assertEqual(argument['name'], 'zone_id')
+        self.assertEqual(argument['description'],
+                         'ID of the zone which is required')
+        self.assertEqual(argument['type'], 'string')
+        self.assertEqual(argument['required'], True)
