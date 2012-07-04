@@ -106,7 +106,7 @@ class BaseServiceHandler(BaseHandler):
     def _load_json(self, data, validator=None):
         try:
             json_data = json.loads(data)
-        except ValueError, e:
+        except (ValueError, TypeError), e:
             raise MalformedJSONError(detail=str(e))
         if validator is not None:
             validator(json_data)

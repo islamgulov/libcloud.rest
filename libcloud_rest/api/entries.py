@@ -1,12 +1,12 @@
 # -*- coding:utf-8 -*-
-
 try:
     import simplejson as json
 except ImportError:
     import json
 
 from libcloud_rest.api import validators as valid
-from libcloud_rest.exception import MalformedJSONError, ValidationError
+from libcloud_rest.exception import MalformedJSONError, ValidationError, \
+    NoSuchObjectError
 
 
 class Field(object):
@@ -88,6 +88,9 @@ class BasicEntry(object):
     def to_json(self, obj):
         pass
 
+    def from_json(self, obj, driver):
+        pass
+
 
 class LibcloudObjectEntry(BasicEntry):
     __metaclass__ = LibcloudObjectEntryBase
@@ -104,10 +107,19 @@ class LibcloudObjectEntry(BasicEntry):
         return json.dumps(data)
 
     @classmethod
+    def _get_object(cls, json_data, driver):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_json(cls, data, driver):
+        json_data = cls.get_json_and_validate(data)
+        return cls._get_object(json_data, driver)
+
+    @classmethod
     def get_json_and_validate(cls, data):
         try:
             json_data = json.loads(data)
-        except ValueError, e:
+        except (ValueError, TypeError), e:
             raise MalformedJSONError(detail=str(e))
         for field in cls._fields:
             field.validate(json_data)
@@ -126,9 +138,10 @@ class SimpleEntry(BasicEntry):
     def get_json_and_validate(self, data):
         try:
             json_data = json.loads(data)
-        except ValueError, e:
+        except (ValueError, TypeError), e:
             raise MalformedJSONError(detail=str(e))
         self.field.validate(json_data)
+        return json_data
 
     def get_arguments(self):
         return [self.field.get_description_dict()]
@@ -140,11 +153,23 @@ class SimpleEntry(BasicEntry):
         except (MalformedJSONError, ValidationError), e:
             raise ValueError('Can not represent object as json %s' % (str(e)))
 
+    def from_json(self, data, driver=None):
+        json_data = self.get_json_and_validate(data)
+        return json_data[self.name]
+
 
 class NodeEntry(LibcloudObjectEntry):
     render_attrs = ['id', 'name', 'state', 'public_ips']
     node_id = StringField('ID of the size which should be used')
 
+    @classmethod
+    def _get_object(cls, json_data, driver):
+        nodes_list = driver.list_nodes()
+        node_id = json_data['node_id']
+        for node in nodes_list:
+            if node_id == node.id:
+                return node
+        raise NoSuchObjectError(obj_type='Node')
 
 simple_types_fields = {
     'C{str}': StringField,
