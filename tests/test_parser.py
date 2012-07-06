@@ -47,3 +47,51 @@ class TestParser(unittest2.TestCase):
                 pass
         self.assertEqual(parser.get_method_docstring(B, 'foo'), 'docstring')
         self.assertEqual(parser.get_method_docstring(B, 'bar'), None)
+
+    def test_parse_docstring(self):
+        docstring = """
+        Return a Zone instance.
+        Second line docsting.
+
+        @type zone_id: C{str}
+        @param zone_id: Required zone id (required)
+
+        @keyword    auth:   Initial authentication information for the node
+                            (optional)
+        @type       auth:   L{NodeAuthSSHKey} or L{NodeAuthPassword}
+
+        @return: L{Zone} or L{Node} instance.
+        """
+        result = parser.parse_docstring(docstring)
+        description = result['description']
+        args = result['arguments']
+        returns = result['return']
+        self.assertTrue(description.startswith('Return'))
+        self.assertTrue(description.splitlines()[1].startswith('Second'))
+        self.assertEqual(args['zone_id']['typename'], ['C{str}'])
+        self.assertEqual(args['zone_id']['required'], True)
+        self.assertEqual(args['auth']['typename'],
+                         ['L{NodeAuthSSHKey}', 'L{NodeAuthPassword}'])
+        self.assertEqual(args['auth']['required'], False)
+        self.assertEqual(returns, ['L{Zone}', 'L{Node}'])
+
+    def test_parse_docstring_fails(self):
+        docstring = """
+        Return a Zone instance.
+        Second line docsting.
+
+        @type zone_id: C{str}
+
+        @return: L{Zone} or L{Node} instance.
+        """
+        self.assertRaises(ValueError, parser.parse_docstring, docstring)
+        docstring = """
+        Return a Zone instance.
+        Second line docsting.
+
+        @type zone_id: C{str}
+        @param zone_id: Required zone id (required)
+
+        @return: instance.
+        """
+        self.assertRaises(ValueError, parser.parse_docstring, docstring)
