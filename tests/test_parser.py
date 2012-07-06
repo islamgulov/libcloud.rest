@@ -95,3 +95,16 @@ class TestParser(unittest2.TestCase):
         @return: instance.
         """
         self.assertRaises(ValueError, parser.parse_docstring, docstring)
+
+    def test_parse_args(self):
+        class A(object):
+            def update_zone(self, zone, domain, type='master',
+                            ttl=None, extra=None):
+                pass
+        result = parser.parse_args(A.update_zone)
+        self.assertEqual(result.keys(),
+                         ['zone', 'domain', 'type', 'ttl', 'extra'])
+        self.assertEqual(result['zone']['required'], True)
+        self.assertEqual(result['type']['required'], False)
+        self.assertFalse('default' in result['zone'])
+        self.assertTrue('default' in result['ttl'])

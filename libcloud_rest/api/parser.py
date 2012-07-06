@@ -4,6 +4,7 @@ from collections import defaultdict
 import re
 from itertools import chain
 
+from libcloud_rest.utils import LastUpdatedOrderedDict
 from libcloud_rest.constants import REQUIRES_FIELD, TYPENAME_REGEX
 
 #map between request header name and libcloud's internal attribute name
@@ -159,3 +160,22 @@ def parse_docstring(docstring):
     return {'description': description,
             'arguments': arguments_dict,
             'return': return_value_types}
+
+
+def parse_args(method):
+    args, varargs, varkw, argspec_defaults = inspect.getargspec(method)
+    if inspect.ismethod(method):
+        args.pop(0)
+    defaults = LastUpdatedOrderedDict()
+    if argspec_defaults is not None:
+        defaults = dict(zip(reversed(args), argspec_defaults))
+    args_dict = LastUpdatedOrderedDict()
+    for arg in args:
+        if arg in defaults:
+            args_dict[arg] = {
+                'required': False,
+                'default': defaults[arg]
+            }
+        else:
+            args_dict[arg] = {'required': True, }
+    return  args_dict

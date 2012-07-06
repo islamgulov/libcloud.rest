@@ -13,9 +13,6 @@ import libcloud
 from libcloud.compute import base as compute_base
 from libcloud.dns import base as dns_base
 
-from libcloud_rest.utils import get_providers_dict
-from libcloud_rest.utils import get_driver_instance
-from libcloud_rest.utils import get_driver_by_provider_name
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
@@ -25,6 +22,8 @@ from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
 from libcloud_rest.log import logger
+from libcloud_rest.api.providers import get_providers_dict,\
+    get_driver_by_provider_name, get_driver_instance
 
 if DEBUG:
     import mock

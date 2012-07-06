@@ -4,7 +4,7 @@ import unittest2
 from libcloud.compute import providers as compute_providers
 from libcloud.dns import providers as dns_providers
 
-from libcloud_rest.utils import get_driver_by_provider_name
+from libcloud_rest.api.providers import get_driver_by_provider_name
 from libcloud_rest.exception import ProviderNotSupportedError
 from libcloud_rest.api.parser import get_method_requirements
 

@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 import copy
 
-from libcloud_rest.utils import get_driver_instance
+from libcloud_rest.api.providers import get_driver_instance
+
 from tests.compute.drivers_patches import PATCHES as COMPUTE_PATCHES
 from tests.dns.drivers_patches import PATCHES as DNS_PATCHES
 
