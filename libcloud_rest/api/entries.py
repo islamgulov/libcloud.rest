@@ -6,7 +6,7 @@ except ImportError:
 
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import MalformedJSONError, ValidationError, \
-    NoSuchObjectError
+    NoSuchObjectError, MissingArguments
 
 
 class Field(object):
@@ -19,13 +19,25 @@ class Field(object):
     def __init__(self, description=None, name=None, required=True):
         self.description = description
         self.name = name
-        self.required = required
+        self._required = required
         self.validator = self.validator_cls(required=required, name=name)
 
+    def _set_required(self, required):
+        self._required = required
+
+    def _get_required(self):
+        return self._required
+
+    required = property(_get_required, _set_required)
+
     def validate(self, json_data):
-        data = json_data.get(self.name, None)
-        if self.required or data:
-            self.validator(data)
+        try:
+            data = json_data[self.name]
+        except (KeyError, TypeError):
+            if self.required:
+                raise MissingArguments([self.name])
+            return
+        self.validator(data)
 
     def contribute_to_class(self, cls, name):
         self.model = cls
@@ -78,9 +90,22 @@ class BasicEntry(object):
     """
     Just describe interface.
     """
+    def _get_json(self, data):
+        try:
+            json_data = json.loads(data)
+        except (ValueError, TypeError), e:
+            raise MalformedJSONError(detail=str(e))
+        if not isinstance(json_data, dict):
+            raise MalformedJSONError('Bad json format')
+        return json_data
 
-    def get_json_and_validate(self, data):
+    def _validate(self, json_data):
         pass
+
+    def _get_json_and_validate(self, data):
+        json_data = self._get_json(data)
+        self._validate(json_data)
+        return json_data
 
     def get_arguments(self):
         pass
@@ -96,6 +121,13 @@ class LibcloudObjectEntry(BasicEntry):
     __metaclass__ = LibcloudObjectEntryBase
     render_attrs = None
 
+    def __init__(self, name, typename, description, **kwargs):
+        self.name = name
+        self.typename = typename
+        self.description = description
+        if 'default' in kwargs:
+            self.default = kwargs['default']
+
     @classmethod
     def to_json(cls, obj):
         try:
@@ -106,24 +138,26 @@ class LibcloudObjectEntry(BasicEntry):
             raise ValueError('Can not represent object as json %s' % (str(e)))
         return json.dumps(data)
 
-    @classmethod
-    def _get_object(cls, json_data, driver):
+    def _get_object(self, json_data, driver):
         raise NotImplementedError()
 
-    @classmethod
-    def from_json(cls, data, driver):
-        json_data = cls.get_json_and_validate(data)
-        return cls._get_object(json_data, driver)
-
-    @classmethod
-    def get_json_and_validate(cls, data):
+    def from_json(self, data, driver):
+        missed_arguments = []
+        json_data = self._get_json(data)
         try:
-            json_data = json.loads(data)
-        except (ValueError, TypeError), e:
-            raise MalformedJSONError(detail=str(e))
-        for field in cls._fields:
+            self._validate(json_data)
+        except MissingArguments, error:
+            missed_arguments.extend(error.arguments)
+        if missed_arguments:
+            if [field for field in self._fields if field.name in json_data] \
+                    or (not hasattr(self, 'default')):
+                raise MissingArguments(arguments=missed_arguments)
+            return self.default
+        return self._get_object(json_data, driver)
+
+    def _validate(self, json_data):
+        for field in self._fields:
             field.validate(json_data)
-        return json_data
 
     @classmethod
     def get_arguments(cls):
@@ -131,30 +165,35 @@ class LibcloudObjectEntry(BasicEntry):
 
 
 class SimpleEntry(BasicEntry):
-    def __init__(self, name, typename, description):
+    def __init__(self, name, typename, description, **kwargs):
         self.name = name
+        if 'default' in kwargs:
+            self.default = kwargs['default']
         self.field = simple_types_fields[typename](description, name)
 
-    def get_json_and_validate(self, data):
-        try:
-            json_data = json.loads(data)
-        except (ValueError, TypeError), e:
-            raise MalformedJSONError(detail=str(e))
+    def _validate(self, json_data):
         self.field.validate(json_data)
-        return json_data
 
     def get_arguments(self):
         return [self.field.get_description_dict()]
 
     def to_json(self, obj):
         try:
-            json_data = json.dumps({self.name: obj})
-            self.get_json_and_validate(json_data)
+            data = json.dumps({self.name: obj})
+            json_data = self._get_json(data)
+            self._validate(json_data)
+            return data
         except (MalformedJSONError, ValidationError), e:
             raise ValueError('Can not represent object as json %s' % (str(e)))
 
     def from_json(self, data, driver=None):
-        json_data = self.get_json_and_validate(data)
+        json_data = self._get_json(data)
+        try:
+            self._validate(json_data)
+        except MissingArguments, e:
+            if hasattr(self, 'default'):
+                return self.default
+            raise e
         return json_data[self.name]
 
 
@@ -162,14 +201,14 @@ class NodeEntry(LibcloudObjectEntry):
     render_attrs = ['id', 'name', 'state', 'public_ips']
     node_id = StringField('ID of the size which should be used')
 
-    @classmethod
-    def _get_object(cls, json_data, driver):
+    def _get_object(self, json_data, driver):
         nodes_list = driver.list_nodes()
         node_id = json_data['node_id']
         for node in nodes_list:
             if node_id == node.id:
                 return node
         raise NoSuchObjectError(obj_type='Node')
+
 
 simple_types_fields = {
     'C{str}': StringField,
@@ -180,9 +219,12 @@ complex_entries = {
 }
 
 
-def get_entry(name, typename, description=''):
-    if typename in simple_types_fields:
-        return SimpleEntry(name, typename, description)
-    elif typename in complex_entries:
-        return complex_entries[typename]
-    raise ValueError('Unknown typename')
+class Entry(object):
+    def __new__(cls, name, typename, description='', **kwargs):
+        entry_class = None
+        if typename in simple_types_fields:
+            entry_class = SimpleEntry
+        elif typename in complex_entries:
+            entry_class = complex_entries[typename]
+        return entry_class(name, typename, description, **kwargs)
+        raise ValueError('Unknown typename')
