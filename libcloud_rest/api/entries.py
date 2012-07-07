@@ -221,10 +221,10 @@ complex_entries = {
 
 class Entry(object):
     def __new__(cls, name, typename, description='', **kwargs):
-        entry_class = None
         if typename in simple_types_fields:
             entry_class = SimpleEntry
         elif typename in complex_entries:
             entry_class = complex_entries[typename]
+        else:
+            raise ValueError('Unknown typename')
         return entry_class(name, typename, description, **kwargs)
-        raise ValueError('Unknown typename')
