@@ -5,7 +5,7 @@ except ImportError:
     import json
 
 from libcloud_rest.api import validators as valid
-from libcloud_rest.exception import MalformedJSONError, ValidationError, \
+from libcloud_rest.exception import MalformedJSONError, ValidationError,\
     NoSuchObjectError, MissingArguments
 
 
@@ -47,8 +47,7 @@ class Field(object):
     def get_description_dict(self):
         return {'name': self.name,
                 'description': self.description,
-                'type': self.typename,
-                'required': self.required}
+                'type': self.typename}
 
 
 class StringField(Field):
@@ -199,7 +198,7 @@ class SimpleEntry(BasicEntry):
 
 class NodeEntry(LibcloudObjectEntry):
     render_attrs = ['id', 'name', 'state', 'public_ips']
-    node_id = StringField('ID of the size which should be used')
+    node_id = StringField('ID of the node which should be used')
 
     def _get_object(self, json_data, driver):
         nodes_list = driver.list_nodes()
@@ -226,5 +225,5 @@ class Entry(object):
         elif typename in complex_entries:
             entry_class = complex_entries[typename]
         else:
-            raise ValueError('Unknown typename')
+            raise ValueError('Unknown typename %s' % (typename))
         return entry_class(name, typename, description, **kwargs)

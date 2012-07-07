@@ -100,7 +100,7 @@ def _parse_docstring_field(field_lines):
     if field_lines.startswith('@keyword') or field_lines.startswith('@param'):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
-        arg_description = field_data[2]
+        arg_description = field_data[2].strip()
         return arg_name, {'description': arg_description,
                           'required': '(required)' in arg_description}
 

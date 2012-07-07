@@ -38,7 +38,6 @@ class StringEntryTests(unittest2.TestCase):
         self.assertEqual(argument['description'],
                          'ID of the zone which is required')
         self.assertEqual(argument['type'], 'string')
-        self.assertEqual(argument['required'], True)
 
     def test_to_json(self):
         valid = '123'
@@ -138,10 +137,8 @@ class FakeEntryTests(unittest2.TestCase):
                                  if arg['name'] == name][0]
         fake_id_arg = get_arg('fake_id')
         self.assertEqual(fake_id_arg['type'], 'string')
-        self.assertEqual(fake_id_arg['required'], True)
         fake_name_arg = get_arg('fake_name')
         self.assertEqual(fake_name_arg['type'], 'string')
-        self.assertEqual(fake_name_arg['required'], False)
 
 
 class FakeDefaultEntryTests(unittest2.TestCase):
@@ -197,10 +194,8 @@ class FakeDefaultEntryTests(unittest2.TestCase):
                                  if arg['name'] == name][0]
         fake_id_arg = get_arg('fake_id')
         self.assertEqual(fake_id_arg['type'], 'string')
-        self.assertEqual(fake_id_arg['required'], True)
         fake_name_arg = get_arg('fake_name')
         self.assertEqual(fake_name_arg['type'], 'string')
-        self.assertEqual(fake_name_arg['required'], False)
 
 
 class NodeEntryTests(unittest2.TestCase):
@@ -227,7 +222,6 @@ class NodeEntryTests(unittest2.TestCase):
         argument = self.entry.get_arguments()[0]
         self.assertEqual(argument['name'], 'node_id')
         self.assertEqual(argument['type'], 'string')
-        self.assertEqual(argument['required'], True)
 
     def test_to_json(self):
         node = Node('111', 'test', NodeState.RUNNING, ['123.123.123.123'],
