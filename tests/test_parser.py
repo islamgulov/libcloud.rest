@@ -62,10 +62,7 @@ class TestParser(unittest2.TestCase):
 
         @return: L{Zone} or L{Node} instance.
         """
-        result = parser.parse_docstring(docstring)
-        description = result['description']
-        args = result['arguments']
-        returns = result['return']
+        description, args, returns = parser.parse_docstring(docstring)
         self.assertTrue(description.startswith('Return'))
         self.assertTrue(description.splitlines()[1].startswith('Second'))
         self.assertEqual(args['zone_id']['typename'], ['C{str}'])

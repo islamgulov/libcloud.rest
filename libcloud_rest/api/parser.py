@@ -110,7 +110,7 @@ def parse_docstring(docstring):
     NB. by default arguments marked as optional
     @param docstring:
     @type docstring:
-    @return: return dict which contain:
+    @return: return tuple
         description - method description
         arguments - dict of dicts arg_name: {desctiption, typename, required}
         return - list of return types
@@ -157,9 +157,7 @@ def parse_docstring(docstring):
                              (argument))
     if not return_value_types:
         raise ValueError('Can not get return types for argument')
-    return {'description': description,
-            'arguments': arguments_dict,
-            'return': return_value_types}
+    return description, arguments_dict, return_value_types
 
 
 def parse_args(method):
