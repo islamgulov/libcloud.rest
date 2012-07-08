@@ -6,7 +6,7 @@ from libcloud_rest.utils import json
 
 
 class FakeDriver(object):
-    def fake_method(self, node, volume, device='default_value', extra={}):
+    def fake_method(self, node, volume, device='/deb/sdb', extra={}):
         '''
         teachess volume to node.
 
@@ -21,7 +21,7 @@ class FakeDriver(object):
         @type       device: C{str}
 
         @param extra: Extra attributes (driver specific).
-        @type extra: C{str}
+        @type extra: C{dict}
 
         @return: C{str}
         '''
@@ -41,11 +41,16 @@ class Tests(unittest2.TestCase):
         test_args = [{'required': True, 'type': 'string', 'name': 'node_id',
                       'description': 'ID of the node which should be used'},
                      {'required': True, 'type': 'string', 'name': 'volume',
-                      'description': 'Volume to attach'},
+                     'description': 'Volume to attach'},
                      {'required': True, 'type': 'string', 'name': 'device',
-                      'description':"Where the device is exposed,\n"
-                                    "e.g. '/dev/sdb (required)"},
-                     {'required': False, 'type': 'string', 'name': 'extra',
-                      'description': 'Extra attributes (driver specific).'}
+                      'description': "Where the device is exposed,\n"
+                                     "e.g. '/dev/sdb (required)"},
+                     {'required': False, 'type': 'dictionary', 'name': 'extra',
+                      'description': 'Extra attributes (driver specific).',
+                      'default': {}}
                      ]
         self.assertItemsEqual(test_args, arguments)
+
+
+if __name__ == '__main__':
+    unittest2.main()

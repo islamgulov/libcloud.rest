@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from functools import partial
 try:
     import simplejson as json
 except ImportError:
@@ -53,6 +54,11 @@ class Field(object):
 class StringField(Field):
     validator_cls = valid.StringValidator
     typename = 'string'
+
+
+class DictField(Field):
+    validator_cls = partial(valid.DictValidator, {})
+    typename = 'dictionary'
 
 
 class LibcloudObjectEntryBase(type):
@@ -174,7 +180,10 @@ class SimpleEntry(BasicEntry):
         self.field.validate(json_data)
 
     def get_arguments(self):
-        return [self.field.get_description_dict()]
+        argument_dict = self.field.get_description_dict()
+        if hasattr(self, 'default'):
+            argument_dict['default'] = self.default
+        return [argument_dict]
 
     def to_json(self, obj):
         try:
@@ -211,6 +220,7 @@ class NodeEntry(LibcloudObjectEntry):
 
 simple_types_fields = {
     'C{str}': StringField,
+    'C{dict}': DictField,
 }
 
 complex_entries = {

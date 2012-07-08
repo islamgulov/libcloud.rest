@@ -166,7 +166,7 @@ def parse_args(method):
         args.pop(0)
     defaults = LastUpdatedOrderedDict()
     if argspec_defaults is not None:
-        defaults = dict(zip(reversed(args), argspec_defaults))
+        defaults = dict(zip(reversed(args), reversed(argspec_defaults)))
     args_dict = LastUpdatedOrderedDict()
     for arg in args:
         if arg in defaults:
