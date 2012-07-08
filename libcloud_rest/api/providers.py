@@ -32,10 +32,8 @@ class DriverMethod(object):
         for name, arg_info in argspec_arg.iteritems():
             if name in docstring_args:
                 doc_arg = docstring_args[name]
-                if len(doc_arg['typename']) > 1:
-                    raise NotImplementedError
                 entry_kwargs = {'name': name,
-                                'typename': doc_arg['typename'][0],
+                                'typenames': doc_arg['typenames'],
                                 'description': doc_arg['description']}
                 if not doc_arg['required'] and 'default' in arg_info:
                     entry_kwargs['default'] = arg_info['default']
@@ -48,12 +46,10 @@ class DriverMethod(object):
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]
-            if len(arg['typename']) > 1:
-                raise NotImplementedError
             arg = arg[0]
-            entry = Entry(arg_name, arg['typename'][0], arg['description'])
+            entry = Entry(arg_name, arg['typenames'], arg['description'])
             self.optional_entries.extend(entry)
-        self.result_entry = Entry('', returns[0], '')
+        self.result_entry = Entry('', returns, '')
 
     def get_description(self):
         result_arguments = []

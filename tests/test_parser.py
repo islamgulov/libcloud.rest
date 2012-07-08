@@ -65,9 +65,9 @@ class TestParser(unittest2.TestCase):
         description, args, returns = parser.parse_docstring(docstring)
         self.assertTrue(description.startswith('Return'))
         self.assertTrue(description.splitlines()[1].startswith('Second'))
-        self.assertEqual(args['zone_id']['typename'], ['C{str}'])
+        self.assertEqual(args['zone_id']['typenames'], ['C{str}'])
         self.assertEqual(args['zone_id']['required'], True)
-        self.assertEqual(args['auth']['typename'],
+        self.assertEqual(args['auth']['typenames'],
                          ['L{NodeAuthSSHKey}', 'L{NodeAuthPassword}'])
         self.assertEqual(args['auth']['required'], False)
         self.assertEqual(returns, ['L{Zone}', 'L{Node}'])

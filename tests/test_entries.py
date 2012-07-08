@@ -17,7 +17,7 @@ from tests.utils import get_test_driver_instance
 
 class StringEntryTests(unittest2.TestCase):
     def setUp(self):
-        self.entry = Entry('zone_id', 'C{str}',
+        self.entry = Entry('zone_id', ['C{str}'],
                            'ID of the zone which is required')
 
     def test_validate(self):
@@ -52,7 +52,7 @@ class StringEntryTests(unittest2.TestCase):
         self.assertRaises(ValidationError, self.entry.from_json, invalid)
 
     def test_default(self):
-        entry = Entry('zone_id', 'C{str}',
+        entry = Entry('zone_id', ['C{str}'],
                       'ID of the zone which is required',
                       default='12345')
         valid_json = '{"zone_id": "33333", "unknown_arg": 123}'
@@ -88,7 +88,7 @@ class FakeEntry(LibcloudObjectEntry):
 
 class FakeEntryTests(unittest2.TestCase):
     def setUp(self):
-        self.entry = FakeEntry('fake', 'L{Fake}', 'just for test')
+        self.entry = FakeEntry('fake', ['L{Fake}'], 'just for test')
 
     def test_validate(self):
         valid_json = '{"fake_id": "a", "fake_name": "b", "extra": 1}'
@@ -143,7 +143,7 @@ class FakeEntryTests(unittest2.TestCase):
 
 class FakeDefaultEntryTests(unittest2.TestCase):
     def setUp(self):
-        self.entry = FakeEntry('fake', 'L{Fake}', 'just for test',
+        self.entry = FakeEntry('fake', ['L{Fake}'], 'just for test',
                                default=FakeObject('fid', 'fname'))
 
     def test_validate(self):
@@ -200,7 +200,7 @@ class FakeDefaultEntryTests(unittest2.TestCase):
 
 class NodeEntryTests(unittest2.TestCase):
     def setUp(self):
-        self.entry = Entry('node', 'L{Node}',
+        self.entry = Entry('node', ['L{Node}'],
                            'node which is required')
         self.driver = get_test_driver_instance(CloudStackNodeDriver,
                                                secret='apikey', key='user',

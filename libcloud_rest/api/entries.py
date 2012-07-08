@@ -96,6 +96,15 @@ class BasicEntry(object):
     Just describe interface.
     """
     def _get_json(self, data):
+
+        """
+
+        @param data:
+        @type data:
+        @return:
+        @rtype:
+        @raise: MalformedJsonError
+        """
         try:
             json_data = json.loads(data)
         except (ValueError, TypeError), e:
@@ -105,6 +114,13 @@ class BasicEntry(object):
         return json_data
 
     def _validate(self, json_data):
+        """
+
+        @param json_data:
+        @type json_data:
+        @raise: MissingArguments
+                ValidationError
+        """
         pass
 
     def _get_json_and_validate(self, data):
@@ -113,12 +129,31 @@ class BasicEntry(object):
         return json_data
 
     def get_arguments(self):
+        """
+
+        """
         pass
 
     def to_json(self, obj):
+        """
+
+        @param obj:
+        @type obj:
+        @raise: ValueError
+        """
         pass
 
     def from_json(self, obj, driver):
+        """
+
+        @param obj:
+        @type obj:
+        @param driver:
+        @type driver:
+        @raise: MissingArguments
+                ValidationError
+                _get_object errors
+        """
         pass
 
 
@@ -229,7 +264,11 @@ complex_entries = {
 
 
 class Entry(object):
-    def __new__(cls, name, typename, description='', **kwargs):
+    def __new__(cls, name, typenames, description='', **kwargs):
+        if len(typenames) > 1:
+            print typenames
+            raise NotImplementedError
+        typename = typenames[0]
         if typename in simple_types_fields:
             entry_class = SimpleEntry
         elif typename in complex_entries:
