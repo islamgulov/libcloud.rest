@@ -16,7 +16,7 @@ class DriverMethod(object):
     def __init__(self, driver_cls, method_name):
         self.driver_cls = driver_cls
         self.method_name = method_name
-        method = getattr(driver_cls, method_name)
+        method = getattr(driver_cls, method_name, None)
         if not inspect.ismethod(method):
             raise ValueError('Bad method.')
         method_doc = get_method_docstring(driver_cls, method_name)
@@ -40,8 +40,8 @@ class DriverMethod(object):
                 else:
                     self.required_entries.append(Entry(**entry_kwargs))
             else:
-                raise NotImplementedError('%s %s not described in docstring' %
-                                          (method_name, name))
+                raise ValueError('%s %s not described in docstring' %
+                                 (method_name, name))
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]

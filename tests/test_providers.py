@@ -34,6 +34,28 @@ class FakeDriver(object):
         '''
         pass
 
+    def not_documented(self):
+        pass
+
+    def unknown_argument(self, arg, arg2):
+        """
+        abc
+        @param arg: description
+        @type arg: C{str}
+        @return: C{dict}
+        """
+
+    def bad_docstring(self, arg):
+        """
+
+        @param arg:
+        @type arg:
+        @return:
+        @rtype:
+        """
+
+    variable = None
+
 
 class FakeDriverTests(unittest2.TestCase):
     def setUp(self):
@@ -62,6 +84,18 @@ class FakeDriverTests(unittest2.TestCase):
                  'name': 'kwarg', 'description': 'Keyword argument'}
         test_args = [node, volume, device, extra_dict, extra_str, varg, kwarg]
         self.assertEqual(arguments, test_args)
+
+
+class DriverMethodTests(unittest2.TestCase):
+    def test_method(self):
+        self.assertTrue(DriverMethod(FakeDriver, 'fake_method'))
+        self.assertRaises(ValueError, DriverMethod, FakeDriver,
+                          'variable')
+        self.assertRaises(ValueError, DriverMethod, FakeDriver,
+                          'not_documented')
+        self.assertRaises(ValueError, DriverMethod, FakeDriver,
+                          'unknown_argument')
+
 
 if __name__ == '__main__':
     unittest2.main()
