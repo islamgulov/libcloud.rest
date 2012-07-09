@@ -96,7 +96,7 @@ def _parse_docstring_field(field_lines):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
         arg_type = re.findall(TYPENAME_REGEX, field_data[2])
-        return  arg_name, {'typenames': arg_type}
+        return  arg_name, {'type_names': arg_type}
     if field_lines.startswith('@keyword') or field_lines.startswith('@param'):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
@@ -112,13 +112,13 @@ def parse_docstring(docstring):
     @type docstring:
     @return: return tuple
         description - method description
-        arguments - dict of dicts arg_name: {desctiption, typenames, required}
+        arguments - dict of dicts arg_name: {desctiption, type_names, required}
         return - list of return types
     @rtype: C{dict}
     """
     typename_regex = re.compile('(.\{[_a-zA-Z]+\})')
     def_arg_dict = lambda: {'description': None,
-                            'typenames': None,
+                            'type_names': None,
                             'required': False,
                             }
     arguments_dict = defaultdict(def_arg_dict)
@@ -149,7 +149,7 @@ def parse_docstring(docstring):
 
     #check fields
     for argument, info in arguments_dict.iteritems():
-        if info['typenames'] is None:
+        if info['type_names'] is None:
             raise ValueError('Can not get  @type for argument %s' %
                              (argument))
         if info['description'] is None:

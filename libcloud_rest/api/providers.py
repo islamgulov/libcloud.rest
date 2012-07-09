@@ -32,7 +32,7 @@ class DriverMethod(object):
             if name in docstring_args:
                 doc_arg = docstring_args[name]
                 entry_kwargs = {'name': name,
-                                'typenames': doc_arg['typenames'],
+                                'type_names': doc_arg['type_names'],
                                 'description': doc_arg['description']}
                 if not doc_arg['required'] and 'default' in arg_info:
                     entry_kwargs['default'] = arg_info['default']

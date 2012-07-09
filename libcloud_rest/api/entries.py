@@ -18,7 +18,7 @@ class Field(object):
     Base class for all field types.
     """
     validator_cls = None
-    typename = None
+    type_name = None
 
     def __init__(self, description=None, name=None, required=True):
         self.description = description
@@ -51,17 +51,17 @@ class Field(object):
     def get_description_dict(self):
         return {'name': self.name,
                 'description': self.description,
-                'type': self.typename}
+                'type': self.type_name}
 
 
 class StringField(Field):
     validator_cls = valid.StringValidator
-    typename = 'string'
+    type_name = 'string'
 
 
 class DictField(Field):
     validator_cls = partial(valid.DictValidator, {})
-    typename = 'dictionary'
+    type_name = 'dictionary'
 
 
 class LibcloudObjectEntryBase(type):
@@ -166,9 +166,9 @@ class LibcloudObjectEntry(BasicEntry):
     __metaclass__ = LibcloudObjectEntryBase
     render_attrs = None
 
-    def __init__(self, name, typename, description, **kwargs):
+    def __init__(self, name, type_name, description, **kwargs):
         self.name = name
-        self.typename = typename
+        self.type_name = type_name
         self.description = description
         if 'default' in kwargs:
             self.default = kwargs['default']
@@ -216,11 +216,11 @@ class LibcloudObjectEntry(BasicEntry):
 
 
 class SimpleEntry(BasicEntry):
-    def __init__(self, name, typename, description, **kwargs):
+    def __init__(self, name, type_name, description, **kwargs):
         self.name = name
         if 'default' in kwargs:
             self.default = kwargs['default']
-        self.field = simple_types_fields[typename](description, name)
+        self.field = simple_types_fields[type_name](description, name)
 
     def _validate(self, json_data):
         self.field.validate(json_data)
@@ -297,14 +297,14 @@ complex_entries = {
 
 
 class OneOfEntry(BasicEntry):
-    def __init__(self, name, typenames, description, **kwargs):
+    def __init__(self, name, type_names, description, **kwargs):
         self.name = name
         if 'default' in kwargs:
             self.default = kwargs['default']
-        self.typenames = typenames
+        self.type_names = type_names
         self.description = description
-        self.entries = [Entry(name, (typename, ), description)
-                        for typename in typenames]
+        self.entries = [Entry(name, (type_name, ), description)
+                        for type_name in type_names]
 
     def _validate(self, json_data):
         missed_arguments = []
@@ -363,14 +363,14 @@ class OneOfEntry(BasicEntry):
 
 
 class Entry(object):
-    def __new__(cls, name, typenames, description='', **kwargs):
-        if len(typenames) == 1:
-            typename = typenames[0]
-            if typename in simple_types_fields:
+    def __new__(cls, name, type_names, description='', **kwargs):
+        if len(type_names) == 1:
+            type_name = type_names[0]
+            if type_name in simple_types_fields:
                 entry_class = SimpleEntry
-            elif typename in complex_entries:
-                entry_class = complex_entries[typename]
+            elif type_name in complex_entries:
+                entry_class = complex_entries[type_name]
             else:
-                raise ValueError('Unknown typename %s' % (typename))
-            return entry_class(name, typename, description, **kwargs)
-        return OneOfEntry(name, typenames, description, **kwargs)
+                raise ValueError('Unknown type name %s' % (type_name))
+            return entry_class(name, type_name, description, **kwargs)
+        return OneOfEntry(name, type_names, description, **kwargs)
