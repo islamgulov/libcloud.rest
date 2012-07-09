@@ -158,7 +158,7 @@ class BasicEntry(object):
         """
         pass
 
-    def _contain_arguments(self, json_data):
+    def _contains_arguments(self, json_data):
         pass
 
 
@@ -186,7 +186,7 @@ class LibcloudObjectEntry(BasicEntry):
     def _get_object(self, json_data, driver):
         raise NotImplementedError()
 
-    def _contain_arguments(self, json_data):
+    def _contains_arguments(self, json_data):
         for field in self._fields:
             if field.name in json_data:
                 return True
@@ -194,7 +194,8 @@ class LibcloudObjectEntry(BasicEntry):
 
     def from_json(self, data, driver):
         json_data = self._get_json(data)
-        if not self._contain_arguments(json_data) and hasattr(self, 'default'):
+        if not self._contains_arguments(json_data) \
+                and hasattr(self, 'default'):
             return self.default
         self._validate(json_data)
         return self._get_object(json_data, driver)
@@ -239,14 +240,15 @@ class SimpleEntry(BasicEntry):
         except (MalformedJSONError, ValidationError), e:
             raise ValueError('Can not represent object as json %s' % (str(e)))
 
-    def _contain_arguments(self, json_data):
+    def _contains_arguments(self, json_data):
         if self.field.name in json_data:
             return True
         return False
 
     def from_json(self, data, driver=None):
         json_data = self._get_json(data)
-        if not self._contain_arguments(json_data) and hasattr(self, 'default'):
+        if not self._contains_arguments(json_data)\
+                and hasattr(self, 'default'):
             return self.default
         self._validate(json_data)
         return json_data[self.name]
@@ -340,7 +342,7 @@ class OneOfEntry(BasicEntry):
         json_data = self._get_json(data)
         for entry in self.entries:
             try:
-                contain_arguments.append(entry._contain_arguments(json_data))
+                contain_arguments.append(entry._contains_arguments(json_data))
                 results.append(entry.from_json(data, driver))
             except MissingArguments, e:
                 missed_arguments.extend(e.arguments)
