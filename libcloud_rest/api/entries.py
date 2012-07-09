@@ -187,10 +187,7 @@ class LibcloudObjectEntry(BasicEntry):
         raise NotImplementedError()
 
     def _contains_arguments(self, json_data):
-        for field in self._fields:
-            if field.name in json_data:
-                return True
-        return False
+        return any(True for f in self._fields if f.name in json_data)
 
     def from_json(self, data, driver):
         json_data = self._get_json(data)
@@ -241,9 +238,7 @@ class SimpleEntry(BasicEntry):
             raise ValueError('Can not represent object as json %s' % (str(e)))
 
     def _contains_arguments(self, json_data):
-        if self.field.name in json_data:
-            return True
-        return False
+        return self.field.name in json_data
 
     def from_json(self, data, driver=None):
         json_data = self._get_json(data)
