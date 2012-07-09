@@ -120,6 +120,8 @@ class NoSuchObjectError(LibcloudError):
 
 
 class NoSuchZoneError(NoSuchObjectError):
+    code = 1009
+    name = 'NoSuchZone'
     message = 'The specified zone does not exist'
 
 
@@ -133,7 +135,6 @@ class ZoneAlreadyExistsError(LibcloudError):
 class NoSuchRecordError(NoSuchObjectError):
     code = 1011
     name = 'NoSuchRecord'
-    http_status_code = httplib.NOT_FOUND
     message = 'The specified record does not exist'
 
 

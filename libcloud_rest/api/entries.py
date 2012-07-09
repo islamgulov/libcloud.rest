@@ -1,9 +1,12 @@
 # -*- coding:utf-8 -*-
 from functools import partial
+
 try:
     import simplejson as json
 except ImportError:
     import json
+
+from libcloud.compute import base as compute_base
 
 from libcloud_rest.api import validators as valid
 from libcloud_rest.exception import MalformedJSONError, ValidationError,\
@@ -36,7 +39,7 @@ class Field(object):
             data = json_data[self.name]
         except (KeyError, TypeError):
             if self.required:
-                raise MissingArguments([self.name])
+                raise MissingArguments(self.name)
             return
         self.validator(data)
 
@@ -96,7 +99,6 @@ class BasicEntry(object):
     Just describe interface.
     """
     def _get_json(self, data):
-
         """
 
         @param data:
@@ -156,6 +158,9 @@ class BasicEntry(object):
         """
         pass
 
+    def _contain_arguments(self, json_data):
+        pass
+
 
 class LibcloudObjectEntry(BasicEntry):
     __metaclass__ = LibcloudObjectEntryBase
@@ -172,7 +177,7 @@ class LibcloudObjectEntry(BasicEntry):
     def to_json(cls, obj):
         try:
             data = dict(((name, getattr(obj, name))
-                        for name in cls.render_attrs))
+                         for name in cls.render_attrs))
         except AttributeError, e:
             #FIXME: create new error class for this
             raise ValueError('Can not represent object as json %s' % (str(e)))
@@ -181,23 +186,28 @@ class LibcloudObjectEntry(BasicEntry):
     def _get_object(self, json_data, driver):
         raise NotImplementedError()
 
+    def _contain_arguments(self, json_data):
+        for field in self._fields:
+            if field.name in json_data:
+                return True
+        return False
+
     def from_json(self, data, driver):
-        missed_arguments = []
         json_data = self._get_json(data)
-        try:
-            self._validate(json_data)
-        except MissingArguments, error:
-            missed_arguments.extend(error.arguments)
-        if missed_arguments:
-            if [field for field in self._fields if field.name in json_data] \
-                    or (not hasattr(self, 'default')):
-                raise MissingArguments(arguments=missed_arguments)
+        if not self._contain_arguments(json_data) and hasattr(self, 'default'):
             return self.default
+        self._validate(json_data)
         return self._get_object(json_data, driver)
 
     def _validate(self, json_data):
-        for field in self._fields:
-            field.validate(json_data)
+        missed_args = []
+        try:
+            for field in self._fields:
+                field.validate(json_data)
+        except MissingArguments, error:
+            missed_args.append(error.arguments)
+        if missed_args:
+            raise MissingArguments(arguments=missed_args)
 
     @classmethod
     def get_arguments(cls):
@@ -229,14 +239,16 @@ class SimpleEntry(BasicEntry):
         except (MalformedJSONError, ValidationError), e:
             raise ValueError('Can not represent object as json %s' % (str(e)))
 
+    def _contain_arguments(self, json_data):
+        if self.field.name in json_data:
+            return True
+        return False
+
     def from_json(self, data, driver=None):
         json_data = self._get_json(data)
-        try:
-            self._validate(json_data)
-        except MissingArguments, e:
-            if hasattr(self, 'default'):
-                return self.default
-            raise e
+        if not self._contain_arguments(json_data) and hasattr(self, 'default'):
+            return self.default
+        self._validate(json_data)
         return json_data[self.name]
 
 
@@ -253,6 +265,23 @@ class NodeEntry(LibcloudObjectEntry):
         raise NoSuchObjectError(obj_type='Node')
 
 
+class NodeAuthSSHKeyEntry(LibcloudObjectEntry):
+    render_attrs = []
+    node_pubkey = StringField('An SSH key to be installed for'
+                              ' authentication to a node.')
+
+    def _get_object(self, json_data, driver):
+        return compute_base.NodeAuthSSHKey(json_data['node_pubkey'])
+
+
+class NodeAuthPasswordEntry(LibcloudObjectEntry):
+    render_attrs = []
+    node_password = StringField('A password to be used for'
+                                ' authentication to a node.')
+
+    def _get_object(self, json_data, driver):
+        return compute_base.NodeAuthPassword(json_data['node_password'])
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
@@ -260,19 +289,86 @@ simple_types_fields = {
 
 complex_entries = {
     'L{Node}': NodeEntry,
+    'L{NodeAuthSSHKey}': NodeAuthSSHKeyEntry,
+    'L{NodeAuthPassword}': NodeAuthPasswordEntry,
 }
+
+
+class OneOfEntry(BasicEntry):
+    def __init__(self, name, typenames, description, **kwargs):
+        self.name = name
+        if 'default' in kwargs:
+            self.default = kwargs['default']
+        self.typenames = typenames
+        self.description = description
+        self.entries = [Entry(name, (typename, ), description)
+                        for typename in typenames]
+
+    def _validate(self, json_data):
+        missed_arguments = []
+        for entry in self.entries:
+            try:
+                entry._validate(json_data)
+                break
+            except (MissingArguments, ), e:
+                missed_arguments.append(e.arguments)
+        else:
+            raise MissingArguments(arguments=missed_arguments)
+
+    def get_arguments(self):
+        arguments = []
+        for entry in self.entries:
+            args = entry.get_arguments()
+            arguments.extend(args)
+        return arguments
+
+    def to_json(self, obj):
+        for entry in self.entries:
+            try:
+                json_data = entry.to_json(obj)
+                return json_data
+            except (ValueError, ), e:
+                continue
+        else:
+            raise ValueError('Can not represent object as json %s' % (str(e)))
+
+    def from_json(self, data, driver):
+        missed_arguments = []
+        validation_errors = []
+        contain_arguments = []
+        results = []
+        json_data = self._get_json(data)
+        for entry in self.entries:
+            try:
+                contain_arguments.append(entry._contain_arguments(json_data))
+                results.append(entry.from_json(data, driver))
+            except MissingArguments, e:
+                missed_arguments.append(e.arguments)
+            except ValidationError, e:
+                validation_errors.append(e)
+        if len(results) == 1:
+            return results[0]
+        elif validation_errors:
+            error_message = ' || '.join([e.message for e in validation_errors])
+            raise ValidationError(error_message)
+        elif not results and not any(contain_arguments) \
+                and hasattr(self, 'default'):
+            return self.default
+        elif missed_arguments:
+            missed_arguments = ' or '.join(str(a) for a in missed_arguments)
+            raise MissingArguments(arguments=missed_arguments)
+        raise ValueError('Too many arguments provided')
 
 
 class Entry(object):
     def __new__(cls, name, typenames, description='', **kwargs):
-        if len(typenames) > 1:
-            print typenames
-            raise NotImplementedError
-        typename = typenames[0]
-        if typename in simple_types_fields:
-            entry_class = SimpleEntry
-        elif typename in complex_entries:
-            entry_class = complex_entries[typename]
-        else:
-            raise ValueError('Unknown typename %s' % (typename))
-        return entry_class(name, typename, description, **kwargs)
+        if len(typenames) == 1:
+            typename = typenames[0]
+            if typename in simple_types_fields:
+                entry_class = SimpleEntry
+            elif typename in complex_entries:
+                entry_class = complex_entries[typename]
+            else:
+                raise ValueError('Unknown typename %s' % (typename))
+            return entry_class(name, typename, description, **kwargs)
+        return OneOfEntry(name, typenames, description, **kwargs)

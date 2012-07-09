@@ -14,7 +14,6 @@ from libcloud_rest.utils import json
 
 class DriverMethod(object):
     def __init__(self, driver_cls, method_name):
-        # TODO: add multiple multientries support):
         self.driver_cls = driver_cls
         self.method_name = method_name
         method = getattr(driver_cls, method_name)
@@ -69,7 +68,7 @@ class DriverMethod(object):
         return json.dumps(result, indent=4)
 
     def invoke(self, data):
-        pass
+        raise NotImplementedError
 
 
 def get_providers_dict(drivers, providers):

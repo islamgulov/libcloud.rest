@@ -6,7 +6,8 @@ try:
 except ImportError:
     import json
 
-from libcloud.compute.base import Node, NodeState
+from libcloud.compute.base import Node, NodeState, \
+    NodeAuthPassword, NodeAuthSSHKey
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
 
 from libcloud_rest.api.entries import Entry, LibcloudObjectEntry, StringField
@@ -133,8 +134,8 @@ class FakeEntryTests(unittest2.TestCase):
         args = self.entry.get_arguments()
         names = [arg['name'] for arg in args]
         self.assertItemsEqual(['fake_id', 'fake_name'], names)
-        get_arg = lambda name:  [arg for arg in args
-                                 if arg['name'] == name][0]
+        get_arg = lambda name: [arg for arg in args
+                                if arg['name'] == name][0]
         fake_id_arg = get_arg('fake_id')
         self.assertEqual(fake_id_arg['type'], 'string')
         fake_name_arg = get_arg('fake_name')
@@ -190,8 +191,8 @@ class FakeDefaultEntryTests(unittest2.TestCase):
         args = self.entry.get_arguments()
         names = [arg['name'] for arg in args]
         self.assertItemsEqual(['fake_id', 'fake_name'], names)
-        get_arg = lambda name:  [arg for arg in args
-                                 if arg['name'] == name][0]
+        get_arg = lambda name: [arg for arg in args
+                                if arg['name'] == name][0]
         fake_id_arg = get_arg('fake_id')
         self.assertEqual(fake_id_arg['type'], 'string')
         fake_name_arg = get_arg('fake_name')
@@ -240,3 +241,83 @@ class NodeEntryTests(unittest2.TestCase):
         bad_json_data = '{"node_id": "0062"}'
         self.assertRaises(NoSuchObjectError, self.entry.from_json,
                           bad_json_data, self.driver)
+
+
+class OneOfEntryTests(unittest2.TestCase):
+    def setUp(self):
+        self.entry = Entry('node',
+                           ['L{NodeAuthSSHKey}', 'L{NodeAuthPassword}'],
+                           'Initial authentication information for the node')
+
+    def test_get_arguments(self):
+        args = self.entry.get_arguments()
+        self.assertEqual(2, len(args))
+        get_arg = lambda name: [arg for arg in args
+                                if arg['name'] == name][0]
+        node_pubkey_arg = get_arg('node_pubkey')
+        self.assertEqual(node_pubkey_arg['type'], 'string')
+        node_password_arg = get_arg('node_password')
+        self.assertEqual(node_password_arg['type'], 'string')
+
+    def test_from_json(self):
+        key_json = '{"node_pubkey": "123", "unknown_arg": 123}'
+        node_auth_ssh_key = self.entry.from_json(key_json, None)
+        self.assertEqual("123", node_auth_ssh_key.pubkey)
+        password_json = '{"node_password": "321", "unknown_arg": 123}'
+        node_auth_password = self.entry.from_json(password_json, None)
+        self.assertEqual("321", node_auth_password.password)
+        key_password_json = '{"node_pubkey": "123",' \
+                            ' "node_password": "321", "unknown_args": 123}'
+        self.assertRaises(ValueError, self.entry.from_json,
+                          key_password_json, None)
+        empty_json = "{}"
+        self.assertRaises(MissingArguments, self.entry.from_json,
+                          empty_json, None)
+        invalid_json = '{"node_pubkey": 123}'
+        self.assertRaises(ValidationError, self.entry.from_json,
+                          invalid_json, None)
+
+    def test_to_json(self):
+        node_ssh_key = NodeAuthSSHKey('pk')
+        self.assertEqual('{}', self.entry.to_json(node_ssh_key))
+        node_password = NodeAuthPassword('pwd')
+        self.assertEqual('{}', self.entry.to_json(node_password))
+
+
+class DefaultOneOfEntryTests(unittest2.TestCase):
+    def setUp(self):
+        self.entry = Entry('attr', ['C{str}', 'C{dict}'],
+                           'Test description',
+                           default='default_value')
+
+    def test_get_arguments(self):
+        args = self.entry.get_arguments()
+        self.assertEqual(2, len(args))
+        test_args = [{'type': 'string', 'name': 'attr',
+                      'description': 'Test description'},
+                     {'type': 'dictionary', 'name': 'attr',
+                      'description': 'Test description'}]
+        self.assertEqual(test_args, args)
+
+    def test_from_json(self):
+        str_json = '{"attr": "123", "unknown_arg": 123}'
+        self.assertEqual("123", self.entry.from_json(str_json, None))
+        dict_json = '{"attr": "{}", "unknown_arg": 123}'
+        self.assertEqual("{}", self.entry.from_json(dict_json, None))
+        invalid_json = '{"attr": 555}'
+        self.assertRaises(ValidationError, self.entry.from_json,
+                          invalid_json, None)
+        without_attr_json = '{"unknown_arg": 123}'
+        self.assertEqual('default_value',
+                         self.entry.from_json(without_attr_json, None))
+        malformed_json = '{'
+        self.assertRaises(MalformedJSONError, self.entry.from_json,
+                          malformed_json, None)
+
+    def test_to_json(self):
+        str_data = 'abc'
+        self.assertEqual('{"attr": "abc"}', self.entry.to_json(str_data))
+        dict_data = {'1': 2}
+        self.assertEqual('{"attr": {"1": 2}}', self.entry.to_json(dict_data))
+        int_data = 5
+        self.assertRaises(ValueError, self.entry.to_json, int_data)
