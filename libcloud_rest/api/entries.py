@@ -39,7 +39,7 @@ class Field(object):
             data = json_data[self.name]
         except (KeyError, TypeError):
             if self.required:
-                raise MissingArguments(self.name)
+                raise MissingArguments([self.name])
             return
         self.validator(data)
 
@@ -205,7 +205,7 @@ class LibcloudObjectEntry(BasicEntry):
             for field in self._fields:
                 field.validate(json_data)
         except MissingArguments, error:
-            missed_args.append(error.arguments)
+            missed_args.extend(error.arguments)
         if missed_args:
             raise MissingArguments(arguments=missed_args)
 
@@ -311,7 +311,7 @@ class OneOfEntry(BasicEntry):
                 entry._validate(json_data)
                 break
             except (MissingArguments, ), e:
-                missed_arguments.append(e.arguments)
+                missed_arguments.extend(e.arguments)
         else:
             raise MissingArguments(arguments=missed_arguments)
 
@@ -343,7 +343,7 @@ class OneOfEntry(BasicEntry):
                 contain_arguments.append(entry._contain_arguments(json_data))
                 results.append(entry.from_json(data, driver))
             except MissingArguments, e:
-                missed_arguments.append(e.arguments)
+                missed_arguments.extend(e.arguments)
             except ValidationError, e:
                 validation_errors.append(e)
         if len(results) == 1:
