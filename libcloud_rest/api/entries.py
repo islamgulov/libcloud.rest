@@ -9,7 +9,7 @@ except ImportError:
 from libcloud.compute import base as compute_base
 
 from libcloud_rest.api import validators as valid
-from libcloud_rest.exception import MalformedJSONError, ValidationError,\
+from libcloud_rest.errors import MalformedJSONError, ValidationError,\
     NoSuchObjectError, MissingArguments
 
 

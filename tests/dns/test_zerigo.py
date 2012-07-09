@@ -15,7 +15,7 @@ from libcloud.test.dns.test_zerigo import ZerigoMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.exception import LibcloudError, ValidationError
+from libcloud_rest.errors import LibcloudError, ValidationError
 from tests.file_fixtures import DNSFixtures
 
 

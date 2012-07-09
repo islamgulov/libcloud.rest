@@ -16,7 +16,7 @@ from libcloud.test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.exception import UnknownHeadersError, ValidationError, \
+from libcloud_rest.errors import UnknownHeadersError, ValidationError, \
     MalformedJSONError
 from tests.file_fixtures import ComputeFixtures
 

@@ -9,7 +9,7 @@ from werkzeug.exceptions import HTTPException
 from libcloud_rest.api.urls import urls
 from libcloud_rest.api import validators as valid
 from libcloud_rest.log import logger
-from libcloud_rest.exception import LibcloudRestError
+from libcloud_rest.errors import LibcloudRestError
 from libcloud_rest.constants import MAX_BODY_LENGTH
 
 

@@ -16,7 +16,7 @@ from libcloud.dns import base as dns_base
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
-from libcloud_rest.exception import InternalError,\
+from libcloud_rest.errors import InternalError,\
     LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING

@@ -2,7 +2,7 @@
 import unittest2
 
 from libcloud_rest.api import validators
-from libcloud_rest.exception import ValidationError, MissingArguments,\
+from libcloud_rest.errors import ValidationError, MissingArguments,\
     UnknownArgument
 
 

@@ -6,7 +6,7 @@ from libcloud.utils.misc import get_driver
 from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT,\
     parse_args, parse_docstring, get_method_docstring
 from libcloud_rest.api.validators import validate_driver_arguments
-from libcloud_rest.exception import ProviderNotSupportedError,\
+from libcloud_rest.errors import ProviderNotSupportedError,\
     MissingArguments, MissingHeadersError, UnknownArgument, UnknownHeadersError
 from libcloud_rest.api.entries import Entry
 from libcloud_rest.utils import json

@@ -11,7 +11,7 @@ from libcloud.compute.base import Node, NodeState, \
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
 
 from libcloud_rest.api.entries import Entry, LibcloudObjectEntry, StringField
-from libcloud_rest.exception import MalformedJSONError, ValidationError,\
+from libcloud_rest.errors import MalformedJSONError, ValidationError,\
     NoSuchObjectError, MissingArguments
 from tests.utils import get_test_driver_instance
 

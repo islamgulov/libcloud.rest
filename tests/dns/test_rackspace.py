@@ -20,7 +20,7 @@ from mock import patch
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.exception import NoSuchZoneError, LibcloudError, \
+from libcloud_rest.errors import NoSuchZoneError, LibcloudError, \
     NoSuchRecordError, ValidationError, NoSuchRecordError
 from tests.file_fixtures import DNSFixtures
 

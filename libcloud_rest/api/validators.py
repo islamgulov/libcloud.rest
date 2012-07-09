@@ -2,7 +2,7 @@
 import inspect
 from itertools import chain
 
-from libcloud_rest.exception import ValidationError, MissingArguments,\
+from libcloud_rest.errors import ValidationError, MissingArguments,\
     UnknownArgument
 from libcloud_rest.api.parser import get_method_requirements
 

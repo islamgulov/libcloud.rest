@@ -5,7 +5,7 @@ from libcloud.compute.drivers.dummy import DummyNodeDriver
 from libcloud.compute.base import Node
 
 from libcloud_rest.api import handlers
-from libcloud_rest.exception import InternalError, LibcloudError,\
+from libcloud_rest.errors import InternalError, LibcloudError,\
     MalformedJSONError, ValidationError
 from libcloud_rest.api import validators as valid
 
