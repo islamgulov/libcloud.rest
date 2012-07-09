@@ -45,9 +45,8 @@ class DriverMethod(object):
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]
-            arg = arg[0]
-            entry = Entry(arg_name, arg['typenames'], arg['description'])
-            self.optional_entries.extend(entry)
+            entry = Entry(arg_name, arg['type_names'], arg['description'])
+            self.optional_entries.append(entry)
         self.result_entry = Entry('', returns, '')
 
     def get_description(self):

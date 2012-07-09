@@ -6,7 +6,8 @@ from libcloud_rest.utils import json
 
 
 class FakeDriver(object):
-    def fake_method(self, node, volume, device='/deb/sdb', extra={}):
+    def fake_method(self, node, volume, device='/deb/sdb',
+                    extra={}, varg='value', **kwargs):
         '''
         teachess volume to node.
 
@@ -20,15 +21,21 @@ class FakeDriver(object):
                             e.g. '/dev/sdb (required)
         @type       device: C{str}
 
-        @param extra: Extra attributes (driver specific).
-        @type extra: C{dict}
+        @param      extra: Extra attributes (driver specific).
+        @type       extra: C{dict} or C{str}
+
+        @param      varg: with default value
+        @type       varg: C{str}
+
+        @keyword    kwarg: Keyword argument
+        @type       kwarg: C{str}
 
         @return: C{str}
         '''
         pass
 
 
-class Tests(unittest2.TestCase):
+class FakeDriverTests(unittest2.TestCase):
     def setUp(self):
         self.driver_method = DriverMethod(FakeDriver, 'fake_method')
 
@@ -38,19 +45,23 @@ class Tests(unittest2.TestCase):
         self.assertEqual('fake_method', data['name'])
         self.assertEqual('teachess volume to node.', data['description'])
         arguments = data['arguments']
-        test_args = [{'required': True, 'type': 'string', 'name': 'node_id',
-                      'description': 'ID of the node which should be used'},
-                     {'required': True, 'type': 'string', 'name': 'volume',
-                     'description': 'Volume to attach'},
-                     {'required': True, 'type': 'string', 'name': 'device',
-                      'description': "Where the device is exposed,\n"
-                                     "e.g. '/dev/sdb (required)"},
-                     {'required': False, 'type': 'dictionary', 'name': 'extra',
-                      'description': 'Extra attributes (driver specific).',
-                      'default': {}}
-                     ]
-        self.assertItemsEqual(test_args, arguments)
-
+        node = {'required': True, 'type': 'string', 'name': 'node_id',
+                'description': 'ID of the node which should be used'}
+        volume = {'required': True, 'type': 'string', 'name': 'volume',
+                  'description': 'Volume to attach'}
+        device = {'required': True, 'type': 'string', 'name': 'device',
+                  'description': "Where the device is exposed,\n"
+                                 "e.g. '/dev/sdb (required)"}
+        extra_dict = {'required': False, 'type': 'dictionary', 'name': 'extra',
+                      'description': 'Extra attributes (driver specific).'}
+        extra_str = {'required': False, 'type': 'string', 'name': 'extra',
+                     'description': 'Extra attributes (driver specific).'}
+        varg = {'default': 'value', 'required': False, 'type': 'string',
+                'name': 'varg', 'description': 'with default value'}
+        kwarg = {'required': False, 'type': 'string',
+                 'name': 'kwarg', 'description': 'Keyword argument'}
+        test_args = [node, volume, device, extra_dict, extra_str, varg, kwarg]
+        self.assertEqual(arguments, test_args)
 
 if __name__ == '__main__':
     unittest2.main()
