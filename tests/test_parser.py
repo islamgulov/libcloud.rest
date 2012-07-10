@@ -69,8 +69,8 @@ class TestParser(unittest2.TestCase):
         self.assertTrue(description.splitlines()[1].startswith('Second'))
         self.assertEqual(args['zone_id']['type_names'], ['C{str}'])
         self.assertEqual(args['zone_id']['required'], True)
-        self.assertEqual(args['auth']['type_names'],
-                         ['L{NodeAuthSSHKey}', 'L{NodeAuthPassword}'])
+        self.assertItemsEqual(args['auth']['type_names'],
+                              ['L{NodeAuthSSHKey}', 'L{NodeAuthPassword}'])
         self.assertEqual(args['auth']['required'], False)
         self.assertEqual(returns, ['L{Zone}', 'L{Node}'])
 

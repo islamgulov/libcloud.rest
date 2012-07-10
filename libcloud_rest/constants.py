@@ -8,5 +8,3 @@ TEST_QUERY_STRING = 'test=1'
 VALID_LOG_LEVELS = ['DEBUG', 'ERROR', 'FATAL', 'CRITICAL', 'INFO', 'WARNING']
 
 REQUIRES_FIELD = '@requires:'
-
-TYPENAME_REGEX = re.compile('(.\{[_a-zA-Z]+\})')

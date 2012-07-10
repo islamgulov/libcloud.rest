@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
 import inspect
 from collections import defaultdict
-import re
 from itertools import chain
 
 from libcloud_rest.utils import LastUpdatedOrderedDict
-from libcloud_rest.constants import REQUIRES_FIELD, TYPENAME_REGEX
+from libcloud_rest.constants import REQUIRES_FIELD
 
 #map between request header name and libcloud's internal attribute name
 XHEADERS_TO_ARGS_DICT = {
@@ -83,6 +82,20 @@ def get_method_docstring(cls, method_name):
     return docstrign
 
 
+def _parse_types_names(type_str):
+    """
+    parse types names from field string and return list of types names
+    for example:
+        C{str} or L{Node} -> ['C{str}', 'L{Node}]
+        C{list} of C{str} -> ['C{list} of C{str}']
+    @param type_str:
+    @type type_str:
+    @return:
+    @rtype:
+    """
+    return [ftype.strip() for ftype in type_str.split(' or ')]
+
+
 def _parse_docstring_field(field_lines):
     """
 
@@ -95,7 +108,7 @@ def _parse_docstring_field(field_lines):
     if field_lines.startswith('@type'):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
-        arg_type = re.findall(TYPENAME_REGEX, field_data[2])
+        arg_type = _parse_types_names(field_data[2])
         return  arg_name, {'type_names': arg_type}
     if field_lines.startswith('@keyword') or field_lines.startswith('@param'):
         field_data = field_lines.split(None, 2)
@@ -116,7 +129,6 @@ def parse_docstring(docstring):
         return - list of return types
     @rtype: C{dict}
     """
-    typename_regex = re.compile('(.\{[_a-zA-Z]+\})')
     def_arg_dict = lambda: {'description': None,
                             'type_names': None,
                             'required': False,
@@ -138,7 +150,8 @@ def parse_docstring(docstring):
             if cached_field is None or cached_field.startswith('@return'):
                 cached_field = ''
             elif cached_field.startswith('@rtype'):
-                return_value_types = re.findall(typename_regex, cached_field)
+                types_str = cached_field.split(':', 1)[1]
+                return_value_types = _parse_types_names(types_str)
                 cached_field = ''
             else:
                 arg_name, update_dict = _parse_docstring_field(cached_field)
