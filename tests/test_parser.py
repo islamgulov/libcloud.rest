@@ -5,7 +5,6 @@ from libcloud_rest.api import parser
 
 
 class TestParser(unittest2.TestCase):
-
     def test_get_method_requirements(self):
         #valid input
         def t3():
@@ -36,6 +35,7 @@ class TestParser(unittest2.TestCase):
         class A(object):
             def foo(self):
                 """docstring"""
+
             def bar(self):
                 pass
 
@@ -45,6 +45,7 @@ class TestParser(unittest2.TestCase):
 
             def bar(self):
                 pass
+
         self.assertEqual(parser.get_method_docstring(B, 'foo'), 'docstring')
         self.assertEqual(parser.get_method_docstring(B, 'bar'), None)
 
@@ -60,7 +61,8 @@ class TestParser(unittest2.TestCase):
                             (optional)
         @type       auth:   L{NodeAuthSSHKey} or L{NodeAuthPassword}
 
-        @return: L{Zone} or L{Node} instance.
+        @return:    instance
+        @rtype:     L{Zone} or L{Node}
         """
         description, args, returns = parser.parse_docstring(docstring)
         self.assertTrue(description.startswith('Return'))
@@ -98,6 +100,7 @@ class TestParser(unittest2.TestCase):
             def update_zone(self, zone, domain, type='master',
                             ttl=None, extra=None):
                 pass
+
         result = parser.parse_args(A.update_zone)
         self.assertEqual(result.keys(),
                          ['zone', 'domain', 'type', 'ttl', 'extra'])

@@ -135,9 +135,9 @@ def parse_docstring(docstring):
     cached_field = None
     for docstring_line in chain(docstring_list, '@'):
         if docstring_line.startswith('@'):
-            if cached_field is None:
+            if cached_field is None or cached_field.startswith('@return'):
                 cached_field = ''
-            elif cached_field.startswith('@return'):
+            elif cached_field.startswith('@rtype'):
                 return_value_types = re.findall(typename_regex, cached_field)
                 cached_field = ''
             else:

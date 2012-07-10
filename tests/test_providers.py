@@ -30,7 +30,9 @@ class FakeDriver(object):
         @keyword    kwarg: Keyword argument
         @type       kwarg: C{str}
 
-        @return: C{str}
+        @return:    return new fake object
+        @rtype:     C{str}
+
         '''
         pass
 
