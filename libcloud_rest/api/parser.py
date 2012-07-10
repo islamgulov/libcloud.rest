@@ -2,6 +2,7 @@
 import inspect
 from collections import defaultdict
 from itertools import chain
+import re
 
 from libcloud_rest.utils import LastUpdatedOrderedDict
 from libcloud_rest.constants import REQUIRES_FIELD
@@ -118,7 +119,27 @@ def _parse_docstring_field(field_lines):
                           'required': '(required)' in arg_description}
 
 
-def parse_docstring(docstring):
+def _find_parent_cls(cls, cls_name):
+    if cls.__name__ == cls_name:
+        return cls
+    for base_cls in cls.__bases__:
+        res = _find_parent_cls(base_cls, cls_name)
+        if res is not None:
+            return res
+    return None
+
+
+def _parse_inherit(cls, inherits):
+    regex_str = r".\{(?P<cls_name>[_a-zA-Z]+).(?P<method_name>[_a-zA-Z]+)\}"
+    m = re.match(regex_str, inherits.strip())
+    cls_name = m.group('cls_name')
+    method_name = m.group('method_name')
+    parent_cls = _find_parent_cls(cls, cls_name)
+    docstring = get_method_docstring(parent_cls, method_name)
+    return parse_docstring(docstring, parent_cls)
+
+
+def parse_docstring(docstring, cls=None):
     """
     NB. by default arguments marked as optional
     @param docstring:
@@ -149,10 +170,24 @@ def parse_docstring(docstring):
         if docstring_line.startswith('@'):
             if cached_field is None or cached_field.startswith('@return'):
                 cached_field = ''
+            #parse inherits
+            elif cached_field.startswith('@inherits'):
+                if not cls:
+                    raise ValueError
+                inherit_str = cached_field.split(':', 1)[1]
+                result = _parse_inherit(cls, inherit_str)
+                if not description and result[0]:
+                    description = result[0]
+                for arg_name, update_dict in result[1].items():
+                    arguments_dict[arg_name].update(update_dict)
+                return_value_types = result[2]
+                cached_field = ''
+            #parse return value
             elif cached_field.startswith('@rtype'):
                 types_str = cached_field.split(':', 1)[1]
                 return_value_types = _parse_types_names(types_str)
                 cached_field = ''
+            #parse arguments
             else:
                 arg_name, update_dict = _parse_docstring_field(cached_field)
                 arguments_dict[arg_name].update(update_dict)
