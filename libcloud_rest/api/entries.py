@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from functools import partial
+import re
 
 try:
     import simplejson as json
@@ -98,6 +99,7 @@ class BasicEntry(object):
     """
     Just describe interface.
     """
+
     def _get_json(self, data):
         """
 
@@ -191,7 +193,7 @@ class LibcloudObjectEntry(BasicEntry):
 
     def from_json(self, data, driver):
         json_data = self._get_json(data)
-        if not self._contains_arguments(json_data) \
+        if not self._contains_arguments(json_data)\
                 and hasattr(self, 'default'):
             return self.default
         self._validate(json_data)
@@ -348,7 +350,7 @@ class OneOfEntry(BasicEntry):
         elif validation_errors:
             error_message = ' || '.join([e.message for e in validation_errors])
             raise ValidationError(error_message)
-        elif not results and not any(contain_arguments) \
+        elif not results and not any(contain_arguments)\
                 and hasattr(self, 'default'):
             return self.default
         elif missed_arguments:
@@ -357,7 +359,43 @@ class OneOfEntry(BasicEntry):
         raise ValueError('Too many arguments provided')
 
 
+class ListEntry(BasicEntry):
+    """
+    #TODO: implement container entry
+    """
+
+    def __init__(self, name, type_name, description, **kwargs):
+        self.name = name
+        if 'default' in kwargs:
+            raise NotImplementedError(
+                'ListEntry does not support default value')
+        container_type, object_type = type_name.split(' of ')
+        if container_type != 'C{list}':
+            raise NotImplementedError
+        self.container_type = container_type
+        self.object_type = object_type
+        self.description = description
+        self.object_entry = Entry('', [object_type], '')
+
+    def _validate(self, json_data):
+        raise NotImplementedError
+
+    def get_arguments(self):
+        raise NotImplementedError
+
+    def to_json(self, obj_list):
+        return  [self.object_entry.to_json(obj) for obj in obj_list]
+
+    def from_json(self, data, driver):
+        json_data = self._get_json(data)
+        data_list = json_data[self.name]
+        return [self.object_entry.from_json(json.dumps(data), driver)
+                for data in data_list]
+
+
 class Entry(object):
+    _container_regex = re.compile('(.\{[_a-zA-Z]+\} of .\{[_a-zA-Z]+\})')
+
     def __new__(cls, name, type_names, description='', **kwargs):
         if len(type_names) == 1:
             type_name = type_names[0]
@@ -365,6 +403,8 @@ class Entry(object):
                 entry_class = SimpleEntry
             elif type_name in complex_entries:
                 entry_class = complex_entries[type_name]
+            elif re.match(cls._container_regex, type_name):
+                entry_class = ListEntry
             else:
                 raise ValueError('Unknown type name %s' % (type_name))
             return entry_class(name, type_name, description, **kwargs)

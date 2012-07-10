@@ -10,7 +10,8 @@ from libcloud.compute.base import Node, NodeState, \
     NodeAuthPassword, NodeAuthSSHKey
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
 
-from libcloud_rest.api.entries import Entry, LibcloudObjectEntry, StringField
+from libcloud_rest.api.entries import Entry, LibcloudObjectEntry, StringField,\
+    ListEntry
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
     NoSuchObjectError, MissingArguments
 from tests.utils import get_test_driver_instance
@@ -321,3 +322,32 @@ class DefaultOneOfEntryTests(unittest2.TestCase):
         self.assertEqual('{"attr": {"1": 2}}', self.entry.to_json(dict_data))
         int_data = 5
         self.assertRaises(ValueError, self.entry.to_json, int_data)
+
+
+class ListEntryTest(unittest2.TestCase):
+    def setUp(self):
+        self.entry = ListEntry('result', 'C{list} of L{Node}', 'pass')
+        self.driver = get_test_driver_instance(CloudStackNodeDriver,
+                                               secret='apikey', key='user',
+                                               host='api.dummy.com',
+                                               path='/test/path')
+
+    def test_to_json(self):
+        n1 = Node('id1', 'test1', NodeState.RUNNING, None, None, None)
+        n1_json = '{"public_ips": [], "state": 0,' \
+                  ' "id": "id1", "name": "test1"}'
+        n2 = Node('id2', 'test2', NodeState.PENDING, None, None, None)
+        n2_json = '{"public_ips": [], "state": 3,' \
+                  ' "id": "id2", "name": "test2"}'
+        self.assertItemsEqual([n1_json, n2_json], self.entry.to_json([n1, n2]))
+
+    def test_from_json(self):
+        nodes = '{"result": [{"node_id": "2600"}, {"node_id": "2601"}]}'
+        result = self.entry.from_json(nodes, self.driver)
+        get_node = lambda x: [node for node in result if node.id == x][0]
+        node_2600 = get_node('2600')
+        self.assertEqual(node_2600.id, '2600')
+        self.assertEqual(node_2600.name, 'test')
+        node_2601 = get_node('2601')
+        self.assertEqual(node_2601.id, '2601')
+        self.assertEqual(node_2601.name, 'test')
