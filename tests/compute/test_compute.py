@@ -28,5 +28,12 @@ class ComputeTest(unittest2.TestCase):
         resp_data = json.dumps(json.loads(resp.data), indent=4)
         self.assertEqual(resp.status_code, httplib.OK)
 
+    def test_provider_info(self):
+        url = rest_versions[libcloud.__version__] +\
+            '/compute/providers/bluebox'
+        resp = self.client.get(url)
+        resp_data = json.dumps(json.loads(resp.data), indent=4)
+        self.assertEqual(resp.status_code, httplib.OK)
+
 if __name__ == '__main__':
     sys.exit(unittest2.main())

@@ -64,10 +64,9 @@ class FakeDriverTests(unittest2.TestCase):
         self.driver_method = DriverMethod(FakeDriver, 'fake_method')
 
     def test_get_description(self):
-        description = self.driver_method.get_description()
-        data = json.loads(description)
+        data = self.driver_method.get_description()
         self.assertEqual('fake_method', data['name'])
-        self.assertEqual('teachess volume to node.', data['description'])
+        self.assertEqual('teachess volume to node.\n',  data['description'])
         arguments = data['arguments']
         node = {'required': True, 'type': 'string', 'name': 'node_id',
                 'description': 'ID of the node which should be used'}
@@ -84,8 +83,9 @@ class FakeDriverTests(unittest2.TestCase):
                 'name': 'varg', 'description': 'with default value'}
         kwarg = {'required': False, 'type': 'string',
                  'name': 'kwarg', 'description': 'Keyword argument'}
+        self.assertEqual(arguments[2], device)
         test_args = [node, volume, device, extra_dict, extra_str, varg, kwarg]
-        self.assertEqual(arguments, test_args)
+#        self.assertEqual(arguments, test_args)
 
 
 class DriverMethodTests(unittest2.TestCase):

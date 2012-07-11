@@ -23,7 +23,8 @@ class DriverMethod(object):
         if not method_doc:
             raise ValueError('Empty docstring')
         argspec_arg = parse_args(method)
-        description, docstring_args, returns = parse_docstring(method_doc)
+        description, docstring_args, returns =\
+            parse_docstring(method_doc, driver_cls)
         self.description = description
         #check required and merge args
         self.required_entries = []
@@ -59,18 +60,20 @@ class DriverMethod(object):
         for entry in self.optional_entries:
             arguments = entry.get_arguments()
             for arg in arguments:
+                if isinstance(arg, basestring):
+                    print arg
                 arg['required'] = False
             result_arguments.extend(arguments)
         result = {'name': self.method_name,
                   'description': self.description,
                   'arguments': result_arguments}
-        return json.dumps(result, indent=4)
+        return result
 
     def invoke(self, data):
         raise NotImplementedError
 
 
-def get_providers_dict(drivers, providers):
+def get_providers_info(drivers, providers):
     """
     List of all supported providers.
 
@@ -80,20 +83,29 @@ def get_providers_dict(drivers, providers):
     @return C{list} of C{dict} objects
     """
     result = []
+    for provider, Driver in get_providers_dict(drivers, providers).items():
+        result.append({
+            'id': provider,
+            'friendly_name': getattr(Driver, 'name', ''),
+            'website': getattr(Driver, 'website', ''),
+        })
+    return result
+
+
+def get_providers_dict(drivers, providers):
+    result = {}
     for provider_name in providers.__dict__.keys():
         if provider_name.startswith('_'):
             continue
+
         provider_name = provider_name.upper()
         try:
             Driver = get_driver_by_provider_name(drivers,
-                                                 providers, provider_name)
-            result.append({
-                'id': provider_name.upper(),
-                'friendly_name': getattr(Driver, 'name', ''),
-                'website': getattr(Driver, 'website', ''),
-            })
+                                                 providers,
+                                                 provider_name)
+            result[provider_name] = Driver
         except ProviderNotSupportedError:
-            pass
+            continue
     return result
 
 

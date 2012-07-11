@@ -65,6 +65,21 @@ class DictField(Field):
     type_name = 'dictionary'
 
 
+class BooleanField(Field):
+    validator_cls = valid.BooleanValidator
+    type_name = 'boolean'
+
+
+class IntegerField(Field):
+    validator_cls = valid.IntegerValidator
+    type_name = 'integer'
+
+
+class FloatField(Field):
+    validator_cls = valid.FloatValidator
+    type_name = 'float'
+
+
 class LibcloudObjectEntryBase(type):
     """
     Metaclass for all entries.
@@ -281,15 +296,46 @@ class NodeAuthPasswordEntry(LibcloudObjectEntry):
     def _get_object(self, json_data, driver):
         return compute_base.NodeAuthPassword(json_data['node_password'])
 
+
+class StorageVolumeFakeEntry(LibcloudObjectEntry):
+    volume_id = StringField('ID of the storage volume which should be used')
+
+
+class NodeImageFakeEntry(LibcloudObjectEntry):
+    image_id = StringField('ID of the node image which should be used')
+
+
+class NodeSizeFakeEntry(LibcloudObjectEntry):
+    size_id = StringField('ID of the node size which should be used')
+
+
+class NodeLocationFakeEntry(LibcloudObjectEntry):
+    location_id = StringField('ID of the node location which should be used')
+
+
+class OpenStack_1_0_SharedIpGroupEntry(LibcloudObjectEntry):
+    shared_ip_group_id = StringField('ID of the shared ip '
+                                     'group which should be used')
+
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
+    'C{bool}': BooleanField,
+    'C{int}': IntegerField,
+    'C{float}': FloatField,
+    'L{Deployment}': StringField,  # FIXME
 }
 
 complex_entries = {
     'L{Node}': NodeEntry,
     'L{NodeAuthSSHKey}': NodeAuthSSHKeyEntry,
     'L{NodeAuthPassword}': NodeAuthPasswordEntry,
+    'L{StorageVolume}': StorageVolumeFakeEntry,  # FIXME
+    'L{NodeImage}': NodeImageFakeEntry,  # FIXME
+    'L{NodeLocation}': NodeLocationFakeEntry,  # FIXME
+    'L{NodeSize}': NodeSizeFakeEntry,  # FIXME
+    'L{OpenStack_1_0_SharedIpGroup}': OpenStack_1_0_SharedIpGroupEntry,
 }
 
 
@@ -370,8 +416,6 @@ class ListEntry(BasicEntry):
             raise NotImplementedError(
                 'ListEntry does not support default value')
         container_type, object_type = type_name.split(' of ')
-        if container_type != 'C{list}':
-            raise NotImplementedError
         self.container_type = container_type
         self.object_type = object_type
         self.description = description
@@ -381,7 +425,12 @@ class ListEntry(BasicEntry):
         raise NotImplementedError
 
     def get_arguments(self):
-        raise NotImplementedError
+        #FIXME:
+        entry_arg = self.object_entry.get_arguments()
+        entrt_arg_json = str(entry_arg)
+        return [{'name': self.name,
+                'description': self.description,
+                'type': 'list of %s' % (entrt_arg_json)}]
 
     def to_json(self, obj_list):
         return  [self.object_entry.to_json(obj) for obj in obj_list]
@@ -394,7 +443,7 @@ class ListEntry(BasicEntry):
 
 
 class Entry(object):
-    _container_regex = re.compile('(.\{[_a-zA-Z]+\} of .\{[_a-zA-Z]+\})')
+    _container_regex = re.compile('(.\{[_0-9a-zA-Z]+\} of .\{[_0-9a-zA-Z]+\})')
 
     def __new__(cls, name, type_names, description='', **kwargs):
         if len(type_names) == 1:

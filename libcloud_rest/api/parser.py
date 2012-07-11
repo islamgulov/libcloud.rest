@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
 import inspect
 from collections import defaultdict
-from itertools import chain
+from itertools import chain, takewhile
 import re
+import sys
 
 from libcloud_rest.utils import LastUpdatedOrderedDict
 from libcloud_rest.constants import REQUIRES_FIELD
@@ -130,8 +131,8 @@ def _find_parent_cls(cls, cls_name):
 
 
 def _parse_inherit(cls, inherits):
-    regex_str = r".\{(?P<cls_name>[_a-zA-Z]+).(?P<method_name>[_a-zA-Z]+)\}"
-    m = re.match(regex_str, inherits.strip())
+    regex = r".\{(?P<cls_name>[_0-9a-zA-Z]+).(?P<method_name>[_0-9a-zA-Z]+)\}"
+    m = re.match(regex, inherits.strip())
     cls_name = m.group('cls_name')
     method_name = m.group('method_name')
     parent_cls = _find_parent_cls(cls, cls_name)
@@ -156,17 +157,23 @@ def parse_docstring(docstring, cls=None):
                             }
     arguments_dict = defaultdict(def_arg_dict)
     return_value_types = []
-    docstring_list = [line.strip() for line in docstring.splitlines() if line]
+    docstring_list = docstring.splitlines()
     #parse description
     description_list = []
-    for lineno, docstring_line in enumerate(docstring_list):
+    for lineno, orig_line in enumerate(docstring_list):
+        docstring_line = orig_line.strip()
         if docstring_line.startswith('@'):
             break
         description_list.append(docstring_line)
     description = '\n'.join(description_list)
+    field_indent = lambda l: sum(1 for _ in takewhile(lambda c: c != ':', l))
+    space_indent = lambda l: sum(1 for _ in takewhile(lambda c: c == ' ', l))
     #parse fields
     cached_field = None
+    cached_filed_indent = 0
     for docstring_line in chain(docstring_list, '@'):
+        orig_docstring_line = docstring_line
+        docstring_line = docstring_line.strip()
         if docstring_line.startswith('@'):
             if cached_field is None or cached_field.startswith('@return'):
                 cached_field = ''
@@ -181,20 +188,23 @@ def parse_docstring(docstring, cls=None):
                 for arg_name, update_dict in result[1].items():
                     arguments_dict[arg_name].update(update_dict)
                 return_value_types = result[2]
-                cached_field = ''
             #parse return value
             elif cached_field.startswith('@rtype'):
                 types_str = cached_field.split(':', 1)[1]
                 return_value_types = _parse_types_names(types_str)
-                cached_field = ''
             #parse arguments
             else:
                 arg_name, update_dict = _parse_docstring_field(cached_field)
                 arguments_dict[arg_name].update(update_dict)
-                cached_field = ''
         if cached_field is not None:
-            cached_field += docstring_line + '\n'
-
+            if docstring_line.startswith('@'):
+                cached_filed_indent = field_indent(orig_docstring_line)
+                cached_field = docstring_line + '\n'
+            else:
+                if space_indent(orig_docstring_line) >= cached_filed_indent:
+                    cached_field += docstring_line + '\n'
+                else:
+                    cached_filed_indent = sys.maxint
     #check fields
     for argument, info in arguments_dict.iteritems():
         if info['type_names'] is None:

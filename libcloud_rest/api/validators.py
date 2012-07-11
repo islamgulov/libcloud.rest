@@ -88,15 +88,17 @@ class BaseValidator(object):
                              'and define _check_data method')
 
 
-class IntegerValidator(BaseValidator):
+class NumericValidator(BaseValidator):
+    numeric_type = None
+
     def configure(self, args, kwargs):
         self.max = kwargs.pop('max', None)
         self.min = kwargs.pop('min', None)
-        super(IntegerValidator, self).configure(args, kwargs)
+        super(NumericValidator, self).configure(args, kwargs)
 
     def _check_data(self):
         try:
-            i = int(self.raw_data)
+            i = self.numeric_type(self.raw_data)
         except (ValueError, TypeError):
             raise ValidationError('%s must be integer' % (self.name))
         if self.max is not None and i > self.max:
@@ -107,10 +109,23 @@ class IntegerValidator(BaseValidator):
                                                                  self.min))
 
 
+class IntegerValidator(NumericValidator):
+    numeric_type = int
+
+
+class FloatValidator(NumericValidator):
+    numeric_type = float
+
+
 class StringValidator(BaseValidator):
     def _check_data(self):
         if not isinstance(self.raw_data, basestring):
             raise ValidationError('%s must be string' % (self.name))
+
+
+class BooleanValidator(BaseValidator):
+    def _check_data(self):
+        return bool(self.raw_data)
 
 
 class ConstValidator(BaseValidator):

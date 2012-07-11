@@ -17,13 +17,15 @@ from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import InternalError,\
-    LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP
+    LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP,\
+    ProviderNotSupportedError
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
 from libcloud_rest.log import logger
-from libcloud_rest.api.providers import get_providers_dict,\
-    get_driver_by_provider_name, get_driver_instance
+from libcloud_rest.api.providers import get_providers_info,\
+    get_driver_by_provider_name, get_driver_instance, get_providers_dict,\
+    DriverMethod
 
 if DEBUG:
     import mock
@@ -117,9 +119,9 @@ class BaseServiceHandler(BaseHandler):
         @return:
         """
         if self._providers_list_response is None:
-            providers_dict = get_providers_dict(self._DRIVERS,
+            providers_info = get_providers_info(self._DRIVERS,
                                                 self._Providers)
-            response = self.json_response(providers_dict)
+            response = self.json_response(providers_info)
             self.__class__._providers_list_response = response
         return self._providers_list_response
 
@@ -185,6 +187,25 @@ class ComputeHandler(BaseServiceHandler):
         node = compute_base.Node(node_id, None, None, None, None, None)
         self._execute_driver_method('destroy_node', node)
         return self.json_response("", status_code=httplib.NO_CONTENT)
+
+    def provider_info(self):
+        provider_name = self.params.get('provider_name', '')
+        provider_name = provider_name.upper()
+        providers = get_providers_dict(self._DRIVERS, self._Providers)
+        if not provider_name in providers:
+            raise ProviderNotSupportedError(provider=provider_name)
+        driver = providers[provider_name]
+        supported_methods = {}
+        for method_name, method in inspect.getmembers(driver,
+                                                      inspect.ismethod):
+            if method_name.startswith('_'):
+                continue
+            driver_method = DriverMethod(driver, method_name)
+            supported_methods[method_name] = driver_method.get_description()
+        result = {'name': driver.name,
+                  'website': driver.website,
+                  'supported_methods': supported_methods}
+        return self.json_response(result, status_code=httplib.OK)
 
 
 #noinspection PyUnresolvedReferences

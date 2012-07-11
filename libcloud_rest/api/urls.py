@@ -18,6 +18,9 @@ prefix = '/%s' % (versions[libcloud.__version__])
 compute_urls = Submount(prefix + '/compute/', [
     Rule('/providers', endpoint=(ComputeHandler, 'providers'),
          methods=['GET']),
+    Rule('/providers/<string:provider_name>',
+         endpoint=(ComputeHandler, 'provider_info'),
+         methods=['GET']),
     Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'list_nodes'),
          methods=['GET']),
     Rule('/<string:provider>/sizes', endpoint=(ComputeHandler, 'list_sizes'),
