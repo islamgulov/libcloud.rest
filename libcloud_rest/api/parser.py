@@ -139,6 +139,18 @@ def _parse_inherit(cls, inherits):
     docstring = get_method_docstring(parent_cls, method_name)
     return parse_docstring(docstring, parent_cls)
 
+_SUPPORTED_FIELDS = set([
+    '@param',
+    '@type',
+    '@keyword',
+    '@rtype:',
+    '@inherits:'
+])
+
+
+def _ignored_field(field_str):
+    return not field_str.split(None, 1)[0] in _SUPPORTED_FIELDS
+
 
 def parse_docstring(docstring, cls=None):
     """
@@ -175,7 +187,7 @@ def parse_docstring(docstring, cls=None):
         orig_docstring_line = docstring_line
         docstring_line = docstring_line.strip()
         if docstring_line.startswith('@'):
-            if cached_field is None or cached_field.startswith('@return'):
+            if cached_field is None or _ignored_field(cached_field):
                 cached_field = ''
             #parse inherits
             elif cached_field.startswith('@inherits'):
