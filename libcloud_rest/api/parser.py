@@ -166,7 +166,7 @@ def parse_docstring(docstring, cls=None):
             break
         description_list.append(docstring_line)
     description = '\n'.join(description_list)
-    field_indent = lambda l: sum(1 for _ in takewhile(lambda c: c != ':', l))
+    field_indent = lambda l: sum(1 for _ in takewhile(lambda c: c != '@', l))
     space_indent = lambda l: sum(1 for _ in takewhile(lambda c: c == ' ', l))
     #parse fields
     cached_field = None
