@@ -29,6 +29,7 @@ class DriverMethod(object):
         #check required and merge args
         self.required_entries = []
         self.optional_entries = []
+        #check vargs
         for name, arg_info in argspec_arg.iteritems():
             if name in docstring_args:
                 doc_arg = docstring_args[name]
@@ -43,11 +44,15 @@ class DriverMethod(object):
             else:
                 raise ValueError('%s %s not described in docstring' %
                                  (method_name, name))
+        #update kwargs
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]
             entry = Entry(arg_name, arg['type_names'], arg['description'])
-            self.optional_entries.append(entry)
+            if arg['required']:
+                self.required_entries.append(entry)
+            else:
+                self.optional_entries.append(entry)
         self.result_entry = Entry('', returns, '')
 
     def get_description(self):
