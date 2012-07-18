@@ -330,6 +330,10 @@ class CloudStackForwardingRuleEntry(LibcloudObjectEntry):
     render_attrs = ('id')
 
 
+class ExEC2AvailabilityZoneEntry(LibcloudObjectEntry):
+    render_attrs = ('name', 'zone_state', 'region_name')
+
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
@@ -351,6 +355,7 @@ complex_entries = {
     'L{CloudStackDiskOffering}': CloudStackDiskOfferingEntry,  # FIXME
     'L{CloudStackAddress}': CloudStackAddressEntry,  # FIXME
     'L{CloudStackForwardingRule}': CloudStackForwardingRuleEntry,  # FIXME
+    'L{ExEC2AvailabilityZone}': ExEC2AvailabilityZoneEntry,  # FIXME
 }
 
 
