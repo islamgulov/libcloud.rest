@@ -318,6 +318,18 @@ class OpenStack_1_0_SharedIpGroupEntry(LibcloudObjectEntry):
                                      'group which should be used')
 
 
+class CloudStackDiskOfferingEntry(LibcloudObjectEntry):
+    render_attrs = ('id', 'name', 'size', 'customizable')
+
+
+class CloudStackAddressEntry(LibcloudObjectEntry):
+    render_attrs = ('id', 'address')
+
+
+class CloudStackForwardingRuleEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
@@ -336,6 +348,9 @@ complex_entries = {
     'L{NodeLocation}': NodeLocationFakeEntry,  # FIXME
     'L{NodeSize}': NodeSizeFakeEntry,  # FIXME
     'L{OpenStack_1_0_SharedIpGroup}': OpenStack_1_0_SharedIpGroupEntry,
+    'L{CloudStackDiskOffering}': CloudStackDiskOfferingEntry,  # FIXME
+    'L{CloudStackAddress}': CloudStackAddressEntry,  # FIXME
+    'L{CloudStackForwardingRule}': CloudStackForwardingRuleEntry,  # FIXME
 }
 
 
