@@ -433,8 +433,7 @@ class ListEntry(BasicEntry):
     def __init__(self, name, type_name, description, **kwargs):
         self.name = name
         if 'default' in kwargs:
-            raise NotImplementedError(
-                'ListEntry does not support default value')
+            self.default = kwargs['default']
         container_type, object_type = type_name.split(' of ')
         self.container_type = container_type
         self.object_type = object_type
@@ -447,16 +446,23 @@ class ListEntry(BasicEntry):
     def get_arguments(self):
         #FIXME:
         entry_arg = self.object_entry.get_arguments()
-        entrt_arg_json = str(entry_arg)
-        return [{'name': self.name,
-                'description': self.description,
-                'type': 'list of %s' % (entrt_arg_json)}]
+        entry_arg_json = str(entry_arg)
+        result = {'name': self.name,
+                  'description': self.description,
+                  'type': 'list of %s' % (entry_arg_json)}
+        if hasattr(self, 'default'):
+            result['default'] = str(self.default)
+        return [result]
 
     def to_json(self, obj_list):
         return  [self.object_entry.to_json(obj) for obj in obj_list]
 
     def from_json(self, data, driver):
         json_data = self._get_json(data)
+        if not self.name in json_data:
+            if hasattr(self, 'default'):
+                return self.default
+            raise MissingArguments(arguments=[self.name])
         data_list = json_data[self.name]
         return [self.object_entry.from_json(json.dumps(data), driver)
                 for data in data_list]
