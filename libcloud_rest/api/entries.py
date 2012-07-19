@@ -80,6 +80,11 @@ class FloatField(Field):
     type_name = 'float'
 
 
+class NoneField(Field):
+    validator_cls = valid.NoneValidator
+    type_name = 'none'
+
+
 class LibcloudObjectEntryBase(type):
     """
     Metaclass for all entries.
@@ -354,12 +359,21 @@ class OpenNebulaNodeSizeEntry(LibcloudObjectEntry):
     render_attrs = ('id')
 
 
+class OpsourceNetworkEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
+class VCloudVdcEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
     'C{bool}': BooleanField,
     'C{int}': IntegerField,
     'C{float}': FloatField,
+    'C{None}': NoneField,
     'L{Deployment}': StringField,  # FIXME
 }
 
@@ -381,6 +395,8 @@ complex_entries = {
     'L{GoGridIpAddress}': GoGridIpAddressEntry,  # FIXME
     'L{OpenNebulaNetwork}': OpenNebulaNetworkEntry,  # FIXME
     'L{OpenNebulaNodeSize}': OpenNebulaNodeSizeEntry,  # FIXME
+    'L{OpsourceNetwork}': OpsourceNetworkEntry,  # FIXME
+    'L{VCloudVDC}': VCloudVdcEntry,  # FIXME
 }
 
 

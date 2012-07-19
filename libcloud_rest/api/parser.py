@@ -227,7 +227,7 @@ def parse_docstring(docstring, cls=None):
             raise ValueError('Can not get description for argument %s' %
                              (argument))
     if not return_value_types:
-        raise ValueError('Can not get return types for argument')
+        raise ValueError('Can not get return types for method')
     return description, arguments_dict, return_value_types
 
 

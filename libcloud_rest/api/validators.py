@@ -128,6 +128,11 @@ class BooleanValidator(BaseValidator):
         return bool(self.raw_data)
 
 
+class NoneValidator(BaseValidator):
+    def _check_data(self):
+        return self.raw_data is None
+
+
 class ConstValidator(BaseValidator):
     def configure(self, args, kwargs):
         self.const = args[0]
