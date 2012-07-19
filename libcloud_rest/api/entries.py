@@ -334,6 +334,26 @@ class ExEC2AvailabilityZoneEntry(LibcloudObjectEntry):
     render_attrs = ('name', 'zone_state', 'region_name')
 
 
+class GandiDiskEntry(LibcloudObjectEntry):
+    render_attrs = ('id', 'state',  'name', 'size', 'extra')
+
+
+class GandiNetworkInterfaceEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
+class GoGridIpAddressEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
+class OpenNebulaNetworkEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
+class OpenNebulaNodeSizeEntry(LibcloudObjectEntry):
+    render_attrs = ('id')
+
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
@@ -356,6 +376,11 @@ complex_entries = {
     'L{CloudStackAddress}': CloudStackAddressEntry,  # FIXME
     'L{CloudStackForwardingRule}': CloudStackForwardingRuleEntry,  # FIXME
     'L{ExEC2AvailabilityZone}': ExEC2AvailabilityZoneEntry,  # FIXME
+    'L{GandiDisk}': GandiDiskEntry,  # FIXME
+    'L{GandiNetworkInterface}': GandiNetworkInterfaceEntry,  # FIXME
+    'L{GoGridIpAddress}': GoGridIpAddressEntry,  # FIXME
+    'L{OpenNebulaNetwork}': OpenNebulaNetworkEntry,  # FIXME
+    'L{OpenNebulaNodeSize}': OpenNebulaNodeSizeEntry,  # FIXME
 }
 
 

@@ -95,6 +95,7 @@ def _parse_types_names(type_str):
     @return:
     @rtype:
     """
+    type_str = type_str.replace('\n', ' ')
     return [ftype.strip() for ftype in type_str.split(' or ')]
 
 
