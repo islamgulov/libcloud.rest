@@ -18,7 +18,7 @@ from libcloud_rest.api.parser import parse_request_headers
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import InternalError,\
     LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP,\
-    ProviderNotSupportedError
+    ProviderNotSupportedError, MethodParsingException
 from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
@@ -200,7 +200,11 @@ class ComputeHandler(BaseServiceHandler):
                                                       inspect.ismethod):
             if method_name.startswith('_'):
                 continue
-            driver_method = DriverMethod(driver, method_name)
+            try:
+                driver_method = DriverMethod(driver, method_name)
+            except MethodParsingException, e:
+                logger.info(str(e))
+                continue
             supported_methods[method_name] = driver_method.get_description()
         result = {'name': driver.name,
                   'website': driver.website,

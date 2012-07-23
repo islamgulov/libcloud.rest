@@ -7,9 +7,18 @@ from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT,\
     parse_args, parse_docstring, get_method_docstring
 from libcloud_rest.api.validators import validate_driver_arguments
 from libcloud_rest.errors import ProviderNotSupportedError,\
-    MissingArguments, MissingHeadersError, UnknownArgument, UnknownHeadersError
+    MissingArguments, MissingHeadersError, UnknownArgument,\
+    UnknownHeadersError, MethodParsingException
 from libcloud_rest.api.entries import Entry
 from libcloud_rest.utils import json
+
+REQUEST_METHOD_TYPES = {
+    'GET': ('get', 'list', 'describe', ),
+    'POST': ('create', ),
+    'PUT': ('edit', 'set', 'change', ),
+    'DELETE': ('destroy', 'delete', ),
+
+}
 
 
 class DriverMethod(object):
@@ -18,10 +27,11 @@ class DriverMethod(object):
         self.method_name = method_name
         method = getattr(driver_cls, method_name, None)
         if not inspect.ismethod(method):
-            raise ValueError('Bad method.')
+            raise MethodParsingException('Bad method.')
+        self._init_request_method()
         method_doc = get_method_docstring(driver_cls, method_name)
         if not method_doc:
-            raise ValueError('Empty docstring')
+            raise MethodParsingException('Empty docstring')
         argspec_arg = parse_args(method)
         description, docstring_args, returns =\
             parse_docstring(method_doc, driver_cls)
@@ -42,9 +52,9 @@ class DriverMethod(object):
                 else:
                     self.required_entries.append(Entry(**entry_kwargs))
             else:
-                raise ValueError('%s %s not described in docstring' %
-                                 (method_name, name))
-        #update kwargs
+                raise MethodParsingException(
+                    '%s %s not described in docstring' % (method_name, name))
+                #update kwargs
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]
@@ -54,6 +64,14 @@ class DriverMethod(object):
             else:
                 self.optional_entries.append(entry)
         self.result_entry = Entry('', returns, '')
+
+    def _init_request_method(self):
+        for method_type, supported_kw in REQUEST_METHOD_TYPES.items():
+            for kw in supported_kw:
+                if kw in self.method_name:
+                    self.request_method = method_type
+                    return method_type
+        raise MethodParsingException('unknown http request method')
 
     def get_description(self):
         result_arguments = []

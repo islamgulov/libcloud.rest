@@ -3,11 +3,12 @@ import unittest2
 
 from libcloud_rest.api.providers import DriverMethod
 from libcloud_rest.utils import json
+from libcloud_rest.errors import MethodParsingException
 
 
 class FakeDriver(object):
-    def fake_method(self, node, volume, device='/deb/sdb',
-                    extra={}, varg='value', **kwargs):
+    def ex_create_fake(self, node, volume, device='/deb/sdb',
+                       extra={}, varg='value', **kwargs):
         '''
         teachess volume to node.
 
@@ -36,10 +37,10 @@ class FakeDriver(object):
         '''
         pass
 
-    def not_documented(self):
+    def get_not_documented(self):
         pass
 
-    def unknown_argument(self, arg, arg2):
+    def get_unknown_argument(self, arg, arg2):
         """
         abc
         @param arg: description
@@ -47,7 +48,7 @@ class FakeDriver(object):
         @return: C{dict}
         """
 
-    def bad_docstring(self, arg):
+    def get_bad_docstring(self, arg):
         """
 
         @param arg:
@@ -61,11 +62,11 @@ class FakeDriver(object):
 
 class FakeDriverTests(unittest2.TestCase):
     def setUp(self):
-        self.driver_method = DriverMethod(FakeDriver, 'fake_method')
+        self.driver_method = DriverMethod(FakeDriver, 'ex_create_fake')
 
     def test_get_description(self):
         data = self.driver_method.get_description()
-        self.assertEqual('fake_method', data['name'])
+        self.assertEqual('ex_create_fake', data['name'])
         self.assertEqual('teachess volume to node.\n',  data['description'])
         arguments = data['arguments']
         node = {'required': True, 'type': 'string', 'name': 'node_id',
@@ -90,12 +91,12 @@ class FakeDriverTests(unittest2.TestCase):
 
 class DriverMethodTests(unittest2.TestCase):
     def test_method(self):
-        self.assertTrue(DriverMethod(FakeDriver, 'fake_method'))
-        self.assertRaises(ValueError, DriverMethod, FakeDriver,
+        self.assertTrue(DriverMethod(FakeDriver, 'ex_create_fake'))
+        self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
                           'variable')
-        self.assertRaises(ValueError, DriverMethod, FakeDriver,
+        self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
                           'not_documented')
-        self.assertRaises(ValueError, DriverMethod, FakeDriver,
+        self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
                           'unknown_argument')
 
 

@@ -26,6 +26,10 @@ class UnknownArgument(Exception):
         return "Unknown arguments: %s" % (str(self.arguments))
 
 
+class MethodParsingException(Exception):
+    pass
+
+
 class LibcloudRestError(Exception):
     """
     Base class for other Libcloud REST exceptions.

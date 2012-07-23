@@ -30,7 +30,7 @@ class ComputeTest(unittest2.TestCase):
 
     def test_provider_info(self):
         url = rest_versions[libcloud.__version__] +\
-            '/compute/providers/bluebox'
+            '/compute/providers/dummy'
         resp = self.client.get(url)
         resp_data = json.dumps(json.loads(resp.data), indent=4)
         self.assertEqual(resp.status_code, httplib.OK)

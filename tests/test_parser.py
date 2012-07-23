@@ -2,6 +2,7 @@
 import unittest2
 
 from libcloud_rest.api import parser
+from libcloud_rest.errors import MethodParsingException
 
 
 class TestParser(unittest2.TestCase):
@@ -83,7 +84,8 @@ class TestParser(unittest2.TestCase):
 
         @return: L{Zone} or L{Node} instance.
         """
-        self.assertRaises(ValueError, parser.parse_docstring, docstring)
+        self.assertRaises(MethodParsingException,
+                          parser.parse_docstring, docstring)
         docstring = """
         Return a Zone instance.
         Second line docsting.
@@ -93,7 +95,8 @@ class TestParser(unittest2.TestCase):
 
         @return: instance.
         """
-        self.assertRaises(ValueError, parser.parse_docstring, docstring)
+        self.assertRaises(MethodParsingException,
+                          parser.parse_docstring, docstring)
 
     def test_parse_args(self):
         class A(object):

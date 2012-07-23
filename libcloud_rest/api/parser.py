@@ -7,6 +7,7 @@ import sys
 
 from libcloud_rest.utils import LastUpdatedOrderedDict
 from libcloud_rest.constants import REQUIRES_FIELD
+from libcloud_rest.errors import MethodParsingException
 
 #map between request header name and libcloud's internal attribute name
 XHEADERS_TO_ARGS_DICT = {
@@ -193,7 +194,7 @@ def parse_docstring(docstring, cls=None):
             #parse inherits
             elif cached_field.startswith('@inherits'):
                 if not cls:
-                    raise ValueError
+                    raise MethodParsingException()
                 inherit_str = cached_field.split(':', 1)[1]
                 result = _parse_inherit(cls, inherit_str)
                 if not description and result[0]:
@@ -221,13 +222,13 @@ def parse_docstring(docstring, cls=None):
     #check fields
     for argument, info in arguments_dict.iteritems():
         if info['type_names'] is None:
-            raise ValueError('Can not get  @type for argument %s' %
-                             (argument))
+            raise MethodParsingException(
+                'Can not get  @type for argument %s' % (argument))
         if info['description'] is None:
-            raise ValueError('Can not get description for argument %s' %
-                             (argument))
+            raise MethodParsingException(
+                'Can not get description for argument %s' % (argument))
     if not return_value_types:
-        raise ValueError('Can not get return types for method')
+        raise MethodParsingException('Can not get return types for method')
     return description, arguments_dict, return_value_types
 
 
