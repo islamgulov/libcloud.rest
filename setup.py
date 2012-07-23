@@ -132,7 +132,7 @@ setup(
     description='REST Interface for Libcloud',
     entry_points='''
             [console_scripts]
-            libcloud_rest = libcloud_rest.server:cli_start_server
+            libcloud_rest = libcloud_rest.server:main
             ''',
     cmdclass={
         'pep8': Pep8Command,
