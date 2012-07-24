@@ -8,38 +8,37 @@ from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT,\
 from libcloud_rest.api.validators import validate_driver_arguments
 from libcloud_rest.errors import ProviderNotSupportedError,\
     MissingArguments, MissingHeadersError, UnknownArgument,\
-    UnknownHeadersError, MethodParsingException
+    UnknownHeadersError, MethodParsingException, ValidationError
 from libcloud_rest.api.entries import Entry
 from libcloud_rest.utils import json
 
-REQUEST_METHOD_TYPES = {
-    'GET': ('get', 'list', 'describe', ),
-    'POST': ('create', ),
-    'PUT': ('edit', 'set', 'change', ),
-    'DELETE': ('destroy', 'delete', ),
-
-}
-
 
 class DriverMethod(object):
-    def __init__(self, driver_cls, method_name):
-        self.driver_cls = driver_cls
+    def __init__(self, driver, method_name):
+        #FIXME GK
+        if inspect.isclass(driver):
+            self.driver_cls = driver
+        else:
+            self.driver_cls = driver.__class__
+        self.driver = driver
+
+        self.driver_cls = self.driver_cls
         self.method_name = method_name
-        method = getattr(driver_cls, method_name, None)
-        if not inspect.ismethod(method):
+        self.method = getattr(self.driver, method_name, None)
+        if not inspect.ismethod(self.method):
             raise MethodParsingException('Bad method.')
-        self._init_request_method()
-        method_doc = get_method_docstring(driver_cls, method_name)
+        method_doc = get_method_docstring(self.driver_cls, method_name)
         if not method_doc:
             raise MethodParsingException('Empty docstring')
-        argspec_arg = parse_args(method)
+        argspec_arg = parse_args(self.method)
         description, docstring_args, returns =\
-            parse_docstring(method_doc, driver_cls)
+            parse_docstring(method_doc, self.driver_cls)
         self.description = description
         #check required and merge args
         self.required_entries = []
         self.optional_entries = []
         #check vargs
+        self.vargs_entries = []
         for name, arg_info in argspec_arg.iteritems():
             if name in docstring_args:
                 doc_arg = docstring_args[name]
@@ -48,13 +47,11 @@ class DriverMethod(object):
                                 'description': doc_arg['description']}
                 if not doc_arg['required'] and 'default' in arg_info:
                     entry_kwargs['default'] = arg_info['default']
-                    self.optional_entries.append(Entry(**entry_kwargs))
-                else:
-                    self.required_entries.append(Entry(**entry_kwargs))
+                self.vargs_entries.append(Entry(**entry_kwargs))
             else:
                 raise MethodParsingException(
                     '%s %s not described in docstring' % (method_name, name))
-                #update kwargs
+        #update kwargs
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]
@@ -65,16 +62,17 @@ class DriverMethod(object):
                 self.optional_entries.append(entry)
         self.result_entry = Entry('', returns, '')
 
-    def _init_request_method(self):
-        for method_type, supported_kw in REQUEST_METHOD_TYPES.items():
-            for kw in supported_kw:
-                if kw in self.method_name:
-                    self.request_method = method_type
-                    return method_type
-        raise MethodParsingException('unknown http request method')
-
     def get_description(self):
         result_arguments = []
+        for entry in self.vargs_entries:
+            arguments = entry.get_arguments()
+            required = True
+            if hasattr(entry, 'default'):
+                required = False
+            for arg in arguments:
+                arg['required'] = required
+            result_arguments.extend(arguments)
+
         for entry in self.required_entries:
             arguments = entry.get_arguments()
             for arg in arguments:
@@ -83,8 +81,6 @@ class DriverMethod(object):
         for entry in self.optional_entries:
             arguments = entry.get_arguments()
             for arg in arguments:
-                if isinstance(arg, basestring):
-                    print arg
                 arg['required'] = False
             result_arguments.extend(arguments)
         result = {'name': self.method_name,
@@ -92,8 +88,17 @@ class DriverMethod(object):
                   'arguments': result_arguments}
         return result
 
-    def invoke(self, data):
-        raise NotImplementedError
+    def invoke(self, request):
+        vargs = [e.from_json(request.data, self.driver)
+                 for e in self.vargs_entries]
+        kwargs = dict((e.name, e.from_json(request.data, self.driver))
+                      for e in self.required_entries)
+        for opt_arg in self.optional_entries:
+            if opt_arg.contains_arguments(request.data):
+                kwargs[opt_arg.name] = \
+                    opt_arg.from_json(request.data, self.driver)
+        result = self.method(*vargs, **kwargs)
+        return self.result_entry.to_json(result)
 
 
 def get_providers_info(drivers, providers):

@@ -38,6 +38,9 @@ compute_urls = Submount(prefix + '/compute/', [
     Rule('/<string:provider>/nodes/<string:node_id>',
          endpoint=(ComputeHandler, 'destroy_node'),
          methods=['DELETE']),
+    Rule('/<string:provider>/<string:method_name>',
+         endpoint=(ComputeHandler, 'invoke_method'),
+         methods=['POST']),
 ])
 
 storage_urls = Submount(prefix + '/storage/', [

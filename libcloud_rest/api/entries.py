@@ -180,7 +180,7 @@ class BasicEntry(object):
         """
         pass
 
-    def _contains_arguments(self, json_data):
+    def contains_arguments(self, json_data):
         pass
 
 
@@ -208,12 +208,12 @@ class LibcloudObjectEntry(BasicEntry):
     def _get_object(self, json_data, driver):
         raise NotImplementedError()
 
-    def _contains_arguments(self, json_data):
+    def contains_arguments(self, json_data):
         return any(True for f in self._fields if f.name in json_data)
 
     def from_json(self, data, driver):
         json_data = self._get_json(data)
-        if not self._contains_arguments(json_data)\
+        if not self.contains_arguments(json_data)\
                 and hasattr(self, 'default'):
             return self.default
         self._validate(json_data)
@@ -259,12 +259,12 @@ class SimpleEntry(BasicEntry):
         except (MalformedJSONError, ValidationError), e:
             raise ValueError('Can not represent object as json %s' % (str(e)))
 
-    def _contains_arguments(self, json_data):
+    def contains_arguments(self, json_data):
         return self.field.name in json_data
 
     def from_json(self, data, driver=None):
         json_data = self._get_json(data)
-        if not self._contains_arguments(json_data)\
+        if not self.contains_arguments(json_data)\
                 and hasattr(self, 'default'):
             return self.default
         self._validate(json_data)
@@ -275,13 +275,10 @@ class NodeEntry(LibcloudObjectEntry):
     render_attrs = ['id', 'name', 'state', 'public_ips']
     node_id = StringField('ID of the node which should be used')
 
-    def _get_object(self, json_data, driver):
-        nodes_list = driver.list_nodes()
+    def _get_object(self, json_data, driver=None):
         node_id = json_data['node_id']
-        for node in nodes_list:
-            if node_id == node.id:
-                return node
-        raise NoSuchObjectError(obj_type='Node')
+        node = compute_base.Node(node_id, None, None, None, None, driver)
+        return node
 
 
 class NodeAuthSSHKeyEntry(LibcloudObjectEntry):
@@ -307,11 +304,18 @@ class StorageVolumeFakeEntry(LibcloudObjectEntry):
 
 
 class NodeImageFakeEntry(LibcloudObjectEntry):
+    render_attrs = ['id', 'name']
     image_id = StringField('ID of the node image which should be used')
 
 
-class NodeSizeFakeEntry(LibcloudObjectEntry):
+class NodeSizeEntry(LibcloudObjectEntry):
     size_id = StringField('ID of the node size which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        size_id = json_data['size_id']
+        size = compute_base.NodeSize(size_id, None, None, None, None,
+                                     None, driver)
+        return size
 
 
 class NodeLocationFakeEntry(LibcloudObjectEntry):
@@ -384,7 +388,7 @@ complex_entries = {
     'L{StorageVolume}': StorageVolumeFakeEntry,  # FIXME
     'L{NodeImage}': NodeImageFakeEntry,  # FIXME
     'L{NodeLocation}': NodeLocationFakeEntry,  # FIXME
-    'L{NodeSize}': NodeSizeFakeEntry,  # FIXME
+    'L{NodeSize}': NodeSizeEntry,  # FIXME
     'L{OpenStack_1_0_SharedIpGroup}': OpenStack_1_0_SharedIpGroupEntry,
     'L{CloudStackDiskOffering}': CloudStackDiskOfferingEntry,  # FIXME
     'L{CloudStackAddress}': CloudStackAddressEntry,  # FIXME
@@ -446,7 +450,7 @@ class OneOfEntry(BasicEntry):
         json_data = self._get_json(data)
         for entry in self.entries:
             try:
-                contain_arguments.append(entry._contains_arguments(json_data))
+                contain_arguments.append(entry.contains_arguments(json_data))
                 results.append(entry.from_json(data, driver))
             except MissingArguments, e:
                 missed_arguments.extend(e.arguments)

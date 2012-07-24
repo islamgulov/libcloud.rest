@@ -84,9 +84,8 @@ class FakeDriverTests(unittest2.TestCase):
                 'name': 'varg', 'description': 'with default value'}
         kwarg = {'required': False, 'type': 'string',
                  'name': 'kwarg', 'description': 'Keyword argument'}
-        self.assertEqual(arguments[2], device)
         test_args = [node, volume, device, extra_dict, extra_str, varg, kwarg]
-#        self.assertEqual(arguments, test_args)
+        self.assertEqual(arguments, test_args)
 
 
 class DriverMethodTests(unittest2.TestCase):

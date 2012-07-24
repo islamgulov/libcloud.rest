@@ -211,6 +211,14 @@ class ComputeHandler(BaseServiceHandler):
                   'supported_methods': supported_methods}
         return self.json_response(result, status_code=httplib.OK)
 
+    def invoke_method(self):
+        driver = self._get_driver_instance()
+        method_name = self.params.get('method_name')
+        driver_method = DriverMethod(driver, method_name)
+        return Response(driver_method.invoke(self.request),
+                        mimetype='application/json',
+                        status=httplib.OK)
+
 
 #noinspection PyUnresolvedReferences
 class StorageHandler(BaseServiceHandler):

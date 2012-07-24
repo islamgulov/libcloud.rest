@@ -204,10 +204,6 @@ class NodeEntryTests(unittest2.TestCase):
     def setUp(self):
         self.entry = Entry('node', ['L{Node}'],
                            'node which is required')
-        self.driver = get_test_driver_instance(CloudStackNodeDriver,
-                                               secret='apikey', key='user',
-                                               host='api.dummy.com',
-                                               path='/test/path')
 
     def test_validate(self):
         valid_json = '{"node_id": "33333", "unknown_arg": 123}'
@@ -237,11 +233,8 @@ class NodeEntryTests(unittest2.TestCase):
 
     def test_from_json(self):
         json_data = '{"node_id": "2600"}'
-        node = self.entry.from_json(json_data, self.driver)
+        node = self.entry.from_json(json_data, None)
         self.assertEqual(node.id, '2600')
-        bad_json_data = '{"node_id": "0062"}'
-        self.assertRaises(NoSuchObjectError, self.entry.from_json,
-                          bad_json_data, self.driver)
 
 
 class OneOfEntryTests(unittest2.TestCase):
@@ -345,9 +338,5 @@ class ListEntryTest(unittest2.TestCase):
         nodes = '{"result": [{"node_id": "2600"}, {"node_id": "2601"}]}'
         result = self.entry.from_json(nodes, self.driver)
         get_node = lambda x: [node for node in result if node.id == x][0]
-        node_2600 = get_node('2600')
-        self.assertEqual(node_2600.id, '2600')
-        self.assertEqual(node_2600.name, 'test')
-        node_2601 = get_node('2601')
-        self.assertEqual(node_2601.id, '2601')
-        self.assertEqual(node_2601.name, 'test')
+        self.assertTrue(get_node('2600'))
+        self.assertTrue(get_node('2601'))

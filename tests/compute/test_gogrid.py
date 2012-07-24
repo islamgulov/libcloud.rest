@@ -16,7 +16,7 @@ from libcloud.test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.errors import UnknownHeadersError, ValidationError, \
+from libcloud_rest.errors import UnknownHeadersError, ValidationError,\
     MalformedJSONError
 from tests.file_fixtures import ComputeFixtures
 
@@ -148,6 +148,20 @@ class GoGridTests(unittest2.TestCase):
         url = self.url_tmpl % ('/'.join(['nodes', str(node_id)]))
         resp = self.client.delete(url, headers=self.headers)
         self.assertEqual(resp.status_code, 204)
+
+    def test_ex_save_image(self):
+        url = self.url_tmpl % ('nodes')
+        resp = self.client.get(url, headers=self.headers)
+        node = json.loads(resp.data)[0]
+        url = self.url_tmpl % 'ex_save_image'
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps({'node_id': node['id'],
+                                                 'name': 'testimage'}),
+                                content_type='application/json')
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp_data['name'], 'testimage')
+
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())
