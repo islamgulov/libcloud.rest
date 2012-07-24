@@ -67,14 +67,14 @@ class FakeDriverTests(unittest2.TestCase):
     def test_get_description(self):
         data = self.driver_method.get_description()
         self.assertEqual('ex_create_fake', data['name'])
-        self.assertEqual('teachess volume to node.\n',  data['description'])
+        self.assertEqual('teachess volume to node.',  data['description'])
         arguments = data['arguments']
         node = {'required': True, 'type': 'string', 'name': 'node_id',
                 'description': 'ID of the node which should be used'}
         volume = {'required': True, 'type': 'string', 'name': 'volume',
                   'description': 'Volume to attach'}
         device = {'required': True, 'type': 'string', 'name': 'device',
-                  'description': "Where the device is exposed,\n"
+                  'description': "Where the device is exposed, "
                                  "e.g. '/dev/sdb (required)"}
         extra_dict = {'required': False, 'type': 'dictionary', 'name': 'extra',
                       'description': 'Extra attributes (driver specific).'}

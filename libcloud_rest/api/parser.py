@@ -36,7 +36,7 @@ def parse_request_headers(headers):
     request_meta_keys = set(XHEADERS_TO_ARGS_DICT.keys())
     data_headers_keys = request_headers_keys.intersection(request_meta_keys)
     return dict(([XHEADERS_TO_ARGS_DICT[key], headers.get(key, None)]
-                for key in data_headers_keys))
+                 for key in data_headers_keys))
 
 
 def get_method_requirements(method):
@@ -140,6 +140,27 @@ def _ignored_field(field_str):
     return not field_str.split(None, 1)[0] in _SUPPORTED_FIELDS
 
 
+def split_docstring(docstring):
+    docstring_list = [line.strip() for line in docstring.splitlines()]
+    description_list = list(
+        takewhile(lambda line: not line.startswith('@'),
+                  docstring_list))
+    description = ' '.join(description_list).strip()
+    first_field_line_number = len(description_list)
+    fields = []
+    if first_field_line_number >= len(docstring_list):
+        return description, fields
+    last_field_lines = [docstring_list[first_field_line_number]]
+    for line in docstring_list[first_field_line_number + 1:]:
+        if line.strip().startswith('@'):
+            fields.append(' '.join(last_field_lines))
+            last_field_lines = [line]
+        else:
+            last_field_lines.append(line)
+    fields.append(' '.join(last_field_lines))
+    return description, fields
+
+
 def parse_docstring(docstring, cls=None):
     """
     @param docstring:
@@ -154,62 +175,36 @@ def parse_docstring(docstring, cls=None):
                             'type_name': None,
                             'required': False,
                             }
+    description, fields_lines = split_docstring(docstring)
     arguments_dict = defaultdict(def_arg_dict)
     return_value_types = []
-    docstring_list = docstring.splitlines()
-    #parse description
-    description_list = []
-    for lineno, orig_line in enumerate(docstring_list):
-        docstring_line = orig_line.strip()
-        if docstring_line.startswith('@'):
-            break
-        description_list.append(docstring_line)
-    description = '\n'.join(description_list)
-    field_indent = lambda l: sum(1 for _ in takewhile(lambda c: c != '@', l))
-    space_indent = lambda l: sum(1 for _ in takewhile(lambda c: c == ' ', l))
     #parse fields
-    cached_field = None
-    cached_filed_indent = 0
     return_description = ''
-    for docstring_line in chain(docstring_list, '@'):
-        orig_docstring_line = docstring_line
-        docstring_line = docstring_line.strip()
-        if docstring_line.startswith('@'):
-            if cached_field is None or _ignored_field(cached_field):
-                cached_field = ''
-            #parse inherits
-            elif cached_field.startswith('@inherits'):
-                if not cls:
-                    raise MethodParsingException()
-                inherit_str = cached_field.split(':', 1)[1]
-                result = _parse_inherit(cls, inherit_str)
-                if not description and result[0]:
-                    description = result[0]
-                for arg_name, update_dict in result[1].items():
-                    arguments_dict[arg_name].update(update_dict)
-                return_value_types = result[2]
-                return_description = result[3].strip()
-            #parse return value
-            elif cached_field.startswith('@rtype'):
-                types_str = cached_field.split(':', 1)[1]
-                return_value_types = types_str.replace('\n', ' ').strip()
-            #parse return description
-            elif  cached_field.startswith('@return:'):
-                return_description = cached_field.split(':', 1)[1].strip()
-            #parse arguments
-            else:
-                arg_name, update_dict = _parse_docstring_field(cached_field)
+    for docstring_line in fields_lines:
+        #parse inherits
+        if docstring_line.startswith('@inherits'):
+            if not cls:
+                raise MethodParsingException()
+            inherit_str = docstring_line.split(':', 1)[1]
+            result = _parse_inherit(cls, inherit_str)
+            if not description and result[0]:
+                description = result[0]
+            for arg_name, update_dict in result[1].items():
                 arguments_dict[arg_name].update(update_dict)
-        if cached_field is not None:
-            if docstring_line.startswith('@'):
-                cached_filed_indent = field_indent(orig_docstring_line)
-                cached_field = docstring_line + '\n'
-            else:
-                if space_indent(orig_docstring_line) >= cached_filed_indent:
-                    cached_field += docstring_line + '\n'
-                else:
-                    cached_filed_indent = sys.maxint
-    #check fields
+            return_value_types = result[2]
+            return_description = result[3].strip()
+        #parse return value
+        elif docstring_line.startswith('@rtype'):
+            types_str = docstring_line.split(':', 1)[1]
+            return_value_types = types_str.replace('\n', ' ').strip()
+        #parse return description
+        elif  docstring_line.startswith('@return:'):
+            return_description = docstring_line.split(':', 1)[1].strip()
+        #parse arguments
+        else:
+            arg_name, update_dict = _parse_docstring_field(docstring_line)
+            arguments_dict[arg_name].update(update_dict)
+        #check fields
     for argument, info in arguments_dict.iteritems():
         if info['type_name'] is None:
             raise MethodParsingException(

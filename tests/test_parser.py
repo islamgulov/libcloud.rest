@@ -67,8 +67,8 @@ class TestParser(unittest2.TestCase):
         """
         description, args, returns, return_description =\
             parser.parse_docstring(docstring)
-        self.assertTrue(description.startswith('\nReturn'))
-        self.assertTrue(description.splitlines()[2].startswith('Second'))
+        self.assertTrue(description.startswith('Return'))
+        self.assertTrue('Second line' in description)
         self.assertEqual(args['zone_id']['type_name'], 'C{str}')
         self.assertEqual(args['zone_id']['required'], True)
         self.assertItemsEqual(args['auth']['type_name'],
