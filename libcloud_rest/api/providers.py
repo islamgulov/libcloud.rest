@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import inspect
+import re
 
 from libcloud.utils.misc import get_driver
 
@@ -14,6 +15,8 @@ from libcloud_rest.utils import json
 
 
 class DriverMethod(object):
+    _type_name_pattern = r'.\{([_0-9a-zA-Z]+)\}'
+
     def __init__(self, driver, method_name):
         #FIXME GK
         if inspect.isclass(driver):
@@ -31,7 +34,7 @@ class DriverMethod(object):
         if not method_doc:
             raise MethodParsingException('Empty docstring')
         argspec_arg = parse_args(self.method)
-        description, docstring_args, returns =\
+        description, docstring_args, returns, return_description = \
             parse_docstring(method_doc, self.driver_cls)
         self.description = description
         #check required and merge args
@@ -60,7 +63,11 @@ class DriverMethod(object):
                 self.required_entries.append(entry)
             else:
                 self.optional_entries.append(entry)
-        self.result_entry = Entry('', returns, '')
+        self.result_entry = Entry('', returns, return_description)
+
+    @classmethod
+    def _remove_type_name_brackets(cls, type_name):
+        return re.sub(cls._type_name_pattern, r'\1', type_name)
 
     def get_description(self):
         result_arguments = []
@@ -80,7 +87,12 @@ class DriverMethod(object):
             result_arguments.extend(arguments)
         result = {'name': self.method_name,
                   'description': self.description,
-                  'arguments': result_arguments}
+                  'arguments': result_arguments,
+                  'return': {
+                      'type': self._remove_type_name_brackets(
+                          self.result_entry.type_name),
+                      'description': self.result_entry.description}
+                  }
         return result
 
     def invoke(self, request):

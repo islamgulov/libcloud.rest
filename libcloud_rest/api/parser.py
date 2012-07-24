@@ -146,7 +146,8 @@ _SUPPORTED_FIELDS = set([
     '@type',
     '@keyword',
     '@rtype:',
-    '@inherits:'
+    '@inherits:',
+    '@return:',
 ])
 
 
@@ -156,7 +157,6 @@ def _ignored_field(field_str):
 
 def parse_docstring(docstring, cls=None):
     """
-    NB. by default arguments marked as optional
     @param docstring:
     @type docstring:
     @return: return tuple
@@ -185,6 +185,7 @@ def parse_docstring(docstring, cls=None):
     #parse fields
     cached_field = None
     cached_filed_indent = 0
+    return_description = ''
     for docstring_line in chain(docstring_list, '@'):
         orig_docstring_line = docstring_line
         docstring_line = docstring_line.strip()
@@ -202,10 +203,14 @@ def parse_docstring(docstring, cls=None):
                 for arg_name, update_dict in result[1].items():
                     arguments_dict[arg_name].update(update_dict)
                 return_value_types = result[2]
+                return_description = result[3].strip()
             #parse return value
             elif cached_field.startswith('@rtype'):
                 types_str = cached_field.split(':', 1)[1]
                 return_value_types = _parse_types_names(types_str)
+            #parse return description
+            elif  cached_field.startswith('@return:'):
+                return_description = cached_field.split(':', 1)[1].strip()
             #parse arguments
             else:
                 arg_name, update_dict = _parse_docstring_field(cached_field)
@@ -229,7 +234,7 @@ def parse_docstring(docstring, cls=None):
                 'Can not get description for argument %s' % (argument))
     if not return_value_types:
         raise MethodParsingException('Can not get return types for method')
-    return description, arguments_dict, return_value_types
+    return description, arguments_dict, return_value_types, return_description
 
 
 def parse_args(method):

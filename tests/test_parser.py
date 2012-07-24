@@ -65,7 +65,8 @@ class TestParser(unittest2.TestCase):
         @return:    instance
         @rtype:     L{Zone} or L{Node}
         """
-        description, args, returns = parser.parse_docstring(docstring)
+        description, args, returns, return_description =\
+            parser.parse_docstring(docstring)
         self.assertTrue(description.startswith('\nReturn'))
         self.assertTrue(description.splitlines()[2].startswith('Second'))
         self.assertEqual(args['zone_id']['type_names'], ['C{str}'])
@@ -74,6 +75,7 @@ class TestParser(unittest2.TestCase):
                               ['L{NodeAuthSSHKey}', 'L{NodeAuthPassword}'])
         self.assertEqual(args['auth']['required'], False)
         self.assertEqual(returns, ['L{Zone}', 'L{Node}'])
+        self.assertEqual(return_description, 'instance')
 
     def test_parse_docstring_fails(self):
         docstring = """
@@ -81,6 +83,7 @@ class TestParser(unittest2.TestCase):
         Second line docsting.
 
         @type zone_id: C{str}
+        @param zone_id: Required zone id (required)
 
         @return: L{Zone} or L{Node} instance.
         """
@@ -153,6 +156,8 @@ class InheritParseDocstringTests(unittest2.TestCase):
 
             @keyword    ex_fqdn:   Fully Qualified domain of the node
             @type       ex_fqdn:   C{str}
+
+            @return: New bar node
             """
 
         def deploy_node(self, **kwargs):
@@ -164,39 +169,47 @@ class InheritParseDocstringTests(unittest2.TestCase):
 
     def test_foo_create_node(self):
         docstrign = parser.get_method_docstring(self.Foo, 'create_node')
-        description, args, rtypes = parser.parse_docstring(docstrign, self.Foo)
+        description, args, rtypes, rdescription =\
+            parser.parse_docstring(docstrign, self.Foo)
         self.assertTrue(description.startswith('Create a new node '))
         self.assertEqual(len(args), 2)
         self.assertEqual(['C{str}'], args['name']['type_names'])
         self.assertEqual(['C{dict}'], args['size']['type_names'])
         self.assertEqual(rtypes, ['L{Node}'])
+        self.assertEqual(rdescription, 'The newly created node.')
 
     def test_foo_deploy_node(self):
         docstrign = parser.get_method_docstring(self.Foo, 'deploy_node')
-        description, args, rtypes = parser.parse_docstring(docstrign, self.Foo)
+        description, args, rtypes, rdescription =\
+            parser.parse_docstring(docstrign, self.Foo)
         self.assertTrue(description.startswith('Deploy a new node'))
         self.assertEqual(len(args), 3)
         self.assertEqual(['L{NodeAuthSSHKey}'], args['deploy']['type_names'])
         self.assertEqual(['C{str}'], args['name']['type_names'])
         self.assertEqual(['C{dict}'], args['size']['type_names'])
         self.assertEqual(rtypes, ['L{Node}'])
+        self.assertEqual(rdescription, 'The newly created node.')
 
     def test_bar_create_node(self):
         docstrign = parser.get_method_docstring(self.Bar, 'create_node')
-        description, args, rtypes = parser.parse_docstring(docstrign, self.Bar)
+        description, args, rtypes, rdescription =\
+            parser.parse_docstring(docstrign, self.Bar)
         self.assertTrue(description.startswith('Create a new bar node'))
         self.assertEqual(len(args), 3)
         self.assertEqual(['C{str}'], args['name']['type_names'])
         self.assertEqual(['C{dict}'], args['size']['type_names'])
         self.assertEqual(['C{str}'], args['ex_fqdn']['type_names'])
         self.assertEqual(rtypes, ['L{Node}'])
+        self.assertEqual(rdescription, 'New bar node')
 
     def test_bar_deploy_node(self):
         docstrign = parser.get_method_docstring(self.Bar, 'deploy_node')
-        description, args, rtypes = parser.parse_docstring(docstrign, self.Bar)
+        description, args, rtypes, rdescription =\
+            parser.parse_docstring(docstrign, self.Bar)
         self.assertTrue(description.startswith('Deploy bar node'))
         self.assertEqual(len(args), 3)
         self.assertEqual(['L{NodeAuthSSHKey}'], args['deploy']['type_names'])
         self.assertEqual(['C{str}'], args['name']['type_names'])
         self.assertEqual(['C{dict}'], args['size']['type_names'])
         self.assertEqual(rtypes, ['L{Node}'])
+        self.assertEqual(rdescription, 'The newly created node.')

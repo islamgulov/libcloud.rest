@@ -238,6 +238,8 @@ class LibcloudObjectEntry(BasicEntry):
 class SimpleEntry(BasicEntry):
     def __init__(self, name, type_name, description, **kwargs):
         self.name = name
+        self.type_name = type_name
+        self.description = description
         if 'default' in kwargs:
             self.default = kwargs['default']
         self.field = simple_types_fields[type_name](description, name)
@@ -345,7 +347,7 @@ class ExEC2AvailabilityZoneEntry(LibcloudObjectEntry):
 
 
 class GandiDiskEntry(LibcloudObjectEntry):
-    render_attrs = ('id', 'state',  'name', 'size', 'extra')
+    render_attrs = ('id', 'state', 'name', 'size', 'extra')
 
 
 class GandiNetworkInterfaceEntry(LibcloudObjectEntry):
@@ -406,14 +408,14 @@ complex_entries = {
 
 
 class OneOfEntry(BasicEntry):
-    def __init__(self, name, type_names, description, **kwargs):
+    def __init__(self, name, type_name, description, **kwargs):
         self.name = name
+        self.type_name = type_name
         if 'default' in kwargs:
             self.default = kwargs['default']
-        self.type_names = type_names
         self.description = description
         self.entries = [Entry(name, (type_name, ), description)
-                        for type_name in type_names]
+                        for type_name in type_name]
 
     def _validate(self, json_data):
         missed_arguments = []
@@ -478,11 +480,12 @@ class ListEntry(BasicEntry):
 
     def __init__(self, name, type_name, description, **kwargs):
         self.name = name
+        self.type_name = type_name
         if 'default' in kwargs:
             self.default = kwargs['default']
         container_type, object_type = type_name.split(' of ')
-        self.container_type = container_type
-        self.object_type = object_type
+        self.container_type = container_type.strip()
+        self.object_type = object_type.strip()
         self.description = description
         self.object_entry = Entry('', [object_type], '')
 
