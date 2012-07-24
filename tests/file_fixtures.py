@@ -16,7 +16,8 @@ FIXTURES_ROOT = {
 
 FIXTURES_PREFIX_DIR = {
     '0.10.1': 'v0_10',  # libcloud version:folder
-    '0.10.0': 'v0_10'
+    '0.10.0': 'v0_10',
+    libcloud.__version__: 'v0_10',  # FIXME: remove in first release
 }
 
 
