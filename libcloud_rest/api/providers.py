@@ -46,7 +46,7 @@ class DriverMethod(object):
             if name in docstring_args:
                 doc_arg = docstring_args[name]
                 entry_kwargs = {'name': name,
-                                'type_names': doc_arg['type_names'],
+                                'type_name': doc_arg['type_name'],
                                 'description': doc_arg['description']}
                 if not doc_arg['required'] and 'default' in arg_info:
                     entry_kwargs['default'] = arg_info['default']
@@ -58,7 +58,7 @@ class DriverMethod(object):
         kwargs = set(docstring_args).difference(argspec_arg)
         for arg_name in kwargs:
             arg = docstring_args[arg_name]
-            entry = Entry(arg_name, arg['type_names'], arg['description'])
+            entry = Entry(arg_name, arg['type_name'], arg['description'])
             if arg['required']:
                 self.required_entries.append(entry)
             else:

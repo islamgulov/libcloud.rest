@@ -85,21 +85,6 @@ def get_method_docstring(cls, method_name):
     return docstrign
 
 
-def _parse_types_names(type_str):
-    """
-    parse types names from field string and return list of types names
-    for example:
-        C{str} or L{Node} -> ['C{str}', 'L{Node}]
-        C{list} of C{str} -> ['C{list} of C{str}']
-    @param type_str:
-    @type type_str:
-    @return:
-    @rtype:
-    """
-    type_str = type_str.replace('\n', ' ')
-    return [ftype.strip() for ftype in type_str.split(' or ')]
-
-
 def _parse_docstring_field(field_lines):
     """
 
@@ -112,8 +97,8 @@ def _parse_docstring_field(field_lines):
     if field_lines.startswith('@type'):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
-        arg_type = _parse_types_names(field_data[2])
-        return  arg_name, {'type_names': arg_type}
+        arg_type = field_data[2].replace('\n', ' ').strip()
+        return  arg_name, {'type_name': arg_type}
     if field_lines.startswith('@keyword') or field_lines.startswith('@param'):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
@@ -161,12 +146,12 @@ def parse_docstring(docstring, cls=None):
     @type docstring:
     @return: return tuple
         description - method description
-        arguments - dict of dicts arg_name: {desctiption, type_names, required}
+        arguments - dict of dicts arg_name: {desctiption, type_name, required}
         return - list of return types
     @rtype: C{dict}
     """
     def_arg_dict = lambda: {'description': None,
-                            'type_names': None,
+                            'type_name': None,
                             'required': False,
                             }
     arguments_dict = defaultdict(def_arg_dict)
@@ -207,7 +192,7 @@ def parse_docstring(docstring, cls=None):
             #parse return value
             elif cached_field.startswith('@rtype'):
                 types_str = cached_field.split(':', 1)[1]
-                return_value_types = _parse_types_names(types_str)
+                return_value_types = types_str.replace('\n', ' ').strip()
             #parse return description
             elif  cached_field.startswith('@return:'):
                 return_description = cached_field.split(':', 1)[1].strip()
@@ -226,7 +211,7 @@ def parse_docstring(docstring, cls=None):
                     cached_filed_indent = sys.maxint
     #check fields
     for argument, info in arguments_dict.iteritems():
-        if info['type_names'] is None:
+        if info['type_name'] is None:
             raise MethodParsingException(
                 'Can not get  @type for argument %s' % (argument))
         if info['description'] is None:

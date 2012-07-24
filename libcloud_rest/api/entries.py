@@ -414,8 +414,8 @@ class OneOfEntry(BasicEntry):
         if 'default' in kwargs:
             self.default = kwargs['default']
         self.description = description
-        self.entries = [Entry(name, (type_name, ), description)
-                        for type_name in type_name]
+        self.entries = [Entry(name, tn, description)
+                        for tn in type_name.split(' or ')]
 
     def _validate(self, json_data):
         missed_arguments = []
@@ -487,7 +487,7 @@ class ListEntry(BasicEntry):
         self.container_type = container_type.strip()
         self.object_type = object_type.strip()
         self.description = description
-        self.object_entry = Entry('', [object_type], '')
+        self.object_entry = Entry('', object_type, '')
 
     def _validate(self, json_data):
         raise NotImplementedError
@@ -520,9 +520,8 @@ class ListEntry(BasicEntry):
 class Entry(object):
     _container_regex = re.compile('(.\{[_0-9a-zA-Z]+\} of .\{[_0-9a-zA-Z]+\})')
 
-    def __new__(cls, name, type_names, description='', **kwargs):
-        if len(type_names) == 1:
-            type_name = type_names[0]
+    def __new__(cls, name, type_name, description='', **kwargs):
+        if not ' or ' in type_name:
             if type_name in simple_types_fields:
                 entry_class = SimpleEntry
             elif type_name in complex_entries:
@@ -532,4 +531,4 @@ class Entry(object):
             else:
                 raise ValueError('Unknown type name %s' % (type_name))
             return entry_class(name, type_name, description, **kwargs)
-        return OneOfEntry(name, type_names, description, **kwargs)
+        return OneOfEntry(name, type_name, description, **kwargs)
