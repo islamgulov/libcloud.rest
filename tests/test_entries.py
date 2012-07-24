@@ -288,9 +288,11 @@ class DefaultOneOfEntryTests(unittest2.TestCase):
         args = self.entry.get_arguments()
         self.assertEqual(2, len(args))
         test_args = [{'type': 'string', 'name': 'attr',
-                      'description': 'Test description'},
+                      'description': 'Test description',
+                      'required': True},
                      {'type': 'dictionary', 'name': 'attr',
-                      'description': 'Test description'}]
+                      'description': 'Test description',
+                      'required': True}]
         self.assertEqual(test_args, args)
 
     def test_from_json(self):

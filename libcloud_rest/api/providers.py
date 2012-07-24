@@ -66,17 +66,12 @@ class DriverMethod(object):
         result_arguments = []
         for entry in self.vargs_entries:
             arguments = entry.get_arguments()
-            required = True
             if hasattr(entry, 'default'):
-                required = False
-            for arg in arguments:
-                arg['required'] = required
+                for arg in arguments:
+                    arg['required'] = False
             result_arguments.extend(arguments)
-
         for entry in self.required_entries:
             arguments = entry.get_arguments()
-            for arg in arguments:
-                arg['required'] = True
             result_arguments.extend(arguments)
         for entry in self.optional_entries:
             arguments = entry.get_arguments()

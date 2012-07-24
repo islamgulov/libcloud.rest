@@ -52,7 +52,8 @@ class Field(object):
     def get_description_dict(self):
         return {'name': self.name,
                 'description': self.description,
-                'type': self.type_name}
+                'type': self.type_name,
+                'required': self.required}
 
 
 class StringField(Field):
