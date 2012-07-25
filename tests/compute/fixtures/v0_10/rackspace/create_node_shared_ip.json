@@ -1,0 +1,6 @@
+{
+    "name": "racktest",
+    "size_id" : "1",
+    "image_id": "11",
+    "ex_shared_ip_group_id": "12345"
+}

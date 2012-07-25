@@ -210,7 +210,8 @@ class LibcloudObjectEntry(BasicEntry):
         return json.dumps(data)
 
     def _get_object(self, json_data, driver):
-        raise NotImplementedError()
+        raise NotImplementedError('Method not implented in %s' %
+                                  (str(self.__class__)))
 
     def contains_arguments(self, json_data):
         return any(True for f in self._fields if f.name in json_data)
@@ -310,9 +311,14 @@ class StorageVolumeFakeEntry(LibcloudObjectEntry):
     volume_id = StringField('ID of the storage volume which should be used')
 
 
-class NodeImageFakeEntry(LibcloudObjectEntry):
+class NodeImageEntry(LibcloudObjectEntry):
     render_attrs = ['id', 'name']
     image_id = StringField('ID of the node image which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        image_id = json_data['image_id']
+        image = compute_base.NodeImage(image_id, None, None)
+        return image
 
 
 class NodeSizeEntry(LibcloudObjectEntry):
@@ -325,8 +331,13 @@ class NodeSizeEntry(LibcloudObjectEntry):
         return size
 
 
-class NodeLocationFakeEntry(LibcloudObjectEntry):
+class NodeLocationEntry(LibcloudObjectEntry):
     location_id = StringField('ID of the node location which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        location_id = json_data['location_id']
+        location = compute_base.NodeLocation(location_id, None, None, None)
+        return location
 
 
 class OpenStack_1_0_SharedIpGroupEntry(LibcloudObjectEntry):
@@ -393,8 +404,8 @@ complex_entries = {
     'L{NodeAuthSSHKey}': NodeAuthSSHKeyEntry,
     'L{NodeAuthPassword}': NodeAuthPasswordEntry,
     'L{StorageVolume}': StorageVolumeFakeEntry,  # FIXME
-    'L{NodeImage}': NodeImageFakeEntry,  # FIXME
-    'L{NodeLocation}': NodeLocationFakeEntry,  # FIXME
+    'L{NodeImage}': NodeImageEntry,
+    'L{NodeLocation}': NodeLocationEntry,
     'L{NodeSize}': NodeSizeEntry,  # FIXME
     'L{OpenStack_1_0_SharedIpGroup}': OpenStack_1_0_SharedIpGroupEntry,
     'L{CloudStackDiskOffering}': CloudStackDiskOfferingEntry,  # FIXME

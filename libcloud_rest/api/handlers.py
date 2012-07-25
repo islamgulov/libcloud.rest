@@ -146,27 +146,13 @@ class ComputeHandler(BaseServiceHandler):
         'list_images')
 
     def create_node(self):
-        node_validator = valid.DictValidator({
-            'name': valid.StringValidator(),
-            'size_id': valid.StringValidator(),
-            'image_id': valid.StringValidator(),
-            'location_id': valid.StringValidator(required=False)
-        })
-        node_data = self._load_json(self.request.data, node_validator)
-
-        create_node_kwargs = {}
-        create_node_kwargs['name'] = node_data['name']
-        create_node_kwargs['size'] = compute_base.NodeSize(
-            node_data['size_id'], None, None, None, None, None, None)
-        create_node_kwargs['image'] = compute_base.NodeImage(
-            node_data['image_id'], None, None)
-        location_id = node_data.get('location_id', None)
-        if location_id is not None:
-            create_node_kwargs['location'] = compute_base.NodeLocation(
-                node_data['location_id'], None, None, None)
-        node = self._execute_driver_method('create_node', **create_node_kwargs)
-        return self.json_response(node,
-                                  status_code=httplib.CREATED)
+        self.params['method_name'] = 'create_node'
+        response = self.invoke_method(httplib.CREATED)
+        node_id = json.loads(response.data)['id']
+        response.autocorrect_location_header = False
+        response.headers.add_header('Location', node_id)
+        response.data = ""
+        return response
 
     def reboot_node(self):
         """
@@ -211,13 +197,13 @@ class ComputeHandler(BaseServiceHandler):
                   'supported_methods': supported_methods}
         return self.json_response(result, status_code=httplib.OK)
 
-    def invoke_method(self):
+    def invoke_method(self, status_code=httplib.OK):
         driver = self._get_driver_instance()
         method_name = self.params.get('method_name')
         driver_method = DriverMethod(driver, method_name)
         return Response(driver_method.invoke(self.request),
                         mimetype='application/json',
-                        status=httplib.OK)
+                        status=status_code)
 
 
 #noinspection PyUnresolvedReferences

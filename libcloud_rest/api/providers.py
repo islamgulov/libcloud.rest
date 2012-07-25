@@ -37,9 +37,6 @@ class DriverMethod(object):
         docstring_parse_result = parse_docstring(method_doc, self.driver_cls)
         self.description = docstring_parse_result['description']
         docstring_args = docstring_parse_result['arguments']
-        #check required and merge args
-        self.required_entries = []
-        self.optional_entries = []
         #check vargs
         self.vargs_entries = []
         for name, arg_info in argspec_arg.iteritems():
@@ -89,12 +86,14 @@ class DriverMethod(object):
     def invoke(self, request):
         vargs = [e.from_json(request.data, self.driver)
                  for e in self.vargs_entries]
-        kwargs = dict((e.name, e.from_json(request.data, self.driver))
-                      for e in self.required_entries)
-        for opt_arg in self.optional_entries:
-            if opt_arg.contains_arguments(request.data):
-                kwargs[opt_arg.name] =\
-                    opt_arg.from_json(request.data, self.driver)
+        kwargs = {}
+        for kw_entry in self.kwargs_entries:
+            try:
+                kwargs[kw_entry.name] = kw_entry.from_json(request.data,
+                                                           self.driver)
+            except MissingArguments:
+                if kw_entry.required:
+                    raise
         result = self.method(*vargs, **kwargs)
         return self.result_entry.to_json(result)
 
