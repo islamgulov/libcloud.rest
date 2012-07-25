@@ -164,6 +164,16 @@ def split_docstring(docstring):
     return description, fields
 
 
+def _check_arguments_dict(arguments):
+    for argument, info in arguments.iteritems():
+        if info['type_name'] is None:
+            raise MethodParsingException(
+                'Can not get type for argument %s' % (argument))
+        if info['description'] is None:
+            raise MethodParsingException(
+                'Can not get description for argument %s' % (argument))
+
+
 def parse_docstring(docstring, cls=None):
     """
     @return: return dict
@@ -203,14 +213,8 @@ def parse_docstring(docstring, cls=None):
         else:
             arg_name, update_dict = _parse_docstring_field(docstring_line)
             arguments_dict[arg_name].update(update_dict)
-            #check fields
-    for argument, info in arguments_dict.iteritems():
-        if info['type_name'] is None:
-            raise MethodParsingException(
-                'Can not get  @type for argument %s' % (argument))
-        if info['description'] is None:
-            raise MethodParsingException(
-                'Can not get description for argument %s' % (argument))
+    #check fields
+    _check_arguments_dict(arguments_dict)
     if not return_value_types:
         raise MethodParsingException('Can not get return types for method')
     return {'description': description,
