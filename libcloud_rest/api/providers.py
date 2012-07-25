@@ -44,28 +44,27 @@ class DriverMethod(object):
         self.vargs_entries = []
         for name, arg_info in argspec_arg.iteritems():
             if name in docstring_args:
-                doc_arg = docstring_args[name]
-                entry_kwargs = {'name': name,
-                                'type_name': doc_arg['type_name'],
-                                'description': doc_arg['description']}
-                if not doc_arg['required'] and 'default' in arg_info:
+                docstring_arg = docstring_args[name]
+                entry_kwargs = {
+                    'name': name,
+                    'description': docstring_arg['description'],
+                    'type_name': docstring_arg['type_name'],
+                    'required': (docstring_arg['required'] or
+                                 arg_info['required']),
+                }
+                if not entry_kwargs['required'] and 'default' in arg_info:
                     entry_kwargs['default'] = arg_info['default']
                 self.vargs_entries.append(Entry(**entry_kwargs))
             else:
                 raise MethodParsingException(
                     '%s %s not described in docstring' % (method_name, name))
-        #update kwargs
+            #update kwargs
         kwargs = set(docstring_args).difference(argspec_arg)
-        for arg_name in kwargs:
-            arg = docstring_args[arg_name]
-            entry = Entry(arg_name, arg['type_name'], arg['description'])
-            if arg['required']:
-                self.required_entries.append(entry)
-            else:
-                self.optional_entries.append(entry)
+        self.kwargs_entries = [Entry(arg_name, **docstring_args[arg_name])
+                               for arg_name in kwargs]
         method_return = docstring_parse_result['return']
         self.result_entry = Entry('', method_return['type_name'],
-                                  method_return['description'])
+                                  method_return['description'], True)
 
     @classmethod
     def _remove_type_name_brackets(cls, type_name):
@@ -74,19 +73,9 @@ class DriverMethod(object):
     def get_description(self):
         result_arguments = []
         for entry in self.vargs_entries:
-            arguments = entry.get_arguments()
-            if hasattr(entry, 'default'):
-                for arg in arguments:
-                    arg['required'] = False
-            result_arguments.extend(arguments)
-        for entry in self.required_entries:
-            arguments = entry.get_arguments()
-            result_arguments.extend(arguments)
-        for entry in self.optional_entries:
-            arguments = entry.get_arguments()
-            for arg in arguments:
-                arg['required'] = False
-            result_arguments.extend(arguments)
+            result_arguments.extend(entry.get_arguments())
+        for entry in self.kwargs_entries:
+            result_arguments.extend(entry.get_arguments())
         result = {'name': self.method_name,
                   'description': self.description,
                   'arguments': result_arguments,
@@ -104,7 +93,7 @@ class DriverMethod(object):
                       for e in self.required_entries)
         for opt_arg in self.optional_entries:
             if opt_arg.contains_arguments(request.data):
-                kwargs[opt_arg.name] = \
+                kwargs[opt_arg.name] =\
                     opt_arg.from_json(request.data, self.driver)
         result = self.method(*vargs, **kwargs)
         return self.result_entry.to_json(result)

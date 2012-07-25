@@ -90,7 +90,7 @@ class FakeEntry(LibcloudObjectEntry):
 
 class FakeEntryTests(unittest2.TestCase):
     def setUp(self):
-        self.entry = FakeEntry('fake', 'L{Fake}', 'just for test')
+        self.entry = FakeEntry('fake', 'L{Fake}', 'just for test', True)
 
     def test_validate(self):
         valid_json = '{"fake_id": "a", "fake_name": "b", "extra": 1}'
@@ -145,7 +145,7 @@ class FakeEntryTests(unittest2.TestCase):
 
 class FakeDefaultEntryTests(unittest2.TestCase):
     def setUp(self):
-        self.entry = FakeEntry('fake', 'L{Fake}', 'just for test',
+        self.entry = FakeEntry('fake', 'L{Fake}', 'just for test', True,
                                default=FakeObject('fid', 'fname'))
 
     def test_validate(self):
@@ -321,7 +321,7 @@ class DefaultOneOfEntryTests(unittest2.TestCase):
 
 class ListEntryTest(unittest2.TestCase):
     def setUp(self):
-        self.entry = ListEntry('result', 'C{list} of L{Node}', 'pass')
+        self.entry = ListEntry('result', 'C{list} of L{Node}', 'pass', True)
         self.driver = get_test_driver_instance(CloudStackNodeDriver,
                                                secret='apikey', key='user',
                                                host='api.dummy.com',

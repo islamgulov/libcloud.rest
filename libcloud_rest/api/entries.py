@@ -121,6 +121,16 @@ class BasicEntry(object):
     Just describe interface.
     """
 
+    def __init__(self, name, type_name, description, required, **kwargs):
+        self.name = name
+        self.type_name = type_name
+        self.description = description
+        self.required = required
+        if 'default' in kwargs:
+            if self.required:
+                ValueError('Required entry can not contain default value')
+            self.default = kwargs['default']
+
     def _get_json(self, data):
         """
 
@@ -189,13 +199,6 @@ class LibcloudObjectEntry(BasicEntry):
     __metaclass__ = LibcloudObjectEntryBase
     render_attrs = None
 
-    def __init__(self, name, type_name, description, **kwargs):
-        self.name = name
-        self.type_name = type_name
-        self.description = description
-        if 'default' in kwargs:
-            self.default = kwargs['default']
-
     @classmethod
     def to_json(cls, obj):
         try:
@@ -230,25 +233,26 @@ class LibcloudObjectEntry(BasicEntry):
         if missed_args:
             raise MissingArguments(arguments=missed_args)
 
-    @classmethod
-    def get_arguments(cls):
-        return [field.get_description_dict() for field in cls._fields]
+    def get_arguments(self):
+        fields_args = [field.get_description_dict() for field in self._fields]
+        if not self.required:
+            for field_arg in fields_args:
+                field_arg['required'] = False
+        return fields_args
 
 
 class SimpleEntry(BasicEntry):
-    def __init__(self, name, type_name, description, **kwargs):
-        self.name = name
-        self.type_name = type_name
-        self.description = description
-        if 'default' in kwargs:
-            self.default = kwargs['default']
-        self.field = simple_types_fields[type_name](description, name)
+    def __init__(self, *args, **kwargs):
+        super(SimpleEntry, self).__init__(*args, **kwargs)
+        self.field = simple_types_fields[self.type_name](self.description,
+                                                         self.name)
 
     def _validate(self, json_data):
         self.field.validate(json_data)
 
     def get_arguments(self):
         argument_dict = self.field.get_description_dict()
+        argument_dict['required'] = self.required
         if hasattr(self, 'default'):
             argument_dict['default'] = self.default
         return [argument_dict]
@@ -408,14 +412,10 @@ complex_entries = {
 
 
 class OneOfEntry(BasicEntry):
-    def __init__(self, name, type_name, description, **kwargs):
-        self.name = name
-        self.type_name = type_name
-        if 'default' in kwargs:
-            self.default = kwargs['default']
-        self.description = description
-        self.entries = [Entry(name, tn, description)
-                        for tn in type_name.split(' or ')]
+    def __init__(self, *args, **kwargs):
+        super(OneOfEntry, self).__init__(*args, **kwargs)
+        self.entries = [Entry(self.name, tn, self.description)
+                        for tn in self.type_name.split(' or ')]
 
     def _validate(self, json_data):
         missed_arguments = []
@@ -432,6 +432,9 @@ class OneOfEntry(BasicEntry):
         arguments = []
         for entry in self.entries:
             args = entry.get_arguments()
+            if not self.required:
+                for arg in args:
+                    arg['required'] = False
             arguments.extend(args)
         return arguments
 
@@ -478,15 +481,12 @@ class ListEntry(BasicEntry):
     #TODO: implement container entry
     """
 
-    def __init__(self, name, type_name, description, **kwargs):
-        self.name = name
-        self.type_name = type_name
-        if 'default' in kwargs:
-            self.default = kwargs['default']
-        container_type, object_type = type_name.split(' of ')
+    def __init__(self, *args, **kwargs):
+        super(ListEntry, self).__init__(*args, **kwargs)
+        container_type, object_type = self.type_name.split(' of ')
         self.container_type = container_type.strip()
         self.object_type = object_type.strip()
-        self.description = description
+        self.description = self.description
         self.object_entry = Entry('', object_type, '')
 
     def _validate(self, json_data):
@@ -498,7 +498,8 @@ class ListEntry(BasicEntry):
         entry_arg_json = str(entry_arg)
         result = {'name': self.name,
                   'description': self.description,
-                  'type': 'list of %s' % (entry_arg_json)}
+                  'type': 'list of %s' % (entry_arg_json),
+                  'required': self.required}
         if hasattr(self, 'default'):
             result['default'] = str(self.default)
         return [result]
@@ -520,7 +521,7 @@ class ListEntry(BasicEntry):
 class Entry(object):
     _container_regex = re.compile('(.\{[_0-9a-zA-Z]+\} of .\{[_0-9a-zA-Z]+\})')
 
-    def __new__(cls, name, type_name, description='', **kwargs):
+    def __new__(cls, name, type_name, description='', required=True, **kwargs):
         if not ' or ' in type_name:
             if type_name in simple_types_fields:
                 entry_class = SimpleEntry
@@ -530,5 +531,6 @@ class Entry(object):
                 entry_class = ListEntry
             else:
                 raise ValueError('Unknown type name %s' % (type_name))
-            return entry_class(name, type_name, description, **kwargs)
-        return OneOfEntry(name, type_name, description, **kwargs)
+            return entry_class(
+                name, type_name, description, required, **kwargs)
+        return OneOfEntry(name, type_name, description, required, **kwargs)
