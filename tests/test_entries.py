@@ -39,7 +39,7 @@ class StringEntryTests(unittest2.TestCase):
         self.assertEqual(argument['name'], 'zone_id')
         self.assertEqual(argument['description'],
                          'ID of the zone which is required')
-        self.assertEqual(argument['type'], 'string')
+        self.assertEqual(argument['type'], 'str')
 
     def test_to_json(self):
         valid = '123'
@@ -138,9 +138,9 @@ class FakeEntryTests(unittest2.TestCase):
         get_arg = lambda name: [arg for arg in args
                                 if arg['name'] == name][0]
         fake_id_arg = get_arg('fake_id')
-        self.assertEqual(fake_id_arg['type'], 'string')
+        self.assertEqual(fake_id_arg['type'], 'str')
         fake_name_arg = get_arg('fake_name')
-        self.assertEqual(fake_name_arg['type'], 'string')
+        self.assertEqual(fake_name_arg['type'], 'str')
 
 
 class FakeDefaultEntryTests(unittest2.TestCase):
@@ -195,9 +195,9 @@ class FakeDefaultEntryTests(unittest2.TestCase):
         get_arg = lambda name: [arg for arg in args
                                 if arg['name'] == name][0]
         fake_id_arg = get_arg('fake_id')
-        self.assertEqual(fake_id_arg['type'], 'string')
+        self.assertEqual(fake_id_arg['type'], 'str')
         fake_name_arg = get_arg('fake_name')
-        self.assertEqual(fake_name_arg['type'], 'string')
+        self.assertEqual(fake_name_arg['type'], 'str')
 
 
 class NodeEntryTests(unittest2.TestCase):
@@ -219,7 +219,7 @@ class NodeEntryTests(unittest2.TestCase):
     def test_get_arguments(self):
         argument = self.entry.get_arguments()[0]
         self.assertEqual(argument['name'], 'node_id')
-        self.assertEqual(argument['type'], 'string')
+        self.assertEqual(argument['type'], 'str')
 
     def test_to_json(self):
         node = Node('111', 'test', NodeState.RUNNING, ['123.123.123.123'],
@@ -249,9 +249,9 @@ class OneOfEntryTests(unittest2.TestCase):
         get_arg = lambda name: [arg for arg in args
                                 if arg['name'] == name][0]
         node_pubkey_arg = get_arg('node_pubkey')
-        self.assertEqual(node_pubkey_arg['type'], 'string')
+        self.assertEqual(node_pubkey_arg['type'], 'str')
         node_password_arg = get_arg('node_password')
-        self.assertEqual(node_password_arg['type'], 'string')
+        self.assertEqual(node_password_arg['type'], 'str')
 
     def test_from_json(self):
         key_json = '{"node_pubkey": "123", "unknown_arg": 123}'
@@ -287,10 +287,10 @@ class DefaultOneOfEntryTests(unittest2.TestCase):
     def test_get_arguments(self):
         args = self.entry.get_arguments()
         self.assertEqual(2, len(args))
-        test_args = [{'type': 'string', 'name': 'attr',
+        test_args = [{'type': 'str', 'name': 'attr',
                       'description': 'Test description',
                       'required': True},
-                     {'type': 'dictionary', 'name': 'attr',
+                     {'type': 'dict', 'name': 'attr',
                       'description': 'Test description',
                       'required': True}]
         self.assertEqual(test_args, args)

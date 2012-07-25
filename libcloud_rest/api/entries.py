@@ -58,22 +58,22 @@ class Field(object):
 
 class StringField(Field):
     validator_cls = valid.StringValidator
-    type_name = 'string'
+    type_name = 'str'
 
 
 class DictField(Field):
     validator_cls = partial(valid.DictValidator, {})
-    type_name = 'dictionary'
+    type_name = 'dict'
 
 
 class BooleanField(Field):
     validator_cls = valid.BooleanValidator
-    type_name = 'boolean'
+    type_name = 'bool'
 
 
 class IntegerField(Field):
     validator_cls = valid.IntegerValidator
-    type_name = 'integer'
+    type_name = 'int'
 
 
 class FloatField(Field):

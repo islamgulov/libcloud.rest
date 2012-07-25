@@ -69,20 +69,20 @@ class FakeDriverTests(unittest2.TestCase):
         self.assertEqual('ex_create_fake', data['name'])
         self.assertEqual('teachess volume to node.',  data['description'])
         arguments = data['arguments']
-        node = {'required': True, 'type': 'string', 'name': 'node_id',
+        node = {'required': True, 'type': 'str', 'name': 'node_id',
                 'description': 'ID of the node which should be used'}
-        volume = {'required': True, 'type': 'string', 'name': 'volume',
+        volume = {'required': True, 'type': 'str', 'name': 'volume',
                   'description': 'Volume to attach'}
-        device = {'required': True, 'type': 'string', 'name': 'device',
+        device = {'required': True, 'type': 'str', 'name': 'device',
                   'description': "Where the device is exposed, "
                                  "e.g. '/dev/sdb (required)"}
-        extra_dict = {'required': False, 'type': 'dictionary', 'name': 'extra',
+        extra_dict = {'required': False, 'type': 'dict', 'name': 'extra',
                       'description': 'Extra attributes (driver specific).'}
-        extra_str = {'required': False, 'type': 'string', 'name': 'extra',
+        extra_str = {'required': False, 'type': 'str', 'name': 'extra',
                      'description': 'Extra attributes (driver specific).'}
-        varg = {'default': 'value', 'required': False, 'type': 'string',
+        varg = {'default': 'value', 'required': False, 'type': 'str',
                 'name': 'varg', 'description': 'with default value'}
-        kwarg = {'required': False, 'type': 'string',
+        kwarg = {'required': False, 'type': 'str',
                  'name': 'kwarg', 'description': 'Keyword argument'}
         test_args = [node, volume, device, extra_dict, extra_str, varg, kwarg]
         self.assertEqual(arguments, test_args)
