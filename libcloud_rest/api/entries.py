@@ -11,7 +11,7 @@ from libcloud.compute import base as compute_base
 
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
-    NoSuchObjectError, MissingArguments
+    NoSuchObjectError, MissingArguments, TooManyArgumentsError
 
 
 class Field(object):
@@ -470,7 +470,7 @@ class OneOfEntry(BasicEntry):
         elif missed_arguments:
             missed_arguments = ' or '.join(str(a) for a in missed_arguments)
             raise MissingArguments(arguments=missed_arguments)
-        raise ValueError('Too many arguments provided')
+        raise TooManyArgumentsError
 
 
 class ListEntry(BasicEntry):

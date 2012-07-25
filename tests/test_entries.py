@@ -13,7 +13,7 @@ from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
 from libcloud_rest.api.entries import Entry, LibcloudObjectEntry, StringField,\
     ListEntry
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
-    NoSuchObjectError, MissingArguments
+    NoSuchObjectError, MissingArguments, TooManyArgumentsError
 from tests.utils import get_test_driver_instance
 
 
@@ -262,7 +262,7 @@ class OneOfEntryTests(unittest2.TestCase):
         self.assertEqual("321", node_auth_password.password)
         key_password_json = '{"node_pubkey": "123",' \
                             ' "node_password": "321", "unknown_args": 123}'
-        self.assertRaises(ValueError, self.entry.from_json,
+        self.assertRaises(TooManyArgumentsError, self.entry.from_json,
                           key_password_json, None)
         empty_json = "{}"
         self.assertRaises(MissingArguments, self.entry.from_json,

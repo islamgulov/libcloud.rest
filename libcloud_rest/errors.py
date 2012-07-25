@@ -149,6 +149,14 @@ class RecordAlreadyExistsError(LibcloudError):
     message = 'The requested record already exists.'
 
 
+class TooManyArgumentsError(LibcloudError):
+    code = 1013
+    name = 'ArgumentsError'
+    http_status_code = httplib.BAD_REQUEST
+    message = 'The request contain more than one of ' \
+              'mutually exclusive arguments'
+
+
 INTERNAL_LIBCLOUD_ERRORS_MAP = {
     types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
     types.ZoneDoesNotExistError: NoSuchZoneError,
