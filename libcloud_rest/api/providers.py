@@ -34,9 +34,9 @@ class DriverMethod(object):
         if not method_doc:
             raise MethodParsingException('Empty docstring')
         argspec_arg = parse_args(self.method)
-        description, docstring_args, returns, return_description = \
-            parse_docstring(method_doc, self.driver_cls)
-        self.description = description
+        docstring_parse_result = parse_docstring(method_doc, self.driver_cls)
+        self.description = docstring_parse_result['description']
+        docstring_args = docstring_parse_result['arguments']
         #check required and merge args
         self.required_entries = []
         self.optional_entries = []
@@ -63,7 +63,9 @@ class DriverMethod(object):
                 self.required_entries.append(entry)
             else:
                 self.optional_entries.append(entry)
-        self.result_entry = Entry('', returns, return_description)
+        method_return = docstring_parse_result['return']
+        self.result_entry = Entry('', method_return['type_name'],
+                                  method_return['description'])
 
     @classmethod
     def _remove_type_name_brackets(cls, type_name):

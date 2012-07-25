@@ -141,6 +141,9 @@ def _ignored_field(field_str):
 
 
 def split_docstring(docstring):
+    """
+    @return: Return description string and list of fields strings
+    """
     docstring_list = [line.strip() for line in docstring.splitlines()]
     description_list = list(
         takewhile(lambda line: not line.startswith('@'),
@@ -149,7 +152,7 @@ def split_docstring(docstring):
     first_field_line_number = len(description_list)
     fields = []
     if first_field_line_number >= len(docstring_list):
-        return description, fields
+        return description, fields  # only description, without any field
     last_field_lines = [docstring_list[first_field_line_number]]
     for line in docstring_list[first_field_line_number + 1:]:
         if line.strip().startswith('@'):
@@ -163,13 +166,10 @@ def split_docstring(docstring):
 
 def parse_docstring(docstring, cls=None):
     """
-    @param docstring:
-    @type docstring:
-    @return: return tuple
+    @return: return dict
         description - method description
-        arguments - dict of dicts arg_name: {desctiption, type_name, required}
-        return - list of return types
-    @rtype: C{dict}
+        arguments - dict of dicts arg_name: {description, type_name, required}
+        return - dict: {description, type}
     """
     def_arg_dict = lambda: {'description': None,
                             'type_name': None,
@@ -187,12 +187,11 @@ def parse_docstring(docstring, cls=None):
                 raise MethodParsingException()
             inherit_str = docstring_line.split(':', 1)[1]
             result = _parse_inherit(cls, inherit_str)
-            if not description and result[0]:
-                description = result[0]
-            for arg_name, update_dict in result[1].items():
+            description = description or result['description']
+            for arg_name, update_dict in result['arguments'].items():
                 arguments_dict[arg_name].update(update_dict)
-            return_value_types = result[2]
-            return_description = result[3].strip()
+            return_value_types = result['return']['type_name']
+            return_description = result['return']['description']
         #parse return value
         elif docstring_line.startswith('@rtype'):
             types_str = docstring_line.split(':', 1)[1]
@@ -204,7 +203,7 @@ def parse_docstring(docstring, cls=None):
         else:
             arg_name, update_dict = _parse_docstring_field(docstring_line)
             arguments_dict[arg_name].update(update_dict)
-        #check fields
+            #check fields
     for argument, info in arguments_dict.iteritems():
         if info['type_name'] is None:
             raise MethodParsingException(
@@ -214,7 +213,10 @@ def parse_docstring(docstring, cls=None):
                 'Can not get description for argument %s' % (argument))
     if not return_value_types:
         raise MethodParsingException('Can not get return types for method')
-    return description, arguments_dict, return_value_types, return_description
+    return {'description': description,
+            'arguments': arguments_dict,
+            'return': {'description': return_description,
+                       'type_name': return_value_types}}
 
 
 def parse_args(method):
