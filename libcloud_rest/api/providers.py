@@ -83,6 +83,9 @@ class DriverMethod(object):
                   }
         return result
 
+    def invoke_result_to_json(self, value):
+        return self.result_entry.to_json(value)
+
     def invoke(self, request):
         vargs = [e.from_json(request.data, self.driver)
                  for e in self.vargs_entries]
@@ -94,8 +97,7 @@ class DriverMethod(object):
             except MissingArguments:
                 if kw_entry.required:
                     raise
-        result = self.method(*vargs, **kwargs)
-        return self.result_entry.to_json(result)
+        return self.method(*vargs, **kwargs)
 
 
 def get_providers_info(drivers, providers):

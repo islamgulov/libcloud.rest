@@ -34,7 +34,7 @@ if DEBUG:
 class BaseHandler(object):
     obj_attrs = {}
 
-    def json_response(self, obj, status_code=httplib.OK):
+    def json_response(self, obj, headers=(), status_code=httplib.OK):
         """
 
         @param status_code:
@@ -43,7 +43,8 @@ class BaseHandler(object):
         """
         encoder = ExtJSONEndoder(self.obj_attrs)
         reply = encoder.encode(obj)
-        return Response(reply, mimetype='application/json', status=status_code)
+        return Response(reply, mimetype='application/json',
+                        headers=headers, status=status_code)
 
 
 class ApplicationHandler(BaseHandler):
@@ -201,7 +202,8 @@ class ComputeHandler(BaseServiceHandler):
         driver = self._get_driver_instance()
         method_name = self.params.get('method_name')
         driver_method = DriverMethod(driver, method_name)
-        return Response(driver_method.invoke(self.request),
+        result = driver_method.invoke(self.request)
+        return Response(driver_method.invoke_result_to_json(result),
                         mimetype='application/json',
                         status=status_code)
 
