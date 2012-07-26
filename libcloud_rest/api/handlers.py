@@ -14,7 +14,8 @@ from libcloud.compute import base as compute_base
 from libcloud.dns import base as dns_base
 
 from libcloud_rest.api.versions import versions
-from libcloud_rest.api.parser import parse_request_headers
+from libcloud_rest.api.parser import parse_request_headers,\
+    ARGS_TO_XHEADERS_DICT
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import InternalError,\
     LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP,\
@@ -79,6 +80,7 @@ class BaseServiceHandler(BaseHandler):
             self._DRIVERS, self._Providers, provider_name)
         if self.request.query_string == TEST_QUERY_STRING and DEBUG:
             from tests.utils import get_test_driver_instance
+
             driver_instance = get_test_driver_instance(Driver, **api_data)
         else:
             driver_instance = get_driver_instance(Driver, **api_data)
@@ -87,7 +89,7 @@ class BaseServiceHandler(BaseHandler):
     def _execute_driver_method(self, method_name, *args, **kwargs):
         driver = self._get_driver_instance()
         method = getattr(driver, method_name, None)
-        if not inspect.ismethod(method) and \
+        if not inspect.ismethod(method) and\
                 not (DEBUG and isinstance(method, mock.MagicMock)):
             raise InternalError(detail='Unknown method %s' % (method_name))
         try:
@@ -190,11 +192,16 @@ class ComputeHandler(BaseServiceHandler):
             try:
                 driver_method = DriverMethod(driver, method_name)
             except MethodParsingException, e:
-                logger.info(str(e))
+                logger.info(str(e) + ' ' + driver.name + '.' + method_name)
                 continue
             supported_methods[method_name] = driver_method.get_description()
+        init_description = DriverMethod(driver, '__init__').get_description()
+        init_arguments = init_description['arguments']
+        for arg in init_arguments[:]:
+            arg['name'] = ARGS_TO_XHEADERS_DICT[arg['name']]
         result = {'name': driver.name,
                   'website': driver.website,
+                  'x-headers': init_arguments,
                   'supported_methods': supported_methods}
         return self.json_response(result, status_code=httplib.OK)
 

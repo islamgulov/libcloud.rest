@@ -18,7 +18,8 @@ XHEADERS_TO_ARGS_DICT = {
     'x-dummy-creds': 'creds',  # FIXME: for tests only
     'x-provider-key': 'key',
     'x-provider-uri': 'uri',
-    'x-provider-api-version': 'api_version'
+    'x-provider-api-version': 'api_version',
+    'x-provider-secure': 'secure',
 }
 
 #FIXME: GK?
