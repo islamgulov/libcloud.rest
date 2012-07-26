@@ -6,7 +6,6 @@ import re
 import sys
 
 from libcloud_rest.utils import LastUpdatedOrderedDict
-from libcloud_rest.constants import REQUIRES_FIELD
 from libcloud_rest.errors import MethodParsingException
 
 #map between request header name and libcloud's internal attribute name
@@ -37,29 +36,6 @@ def parse_request_headers(headers):
     data_headers_keys = request_headers_keys.intersection(request_meta_keys)
     return dict(([XHEADERS_TO_ARGS_DICT[key], headers.get(key, None)]
                  for key in data_headers_keys))
-
-
-def get_method_requirements(method):
-    """
-    make a list of required arguments names from docstring
-    @param method:
-    @raise:
-    @return: list of required arguments,
-     every required argument described as list of alternatives
-     ex. [['key'], ['secure'], ['host', 'path']]
-    """
-    method_docstring = inspect.getdoc(method)
-    if method_docstring is None:
-        raise NotImplementedError('Missing %s docstring' % (REQUIRES_FIELD))
-    for docstring_line in method_docstring.splitlines():
-        if docstring_line.startswith(REQUIRES_FIELD):
-            _, args = docstring_line.split(':')
-            args_list = []
-            for alt_arg in args.split(','):
-                args_list.append([arg.strip() for arg in alt_arg.split('or')])
-            return args_list
-    else:
-        raise NotImplementedError('Missing %s docstring' % (REQUIRES_FIELD))
 
 
 def get_method_docstring(cls, method_name):
@@ -191,6 +167,8 @@ def parse_docstring(docstring, cls=None):
     #parse fields
     return_description = ''
     for docstring_line in fields_lines:
+        if _ignored_field(docstring_line):
+            continue
         #parse inherits
         if docstring_line.startswith('@inherits'):
             if not cls:

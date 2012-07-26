@@ -6,7 +6,6 @@ from libcloud.utils.misc import get_driver
 
 from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT,\
     parse_args, parse_docstring, get_method_docstring
-from libcloud_rest.api.validators import validate_driver_arguments
 from libcloud_rest.errors import ProviderNotSupportedError,\
     MissingArguments, MissingHeadersError, UnknownArgument,\
     UnknownHeadersError, MethodParsingException, ValidationError
@@ -17,17 +16,14 @@ from libcloud_rest.utils import json
 class DriverMethod(object):
     _type_name_pattern = r'.\{([_0-9a-zA-Z]+)\}'
 
-    def __init__(self, driver, method_name):
-        #FIXME GK
-        if inspect.isclass(driver):
-            self.driver_cls = driver
+    def __init__(self, driver_obj, method_name):
+        if inspect.isclass(driver_obj):
+            self.driver_cls = driver_obj
         else:
-            self.driver_cls = driver.__class__
-        self.driver = driver
-
-        self.driver_cls = self.driver_cls
+            self.driver_cls = driver_obj.__class__
+        self.driver_obj = driver_obj
         self.method_name = method_name
-        self.method = getattr(self.driver, method_name, None)
+        self.method = getattr(self.driver_obj, method_name, None)
         if not inspect.ismethod(self.method):
             raise MethodParsingException('Bad method.')
         method_doc = get_method_docstring(self.driver_cls, method_name)
@@ -86,17 +82,19 @@ class DriverMethod(object):
     def invoke_result_to_json(self, value):
         return self.result_entry.to_json(value)
 
-    def invoke(self, request):
-        vargs = [e.from_json(request.data, self.driver)
+    def invoke(self, data):
+        vargs = [e.from_json(data, self.driver_obj)
                  for e in self.vargs_entries]
         kwargs = {}
         for kw_entry in self.kwargs_entries:
             try:
-                kwargs[kw_entry.name] = kw_entry.from_json(request.data,
-                                                           self.driver)
+                kwargs[kw_entry.name] = kw_entry.from_json(data,
+                                                           self.driver_obj)
             except MissingArguments:
                 if kw_entry.required:
                     raise
+        if self.method_name == '__init__':
+            return self.driver_cls(*vargs, **kwargs)
         return self.method(*vargs, **kwargs)
 
 
@@ -169,14 +167,10 @@ def get_driver_instance(Driver, **kwargs):
     @return:
     """
     try:
-        validate_driver_arguments(Driver, kwargs)
+        json_data = json.dumps(kwargs)
+        driver_method = DriverMethod(Driver, '__init__')
+        return driver_method.invoke(json_data)
     except MissingArguments, error:
-        str_repr = ', '.join((
-            ' or '.join(ARGS_TO_XHEADERS_DICT[arg] for arg in args)
-            for args in error.arguments
-        ))
+        str_repr = ', '.join([ARGS_TO_XHEADERS_DICT.get(arg, arg)
+                              for arg in error.arguments])
         raise MissingHeadersError(headers=str_repr)
-    except UnknownArgument, error:
-        raise UnknownHeadersError(headers=str(error.arguments))
-    driver = Driver(**kwargs)
-    return driver

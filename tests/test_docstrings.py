@@ -3,10 +3,11 @@ import unittest2
 
 from libcloud.compute import providers as compute_providers
 from libcloud.dns import providers as dns_providers
+from libcloud.test import secrets
 
 from libcloud_rest.api.providers import get_driver_by_provider_name
 from libcloud_rest.errors import ProviderNotSupportedError
-from libcloud_rest.api.parser import get_method_requirements
+from libcloud_rest.api.providers import DriverMethod
 
 
 class TestDocstring(unittest2.TestCase):
@@ -32,19 +33,10 @@ class TestDocstring(unittest2.TestCase):
         return result
 
     @classmethod
-    def _check_requires(cls, providers, drivers):
+    def _check_construct(cls, providers, drivers):
         Drivers = cls._get_drivers(providers, drivers)
         for Driver in Drivers:
-            for method in [Driver.__init__, Driver.__new__]:
-                try:
-                    get_method_requirements(method)
-                    break
-                except NotImplementedError:
-                    pass
-            else:
-                raise NotImplementedError(
-                    '%s driver has not @requires docstrign'
-                    % (str(Driver)))
+            DriverMethod(Driver, '__init__')
 
     @classmethod
     def _check_website(cls, providers, drivers):
@@ -62,12 +54,12 @@ class TestDocstring(unittest2.TestCase):
     def test_compute_requires(self):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS
-        self._check_requires(providers, drivers)
+        self._check_construct(providers, drivers)
 
     def test_dns_requires(self):
         providers = dns_providers.Provider
         drivers = dns_providers.DRIVERS
-        self._check_requires(providers, drivers)
+        self._check_construct(providers, drivers)
 
     def test_compute_provider_website(self):
         providers = compute_providers.Provider

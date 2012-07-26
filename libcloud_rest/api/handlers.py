@@ -202,7 +202,7 @@ class ComputeHandler(BaseServiceHandler):
         driver = self._get_driver_instance()
         method_name = self.params.get('method_name')
         driver_method = DriverMethod(driver, method_name)
-        result = driver_method.invoke(self.request)
+        result = driver_method.invoke(self.request.data)
         return Response(driver_method.invoke_result_to_json(result),
                         mimetype='application/json',
                         status=status_code)

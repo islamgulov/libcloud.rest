@@ -31,17 +31,16 @@ class GoGridTests(unittest2.TestCase):
 
     def test_bad_headers(self):
         url = self.url_tmpl % ('nodes')
-        headers = {'abs': 1, 'def': 2}
+        headers = {'key': 1, 'x-auth-user': 2}
         resp = self.client.get(url, headers=headers)
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
 
-    def test_bad_extra_headers(self):
+    def test_extra_headers(self):
         url = self.url_tmpl % ('nodes')
         headers = {'x-auth-user': 1, 'x-api-key': 2, 'x-dummy-creds': 3}
         resp = self.client.get(url, headers=headers)
         resp_data = json.loads(resp.data)
-        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
-        self.assertEqual(resp_data['error']['code'], UnknownHeadersError.code)
+        self.assertEqual(resp.status_code, httplib.OK)
 
     def test_list_nodes(self):
         url = self.url_tmpl % ('nodes')

@@ -4,45 +4,6 @@ from itertools import chain
 
 from libcloud_rest.errors import ValidationError, MissingArguments,\
     UnknownArgument
-from libcloud_rest.api.parser import get_method_requirements
-
-
-def validate_driver_arguments(Driver, arguments):
-    """
-    Validate that in all required arguments are existing.
-    @param required_arguments:
-    @param arguments:
-
-    @raise: L{MissingHeaderError}
-    """
-    try:
-        required_args = get_method_requirements(Driver.__init__)
-        method_with_docstring = Driver.__init__
-    except NotImplementedError:
-        required_args = get_method_requirements(Driver.__new__)
-        method_with_docstring = Driver.__new__
-
-    #required args validate
-    missing_args = []
-    for arg_altertives in required_args:
-        if not any([arg in arguments for arg in arg_altertives]):
-            missing_args.append(arg_altertives)
-    if missing_args:
-        raise MissingArguments(missing_args)
-
-    #optional args validate
-    method_args_spec = inspect.getargspec(method_with_docstring)
-    method_args = method_args_spec[0][1:]  # with removing 'self' or 'cls' arg
-    if method_args_spec[2]:
-        pass  # TODO: add docs parsing for keyword arguments
-    unknown_arguments = []
-    required_args_flat = list(chain(*required_args))
-    for arg in arguments:
-        if not (arg in method_args or arg in required_args_flat):
-            unknown_arguments.append(arg)
-    if unknown_arguments:
-        raise UnknownArgument(arguments=unknown_arguments)
-    return True
 
 
 class BaseValidator(object):

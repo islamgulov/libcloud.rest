@@ -94,9 +94,9 @@ class DriverMethodTests(unittest2.TestCase):
         self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
                           'variable')
         self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
-                          'not_documented')
+                          'get_not_documented')
         self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
-                          'unknown_argument')
+                          'get_unknown_argument')
 
 
 if __name__ == '__main__':
