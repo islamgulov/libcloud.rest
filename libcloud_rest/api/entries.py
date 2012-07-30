@@ -397,6 +397,7 @@ simple_types_fields = {
     'C{float}': FloatField,
     'C{None}': NoneField,
     'L{Deployment}': StringField,  # FIXME
+    'L{UUID}': StringField,  # FIXME
 }
 
 complex_entries = {

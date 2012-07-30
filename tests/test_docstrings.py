@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import unittest2
+from inspect import getmembers, ismethod
 
 from libcloud.compute import providers as compute_providers
 from libcloud.dns import providers as dns_providers
@@ -33,10 +34,17 @@ class TestDocstring(unittest2.TestCase):
         return result
 
     @classmethod
-    def _check_construct(cls, providers, drivers):
+    def _check_docstrings(cls, providers, drivers):
         Drivers = cls._get_drivers(providers, drivers)
         for Driver in Drivers:
-            DriverMethod(Driver, '__init__')
+            methods = [mn for mn, _ in getmembers(Driver, ismethod) if
+                       not mn.startswith('_')]
+            methods.append('__init__')
+            for method_name in methods:
+                try:
+                    DriverMethod(Driver, method_name)
+                except Exception, e:
+                    print str(e), Driver.name, method_name
 
     @classmethod
     def _check_website(cls, providers, drivers):
@@ -51,15 +59,15 @@ class TestDocstring(unittest2.TestCase):
                 '%s drivers have not website attribute'
                 % (str(without_website_attr)))
 
-    def test_compute_requires(self):
+    def test_compute_docstrings(self):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS
-        self._check_construct(providers, drivers)
+        self._check_docstrings(providers, drivers)
 
-    def test_dns_requires(self):
-        providers = dns_providers.Provider
-        drivers = dns_providers.DRIVERS
-        self._check_construct(providers, drivers)
+#    def test_dns_requires(self):
+#        providers = dns_providers.Provider
+#        drivers = dns_providers.DRIVERS
+#        self._check_construct(providers, drivers)
 
     def test_compute_provider_website(self):
         providers = compute_providers.Provider
