@@ -120,3 +120,14 @@ class DictValidator(BaseValidator):
             raise ValidationError('%s must be dict' % (self.name))
         for key, validator in self.items_validators.iteritems():
             validator(self.raw_data.get(key, None))
+
+
+class ChoicesValidator(BaseValidator):
+    def configure(self, args, kwargs):
+        self.choices = set(args[0])
+        super(ChoicesValidator, self).configure(args, kwargs)
+
+    def _check_data(self):
+        if not self.raw_data in self.choices:
+            raise ValidationError(
+                '%s must be one of %s' % (self.name, str(self.choices)))

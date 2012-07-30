@@ -76,3 +76,9 @@ class TestParser(unittest2.TestCase):
         self.assertRaisesRegexp(ValidationError,
                                 '%s .*' % (str_validator.default_name),
                                 str_validator, {})
+
+    def test_choices(self):
+        choices_valid = validators.ChoicesValidator(['abc', 'cd', 123])
+        self.assertTrue(choices_valid('abc'))
+        self.assertRaises(ValidationError, choices_valid, 'ab')
+        self.assertRaises(TypeError, validators.ChoicesValidator, 123)
