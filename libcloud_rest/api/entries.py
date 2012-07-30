@@ -8,6 +8,8 @@ except ImportError:
     import json
 
 from libcloud.compute import base as compute_base
+from libcloud.dns import base as dns_base
+from libcloud.dns import types as dns_types
 
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
@@ -54,6 +56,19 @@ class Field(object):
                 'description': self.description,
                 'type': self.type_name,
                 'required': self.required}
+
+
+#FIXME: not unified args
+class ChoicesField(Field):
+    validator_cls = valid.ChoicesValidator
+    type_name = 'choices'
+
+    def __init__(self, choices, description=None, name=None, required=True):
+        self.description = description
+        self.name = name
+        self._required = required
+        self.validator = self.validator_cls(choices,
+                                            required=required, name=name)
 
 
 class StringField(Field):
@@ -346,47 +361,78 @@ class OpenStack_1_0_SharedIpGroupEntry(LibcloudObjectEntry):
 
 
 class CloudStackDiskOfferingEntry(LibcloudObjectEntry):
-    render_attrs = ('id', 'name', 'size', 'customizable')
+    render_attrs = ('id', 'name', 'size', 'customizable',)
 
 
 class CloudStackAddressEntry(LibcloudObjectEntry):
-    render_attrs = ('id', 'address')
+    render_attrs = ('id', 'address',)
 
 
 class CloudStackForwardingRuleEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
 
 
 class ExEC2AvailabilityZoneEntry(LibcloudObjectEntry):
-    render_attrs = ('name', 'zone_state', 'region_name')
+    render_attrs = ('name', 'zone_state', 'region_name',)
 
 
 class GandiDiskEntry(LibcloudObjectEntry):
-    render_attrs = ('id', 'state', 'name', 'size', 'extra')
+    render_attrs = ('id', 'state', 'name', 'size', 'extra',)
 
 
 class GandiNetworkInterfaceEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
 
 
 class GoGridIpAddressEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
 
 
 class OpenNebulaNetworkEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
 
 
 class OpenNebulaNodeSizeEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
 
 
 class OpsourceNetworkEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
 
 
 class VCloudVdcEntry(LibcloudObjectEntry):
-    render_attrs = ('id')
+    render_attrs = ('id',)
+
+
+class ZoneEntry(LibcloudObjectEntry):
+    zone_id = StringField('ID of the zone which should be used')
+    render_attrs = ('id', 'domain', 'type', 'ttl',)
+
+    def _get_object(self, json_data, driver):
+        zone_id = json_data['zone_id']
+        return driver.get_zone(zone_id)
+
+
+class RecordTypeEntry(LibcloudObjectEntry):
+    _types = dict((k, v) for k, v in dns_types.RecordType.__dict__.items()
+                  if not k.startswith('_'))
+    record_type = ChoicesField(_types.keys(),
+                               'Type of record which should be used')
+
+    def _get_object(self, json_data, driver):
+        record = json_data['record_type']
+        return self._types[record]
+
+
+class RecordEntry(LibcloudObjectEntry):
+    zone_id = StringField('ID of the zone which should be used')
+    record_id = StringField('ID of the record which should be used')
+    render_attrs = ('id', 'name', 'type', 'data',)
+
+    def _get_object(self, json_data, driver):
+        zone_id = json_data['zone_id']
+        record_id = json_data['record_id']
+        return driver.get_record(zone_id, record_id)
 
 
 simple_types_fields = {
@@ -420,6 +466,10 @@ complex_entries = {
     'L{OpenNebulaNodeSize}': OpenNebulaNodeSizeEntry,  # FIXME
     'L{OpsourceNetwork}': OpsourceNetworkEntry,  # FIXME
     'L{VCloudVDC}': VCloudVdcEntry,  # FIXME
+    #DNS entries
+    'L{Zone}': ZoneEntry,
+    'L{RecordType}': RecordTypeEntry,
+    'L{Record}': RecordEntry,
 }
 
 

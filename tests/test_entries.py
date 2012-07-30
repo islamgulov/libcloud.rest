@@ -9,6 +9,7 @@ except ImportError:
 from libcloud.compute.base import Node, NodeState, \
     NodeAuthPassword, NodeAuthSSHKey
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
+from libcloud.dns.types import RecordType
 
 from libcloud_rest.api.entries import Entry, LibcloudObjectEntry, StringField,\
     ListEntry
@@ -342,3 +343,16 @@ class ListEntryTest(unittest2.TestCase):
         get_node = lambda x: [node for node in result if node.id == x][0]
         self.assertTrue(get_node('2600'))
         self.assertTrue(get_node('2601'))
+
+
+class RecordTypeTest(unittest2.TestCase):
+    def setUp(self):
+        self.entry = Entry('type', 'L{RecordType}', 'pass', True)
+
+    def test_from_json(self):
+        valid_json = '{"record_type": "AAAA"}'
+        self.assertEqual(self.entry.from_json(valid_json, None),
+                         RecordType.AAAA)
+        invalid_json = '{"record_type": "ABC"}'
+        self.assertRaises(ValidationError, self.entry.from_json,
+                          invalid_json, None)
