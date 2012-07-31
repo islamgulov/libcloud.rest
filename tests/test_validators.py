@@ -82,3 +82,22 @@ class TestParser(unittest2.TestCase):
         self.assertTrue(choices_valid('abc'))
         self.assertRaises(ValidationError, choices_valid, 'ab')
         self.assertRaises(TypeError, validators.ChoicesValidator, 123)
+
+    def test_type(self):
+        type_validator = validators.TypeValidator(int)
+        self.assertTrue(type_validator(123))
+        self.assertRaises(ValidationError, type_validator, 'str')
+
+        class A(object):
+            pass
+
+        class B(A):
+            pass
+
+        class D(object):
+            pass
+
+        a_validator = validators.TypeValidator(A)
+        self.assertTrue(a_validator(A()))
+        self.assertTrue(a_validator(B()))
+        self.assertRaises(ValidationError, a_validator, D())

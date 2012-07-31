@@ -131,3 +131,15 @@ class ChoicesValidator(BaseValidator):
         if not self.raw_data in self.choices:
             raise ValidationError(
                 '%s must be one of %s' % (self.name, str(self.choices)))
+
+
+class TypeValidator(BaseValidator):
+    def configure(self, args, kwargs):
+        self.type = args[0]
+        super(TypeValidator, self).configure(args, kwargs)
+
+    def _check_data(self):
+        if not isinstance(self.raw_data, self.type):
+            raise ValidationError(
+                '%s must be instance of type %s' % (self.name,
+                                                    self.type.__name__))
