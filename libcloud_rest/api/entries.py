@@ -8,8 +8,9 @@ except ImportError:
     import json
 
 from libcloud.compute import base as compute_base
-from libcloud.dns import base as dns_base
 from libcloud.dns import types as dns_types
+from libcloud.loadbalancer import base as lb_base
+from libcloud.loadbalancer.drivers import rackspace as lb_rackspace
 
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
@@ -77,8 +78,13 @@ class StringField(Field):
 
 
 class DictField(Field):
-    validator_cls = partial(valid.DictValidator, {})
+    validator_cls = partial(valid.TypeValidator, dict)
     type_name = 'dict'
+
+
+class TupleField(Field):
+    validator_cls = partial(valid.TypeValidator, tuple)
+    type_name = 'tuple'
 
 
 class BooleanField(Field):
@@ -435,6 +441,110 @@ class RecordEntry(LibcloudObjectEntry):
         return driver.get_record(zone_id, record_id)
 
 
+class LoadBalancerEntry(LibcloudObjectEntry):
+    loadbalancer_id = StringField(
+        'ID of the load balancer which should be used')
+    render_attrs = ('id', 'name', 'state', 'ip', 'port',)
+
+
+class MemberEntry(LibcloudObjectEntry):
+    membed_id = StringField('ID of the member which should be used')
+    membed_ip = StringField('IP of the member which should be used')
+    membed_port = StringField('Port of the member which should be used')
+    render_attrs = ('id', 'ip', 'port',)
+
+
+class AlgorithmEntry(LibcloudObjectEntry):
+    _types = dict((k, v) for k, v in lb_base.Algorithm.__dict__.items()
+                  if not k.startswith('_'))
+    algorithm = ChoicesField(_types.keys(),
+                             'Name of algorithm which should be used')
+
+    def _get_object(self, json_data, driver):
+        algorithm = json_data['algorithm']
+        return self._types[algorithm]
+
+
+class RackspaceAccessRuleEntry(LibcloudObjectEntry):
+    _rule_types = dict((k, v) for k, v in
+                       lb_rackspace.RackspaceAccessRuleType.__dict__.items()
+                       if not k.startswith('_'))
+    rule_id = StringField(
+        'ID of the Rackspace access rule which should be used', required=False)
+    rule_type = ChoicesField(_rule_types, 'RackspaceAccessRuleType')
+    rule_address = StringField(
+        'IP address or cidr (can be IPv4 or IPv6) of '
+        'the Rackspace access rule which should be used')
+
+    def _get_object(self, json_data, driver):
+        rule_id = json_data.get('rule_id', None)
+        rule_type = self._rule_types[json_data['rule_type']]
+        rule_address = json_data['rule_adress']
+        return lb_rackspace.RackspaceAccessRule(rule_id, rule_type,
+                                                rule_address)
+
+
+class RackspaceAccessRuleTypeEntry(LibcloudObjectEntry):
+    _rule_types = dict((k, v) for k, v in
+                       lb_rackspace.RackspaceAccessRuleType.__dict__.items()
+                       if not k.startswith('_'))
+    rule_type = ChoicesField(_rule_types, 'RackspaceAccessRuleType')
+
+    def _get_object(self, json_data, driver):
+        return self._rule_types[json_data['rule_type']]
+
+
+class RackspaceConnectionThrottle(LibcloudObjectEntry):
+    min_connections = IntegerField(
+        'Connection throttle minimum number of connections per IP '
+        'address before applying throttling.')
+    max_connections = IntegerField(
+        'Connection throttle  Maximum number of of connections per IP  '
+        'address. (Must be between 0 and 100000, 0 allows an unlimited number'
+        ' of connections.)')
+    max_connection_rate = IntegerField(
+        'Connection throttle maximum number of connections allowed from a'
+        ' single IP address within the given rate_interval_seconds.  (Must be '
+        'between 0 and 100000, 0 allows an unlimited number of connections.)')
+    rate_interval_seconds = IntegerField(
+        'Connection throttle interval at which the max_connection_rate is '
+        'enforced. (Must be between 1 and 3600.)')
+
+    def _get_object(self, json_data, driver):
+        min_connections = json_data['ct_min_connections']
+        max_connections = json_data['ct_max_connections']
+        max_connection_rate = json_data['ct_max_connection_rate']
+        rate_interval_seconds = json_data['ct_rate_interval_seconds']
+        return lb_rackspace.RackspaceConnectionThrottle(min_connections,
+                                                        max_connections,
+                                                        max_connection_rate,
+                                                        rate_interval_seconds)
+
+
+class RackspaceHealthMonitorEntry(LibcloudObjectEntry):
+    health_monitor_type = StringField(
+        'type of load balancer.  currently CONNECT (connection monitoring), '
+        'HTTP, HTTPS (connection and HTTP monitoring) are supported)')
+    health_monitor_delay = IntegerField(
+        'minimum seconds to wait before executing the health monitor. '
+        '(Must be between 1 and 3600)')
+    health_monitor_timeout = IntegerField(
+        'maximum seconds to wait when establishing a connection before'
+        ' timing out.  (Must be between 1 and 3600)')
+    health_monitor_attempts_before_deactivation = IntegerField(
+        'Number of monitor failures before removing a node from rotation. '
+        '(Must be between 1 and 10)')
+
+    def _get_object(self, json_data, driver):
+        type = json_data['health_monitor_type']
+        delay = json_data['health_monitor_delay']
+        timeout = json_data['health_monitor_timeout']
+        attempts_before_deactivation = \
+            json_data['health_monitor_attempts_before_deactivation']
+        return lb_rackspace.RackspaceHealthMonitor(
+            type, delay, timeout, attempts_before_deactivation)
+
+
 simple_types_fields = {
     'C{str}': StringField,
     'C{dict}': DictField,
@@ -442,6 +552,7 @@ simple_types_fields = {
     'C{int}': IntegerField,
     'C{float}': FloatField,
     'C{None}': NoneField,
+    'C{tuple}': TupleField,
     'L{Deployment}': StringField,  # FIXME
     'L{UUID}': StringField,  # FIXME
 }
@@ -470,6 +581,14 @@ complex_entries = {
     'L{Zone}': ZoneEntry,
     'L{RecordType}': RecordTypeEntry,
     'L{Record}': RecordEntry,
+    #LoadBalancer entries
+    'L{LoadBalancer}': LoadBalancerEntry,
+    'L{Algorithm}': AlgorithmEntry,
+    'L{Member}': MemberEntry,
+    'L{RackspaceAccessRule}': RackspaceAccessRuleEntry,
+    'L{RackspaceAccessRuleType}': RackspaceAccessRuleTypeEntry,
+    'L{RackspaceConnectionThrottle}': RackspaceConnectionThrottle,
+    'L{RackspaceHealthMonitor}': RackspaceHealthMonitorEntry,
 }
 
 
@@ -499,6 +618,9 @@ class OneOfEntry(BasicEntry):
                     arg['required'] = False
             arguments.extend(args)
         return arguments
+
+    def get_arguments(self):
+        pass
 
     def to_json(self, obj):
         for entry in self.entries:
@@ -545,7 +667,7 @@ class ListEntry(BasicEntry):
 
     def __init__(self, *args, **kwargs):
         super(ListEntry, self).__init__(*args, **kwargs)
-        container_type, object_type = self.type_name.split(' of ')
+        container_type, object_type = self.type_name.split(' of ', 1)
         self.container_type = container_type.strip()
         self.object_type = object_type.strip()
         self.description = self.description
