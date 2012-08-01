@@ -343,6 +343,7 @@ class NodeImageEntry(LibcloudObjectEntry):
 
 
 class NodeSizeEntry(LibcloudObjectEntry):
+    render_attrs = ('id', 'name', 'ram', 'bandwidth', 'price',)
     size_id = StringField('ID of the node size which should be used')
 
     def _get_object(self, json_data, driver=None):
@@ -353,6 +354,7 @@ class NodeSizeEntry(LibcloudObjectEntry):
 
 
 class NodeLocationEntry(LibcloudObjectEntry):
+    render_attrs = ('id', 'name', 'country',)
     location_id = StringField('ID of the node location which should be used')
 
     def _get_object(self, json_data, driver=None):
