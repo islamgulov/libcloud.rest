@@ -5,12 +5,14 @@ import traceback
 from werkzeug.wrappers import Request
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException
+from werkzeug.urls import url_decode
 
 from libcloud_rest.api.urls import urls
 from libcloud_rest.api import validators as valid
 from libcloud_rest.log import logger
 from libcloud_rest.errors import LibcloudRestError
 from libcloud_rest.constants import MAX_BODY_LENGTH
+from libcloud_rest.utils import json
 
 
 class LibcloudRestApp(object):
@@ -36,6 +38,9 @@ class LibcloudRestApp(object):
         controller.params = params
         action = getattr(controller, action_name)
         try:
+            if request.method == 'GET':
+                data = url_decode(request.query_string, cls=dict)
+                request.data = json.dumps(data)
             if request.method in ['POST', 'PUT']:
                 request_header_validator(dict(request.headers))
             retval = action()

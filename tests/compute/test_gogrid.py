@@ -65,6 +65,17 @@ class GoGridTests(unittest2.TestCase):
         test_data = json.loads(self.fixtures.load('list_images.json'))
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertItemsEqual(resp_data, test_data)
+        location_id = 'gogrid/GSI-939ef909-84b8-4a2f-ad56-02ccd7da05ff.img'
+        url = rest_versions[libcloud.__version__] + '/compute/gogrid/images'
+        resp = self.client.get(url, headers=self.headers,
+                               query_string={'location_id': location_id,
+                                             'test': 1})
+        self.assertEqual(resp.status_code, httplib.OK)
+        images = json.loads(resp.data)
+        image = images[0]
+        self.assertEqual(len(images), 4)
+        self.assertEqual(image['name'], 'CentOS 5.3 (32-bit) w/ None')
+        self.assertEqual(image['id'], '1531')
 
     def test_list_locations(self):
         url = self.url_tmpl % ('locations')
