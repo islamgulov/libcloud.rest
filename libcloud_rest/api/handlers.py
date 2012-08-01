@@ -141,7 +141,6 @@ class ComputeHandler(BaseServiceHandler):
         compute_base.NodeLocation: ['id', 'name', 'country']
     }
 
-    list_nodes = lambda self: self._list_objects_request_execute('list_nodes')
     list_sizes = lambda self: self._list_objects_request_execute('list_sizes')
     list_locations = lambda self: self._list_objects_request_execute(
         'list_locations')

@@ -6,7 +6,7 @@ try:
 except ImportError:
     import json
 
-from libcloud.compute.base import Node, NodeState, \
+from libcloud.compute.base import Node, NodeState,\
     NodeAuthPassword, NodeAuthSSHKey
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
 from libcloud.dns.types import RecordType
@@ -261,7 +261,7 @@ class OneOfEntryTests(unittest2.TestCase):
         password_json = '{"node_password": "321", "unknown_arg": 123}'
         node_auth_password = self.entry.from_json(password_json, None)
         self.assertEqual("321", node_auth_password.password)
-        key_password_json = '{"node_pubkey": "123",' \
+        key_password_json = '{"node_pubkey": "123",'\
                             ' "node_password": "321", "unknown_args": 123}'
         self.assertRaises(TooManyArgumentsError, self.entry.from_json,
                           key_password_json, None)
@@ -330,12 +330,13 @@ class ListEntryTest(unittest2.TestCase):
 
     def test_to_json(self):
         n1 = Node('id1', 'test1', NodeState.RUNNING, None, None, None)
-        n1_json = '{"public_ips": [], "state": 0,' \
-                  ' "id": "id1", "name": "test1"}'
+        n1_json_data = {"public_ips": [], "state": 0,
+                        "id": "id1", "name": "test1"}
         n2 = Node('id2', 'test2', NodeState.PENDING, None, None, None)
-        n2_json = '{"public_ips": [], "state": 3,' \
-                  ' "id": "id2", "name": "test2"}'
-        self.assertItemsEqual([n1_json, n2_json], self.entry.to_json([n1, n2]))
+        n2_json_data = {"public_ips": [], "state": 3,
+                        "id": "id2", "name": "test2"}
+        self.assertItemsEqual([n1_json_data, n2_json_data],
+                              json.loads(self.entry.to_json([n1, n2])))
 
     def test_from_json(self):
         nodes = '{"result": [{"node_id": "2600"}, {"node_id": "2601"}]}'

@@ -686,7 +686,8 @@ class ListEntry(BasicEntry):
         return [result]
 
     def to_json(self, obj_list):
-        return  [self.object_entry.to_json(obj) for obj in obj_list]
+        data = [json.loads(self.object_entry.to_json(obj)) for obj in obj_list]
+        return  json.dumps(data)
 
     def from_json(self, data, driver):
         json_data = self._get_json(data)
