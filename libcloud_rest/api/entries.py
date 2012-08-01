@@ -619,9 +619,6 @@ class OneOfEntry(BasicEntry):
             arguments.extend(args)
         return arguments
 
-    def get_arguments(self):
-        pass
-
     def to_json(self, obj):
         for entry in self.entries:
             try:

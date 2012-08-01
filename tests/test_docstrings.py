@@ -4,6 +4,7 @@ from inspect import getmembers, ismethod
 
 from libcloud.compute import providers as compute_providers
 from libcloud.dns import providers as dns_providers
+from libcloud.loadbalancer import providers as lb_providers
 from libcloud.test import secrets
 
 from libcloud_rest.api.providers import get_driver_by_provider_name
@@ -52,11 +53,12 @@ class TestDocstring(unittest2.TestCase):
         without_website_attr = []
         for Driver in Drivers:
             website = getattr(Driver, 'website', None)
-            if website is None:
-                without_website_attr.append(Driver)
+            name = getattr(Driver, 'name', None)
+            if website is None or name is None:
+                without_website_attr.append(Driver.__name__)
         if without_website_attr:
             raise NotImplementedError(
-                '%s drivers have not website attribute'
+                '%s drivers have not website or name attribute'
                 % (str(without_website_attr)))
 
     def test_compute_docstrings(self):
@@ -64,10 +66,15 @@ class TestDocstring(unittest2.TestCase):
         drivers = compute_providers.DRIVERS
         self._check_docstrings(providers, drivers)
 
-#    def test_dns_requires(self):
-#        providers = dns_providers.Provider
-#        drivers = dns_providers.DRIVERS
-#        self._check_construct(providers, drivers)
+    def test_dns_docstrings(self):
+        providers = dns_providers.Provider
+        drivers = dns_providers.DRIVERS
+        self._check_docstrings(providers, drivers)
+
+    def test_loadbalancer_docstrings(self):
+        providers = lb_providers.Provider
+        drivers = lb_providers.DRIVERS
+        self._check_docstrings(providers, drivers)
 
     def test_compute_provider_website(self):
         providers = compute_providers.Provider
@@ -77,4 +84,9 @@ class TestDocstring(unittest2.TestCase):
     def test_dns_provider_website(self):
         providers = dns_providers.Provider
         drivers = dns_providers.DRIVERS
+        self._check_website(providers, drivers)
+
+    def test_loadbalacner_provider_website(self):
+        providers = lb_providers.Provider
+        drivers = lb_providers.DRIVERS
         self._check_website(providers, drivers)
