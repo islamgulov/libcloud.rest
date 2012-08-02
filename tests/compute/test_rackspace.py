@@ -33,8 +33,10 @@ class RackspaceTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json),
                                 content_type='application/json')
+        node = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.CREATED)
         self.assertEqual(resp.headers.get('Location'), '72258')
+        self.assertEqual(node['name'], 'racktest')
 
     def test_create_node_ex_shared_ip_group(self):
         OpenStackMockHttp.type = 'EX_SHARED_IP_GROUP'
@@ -44,5 +46,7 @@ class RackspaceTests(unittest2.TestCase):
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(test_request_json),
                                 content_type='application/json')
+        node = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.CREATED)
         self.assertEqual(resp.headers.get('Location'), '72258')
+        self.assertEqual(node['name'], 'racktest')

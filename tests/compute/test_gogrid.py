@@ -94,6 +94,9 @@ class GoGridTests(unittest2.TestCase):
                                 content_type='application/json')
         self.assertEqual(resp.status_code, httplib.CREATED)
         self.assertEqual(resp.headers.get('Location'), '90967')
+        node = json.loads(resp.data)
+        self.assertEqual(node['name'], 'test1')
+        self.assertTrue(node['id'] is not None)
 
     def test_create_node_not_successful(self):
         url = self.url_tmpl % ('nodes')

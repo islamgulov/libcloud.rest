@@ -13,21 +13,23 @@ providers_list_rule = Rule(
     '/providers', endpoint=(ComputeHandler, 'providers'),
     methods=['GET'])
 
+provider_info_rule = Rule(
+    '/providers/<string:provider_name>',
+    endpoint=(ComputeHandler, 'provider_info'), methods=['GET'])
+
 list_objects_rule_template = RuleTemplate([Rule(
     '/<string:provider>/$objects', defaults={'method_name': 'list_$objects'},
     endpoint=(ComputeHandler, 'invoke_method'), methods=['GET'])])
 
 compute_urls = Submount('/compute/', [
     providers_list_rule,
-    Rule('/providers/<string:provider_name>',
-         endpoint=(ComputeHandler, 'provider_info'),
-         methods=['GET']),
+    provider_info_rule,
     list_objects_rule_template(objects='nodes'),
     list_objects_rule_template(objects='images'),
     list_objects_rule_template(objects='sizes'),
     list_objects_rule_template(objects='locations'),
-    Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'create_node'),
-         methods=['POST']),
+    Rule('/<string:provider>/nodes', defaults={'method_name': 'create_node'},
+         endpoint=(ComputeHandler, 'create_node'), methods=['POST']),
     Rule('/<string:provider>/nodes/<string:node_id>/reboot',
          endpoint=(ComputeHandler, 'reboot_node'),
          methods=['POST']),

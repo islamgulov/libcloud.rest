@@ -141,19 +141,12 @@ class ComputeHandler(BaseServiceHandler):
         compute_base.NodeLocation: ['id', 'name', 'country']
     }
 
-    list_sizes = lambda self: self._list_objects_request_execute('list_sizes')
-    list_locations = lambda self: self._list_objects_request_execute(
-        'list_locations')
-    list_images = lambda self: self._list_objects_request_execute(
-        'list_images')
-
     def create_node(self):
-        self.params['method_name'] = 'create_node'
-        response = self.invoke_method(httplib.CREATED)
+        response = self.invoke_method()
         node_id = json.loads(response.data)['id']
         response.autocorrect_location_header = False
         response.headers.add_header('Location', node_id)
-        response.data = ""
+        response.status_code = httplib.CREATED
         return response
 
     def reboot_node(self):
