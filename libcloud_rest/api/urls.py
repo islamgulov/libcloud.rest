@@ -1,35 +1,31 @@
 # -*- coding:utf-8 -*-
-from werkzeug.routing import Map, Rule, Submount
+from werkzeug.routing import Map, Rule, Submount, RuleTemplate
 import libcloud
 
 from libcloud_rest.api.handlers import ApplicationHandler
 from libcloud_rest.api.handlers import ComputeHandler
-from libcloud_rest.api.handlers import StorageHandler
-from libcloud_rest.api.handlers import LoabBalancerHandler
 from libcloud_rest.api.handlers import DNSHandler
 from libcloud_rest.api.versions import versions
 
-__all__ = [
-    'urls',
-]
+api_version = '/%s' % (versions[libcloud.__version__])
 
-prefix = '/%s' % (versions[libcloud.__version__])
+providers_list_rule = Rule(
+    '/providers', endpoint=(ComputeHandler, 'providers'),
+    methods=['GET'])
 
-compute_urls = Submount(prefix + '/compute/', [
-    Rule('/providers', endpoint=(ComputeHandler, 'providers'),
-         methods=['GET']),
+list_objects_rule_template = RuleTemplate([Rule(
+    '/<string:provider>/$objects', defaults={'method_name': 'list_$objects'},
+    endpoint=(ComputeHandler, 'invoke_method'), methods=['GET'])])
+
+compute_urls = Submount('/compute/', [
+    providers_list_rule,
     Rule('/providers/<string:provider_name>',
          endpoint=(ComputeHandler, 'provider_info'),
          methods=['GET']),
-    Rule('/<string:provider>/nodes', defaults={'method_name': 'list_nodes'},
-         endpoint=(ComputeHandler, 'invoke_method'), methods=['GET']),
-    Rule('/<string:provider>/sizes', endpoint=(ComputeHandler, 'list_sizes'),
-         methods=['GET']),
-    Rule('/<string:provider>/images', defaults={'method_name': 'list_images'},
-         endpoint=(ComputeHandler, 'invoke_method'), methods=['GET']),
-    Rule('/<string:provider>/locations',
-         endpoint=(ComputeHandler, 'list_locations'),
-         methods=['GET']),
+    list_objects_rule_template(objects='nodes'),
+    list_objects_rule_template(objects='images'),
+    list_objects_rule_template(objects='sizes'),
+    list_objects_rule_template(objects='locations'),
     Rule('/<string:provider>/nodes', endpoint=(ComputeHandler, 'create_node'),
          methods=['POST']),
     Rule('/<string:provider>/nodes/<string:node_id>/reboot',
@@ -43,18 +39,16 @@ compute_urls = Submount(prefix + '/compute/', [
          methods=['POST']),
 ])
 
-storage_urls = Submount(prefix + '/storage/', [
-    Rule('/providers', endpoint=(StorageHandler, 'providers'),
-         methods=['GET']),
+storage_urls = Submount('/storage/', [
+    providers_list_rule,
 ])
 
-loadbalancer_urls = Submount(prefix + '/loadbalancer/', [
-    Rule('/providers', endpoint=(LoabBalancerHandler, 'providers'),
-         methods=['GET']),
+loadbalancer_urls = Submount('/loadbalancer/', [
+    providers_list_rule,
 ])
 
-dns_urls = Submount(prefix + '/dns/', [
-    Rule('/providers', endpoint=(DNSHandler, 'providers'), methods=['GET']),
+dns_urls = Submount('/dns/', [
+    providers_list_rule,
     Rule('/<string:provider>/zones', endpoint=(DNSHandler, 'list_zones'),
          methods=['GET']),
     Rule('/<string:provider>/zones/<string:zone_id>/records',
@@ -87,8 +81,10 @@ dns_urls = Submount(prefix + '/dns/', [
 
 urls = Map([
     Rule('/', endpoint=(ApplicationHandler, 'index'), methods=['GET']),
-    compute_urls,
-    storage_urls,
-    loadbalancer_urls,
-    dns_urls,
+    Submount(api_version, [
+        compute_urls,
+        storage_urls,
+        loadbalancer_urls,
+        dns_urls,
+    ])
 ])
