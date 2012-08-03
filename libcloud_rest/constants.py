@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import re
 
 MAX_BODY_LENGTH = 512
 
