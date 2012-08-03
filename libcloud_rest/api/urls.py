@@ -1,84 +1,92 @@
 # -*- coding:utf-8 -*-
-from werkzeug.routing import Map, Rule, Submount, RuleTemplate
+from werkzeug.routing import Map, Rule, Submount, RuleTemplate, RuleFactory
 import libcloud
 
-from libcloud_rest.api.handlers import ApplicationHandler
-from libcloud_rest.api.handlers import ComputeHandler
-from libcloud_rest.api.handlers import DNSHandler
+from libcloud_rest.api.handlers import ApplicationHandler, ComputeHandler,\
+    DNSHandler, StorageHandler, LoabBalancerHandler
 from libcloud_rest.api.versions import versions
 
 api_version = '/%s' % (versions[libcloud.__version__])
 
+
+class HandlerEndpoint(RuleFactory):
+    def __init__(self, path, handler, rules):
+        self.path = path.rstrip('/')
+        self.handler = handler
+        self.rules = rules
+
+    def get_rules(self, map):
+        for rulefactory in self.rules:
+            for rule in rulefactory.get_rules(map):
+                rule = rule.empty()
+                rule.rule = self.path + rule.rule
+                rule.endpoint = (self.handler, rule.endpoint)
+                yield rule
+
 providers_list_rule = Rule(
-    '/providers', endpoint=(ComputeHandler, 'providers'),
+    '/providers', endpoint='providers',
     methods=['GET'])
 
 provider_info_rule = Rule(
     '/providers/<string:provider_name>',
-    endpoint=(ComputeHandler, 'provider_info'), methods=['GET'])
+    endpoint='provider_info', methods=['GET'])
+
+extra_method_rule = Rule('/<string:provider>/<string:method_name>',
+                         endpoint='invoke_method', methods=['POST'])
 
 list_objects_rule_template = RuleTemplate([Rule(
     '/<string:provider>/$objects', defaults={'method_name': 'list_$objects'},
-    endpoint=(ComputeHandler, 'invoke_method'), methods=['GET'])])
+    endpoint='invoke_method', methods=['GET'])])
 
-compute_urls = Submount('/compute/', [
+compute_urls = HandlerEndpoint('/compute', ComputeHandler, [
     providers_list_rule,
     provider_info_rule,
+    extra_method_rule,
     list_objects_rule_template(objects='nodes'),
     list_objects_rule_template(objects='images'),
     list_objects_rule_template(objects='sizes'),
     list_objects_rule_template(objects='locations'),
     Rule('/<string:provider>/nodes', defaults={'method_name': 'create_node'},
-         endpoint=(ComputeHandler, 'create_node'), methods=['POST']),
+         endpoint='create_node', methods=['POST']),
     Rule('/<string:provider>/nodes/<string:node_id>/reboot',
-         endpoint=(ComputeHandler, 'reboot_node'),
+         endpoint='reboot_node',
          methods=['POST']),
     Rule('/<string:provider>/nodes/<string:node_id>',
-         endpoint=(ComputeHandler, 'destroy_node'),
+         endpoint='destroy_node',
          methods=['DELETE']),
-    Rule('/<string:provider>/<string:method_name>',
-         endpoint=(ComputeHandler, 'invoke_method'),
-         methods=['POST']),
 ])
 
-storage_urls = Submount('/storage/', [
+storage_urls = HandlerEndpoint('/storage', StorageHandler, [
     providers_list_rule,
 ])
 
-loadbalancer_urls = Submount('/loadbalancer/', [
+loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoabBalancerHandler, [
     providers_list_rule,
 ])
 
-dns_urls = Submount('/dns/', [
+dns_urls = HandlerEndpoint('/dns', DNSHandler, [
     providers_list_rule,
-    Rule('/<string:provider>/zones', endpoint=(DNSHandler, 'list_zones'),
+    Rule('/<string:provider>/zones', endpoint='list_zones',
          methods=['GET']),
     Rule('/<string:provider>/zones/<string:zone_id>/records',
-         endpoint=(DNSHandler, 'list_records'),
-         methods=['GET']),
-    Rule('/<string:provider>/zones', endpoint=(DNSHandler, 'create_zone'),
+         endpoint='list_records', methods=['GET']),
+    Rule('/<string:provider>/zones', endpoint='create_zone',
          methods=['POST']),
     Rule('/<string:provider>/zones/<string:zone_id>',
-         endpoint=(DNSHandler, 'update_zone'),
-         methods=['PUT']),
+         endpoint='update_zone', methods=['PUT']),
     Rule('/<string:provider>/zones/<string:zone_id>',
-         endpoint=(DNSHandler, 'delete_zone'),
-         methods=['DELETE']),
+         endpoint='delete_zone', methods=['DELETE']),
     Rule('/<string:provider>/zones/<string:zone_id>'
          '/records/<string:record_id>',
-         endpoint=(DNSHandler, 'get_record'),
-         methods=['GET']),
+         endpoint='get_record', methods=['GET']),
     Rule('/<string:provider>/zones/<string:zone_id>/records',
-         endpoint=(DNSHandler, 'create_record'),
-         methods=['POST']),
+         endpoint='create_record', methods=['POST']),
     Rule('/<string:provider>/zones/<string:zone_id>/'
          'records/<string:record_id>',
-         endpoint=(DNSHandler, 'update_record'),
-         methods=['PUT']),
+         endpoint='update_record', methods=['PUT']),
     Rule('/<string:provider>/zones/<string:zone_id>/'
          'records/<string:record_id>',
-         endpoint=(DNSHandler, 'delete_record'),
-         methods=['DELETE']),
+         endpoint='delete_record', methods=['DELETE']),
 ])
 
 urls = Map([

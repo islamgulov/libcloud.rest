@@ -14,32 +14,25 @@ import libcloud
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from tests.file_fixtures import ComputeFixtures
+from tests.file_fixtures import LoadBalancerFixtures
 
 
-class ComputeTest(unittest2.TestCase):
+class LoadBalancerTest(unittest2.TestCase):
     def setUp(self):
         self.client = Client(LibcloudRestApp(), BaseResponse)
-        self.fixtures = ComputeFixtures()
+        self.fixtures = LoadBalancerFixtures()
 
     def test_list_providers(self):
-        url = rest_versions[libcloud.__version__] + '/compute/providers'
+        url = rest_versions[libcloud.__version__] + '/loadbalancer/providers'
         resp = self.client.get(url)
         resp_data = json.loads(resp.data)
         provider = {
             "website": "http://www.rackspace.com/",
-            "friendly_name": "RackspaceNovalon",
-            "id": "RACKSPACE_NOVA_LON"
+            "friendly_name": "Rackspace LB",
+            "id": "RACKSPACE_US"
         }
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertIn(provider, resp_data)
-
-    def test_provider_info(self):
-        url = rest_versions[libcloud.__version__] +\
-            '/compute/providers/dummy'
-        resp = self.client.get(url)
-        resp_data = json.dumps(json.loads(resp.data), indent=4)
-        self.assertEqual(resp.status_code, httplib.OK)
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())
