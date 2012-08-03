@@ -3,7 +3,7 @@ from werkzeug.routing import Map, Rule, Submount, RuleTemplate, RuleFactory
 import libcloud
 
 from libcloud_rest.api.handlers import ApplicationHandler, ComputeHandler,\
-    DNSHandler, StorageHandler, LoabBalancerHandler
+    DNSHandler, StorageHandler, LoadBalancerHandler
 from libcloud_rest.api.versions import versions
 
 api_version = '/%s' % (versions[libcloud.__version__])
@@ -60,7 +60,7 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
     providers_list_rule,
 ])
 
-loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoabBalancerHandler, [
+loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [
     providers_list_rule,
     provider_info_rule,
 ])

@@ -237,7 +237,7 @@ class StorageHandler(BaseServiceHandler):
 
 
 #noinspection PyUnresolvedReferences
-class LoabBalancerHandler(BaseServiceHandler):
+class LoadBalancerHandler(BaseServiceHandler):
     from libcloud.loadbalancer.providers import Provider as _Providers
     from libcloud.loadbalancer.providers import DRIVERS as _DRIVERS
 
