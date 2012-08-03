@@ -87,6 +87,9 @@ class BaseServiceHandler(BaseHandler):
         return driver_instance
 
     def _execute_driver_method(self, method_name, *args, **kwargs):
+        """
+        @deprecated
+        """
         driver = self._get_driver_instance()
         method = getattr(driver, method_name, None)
         if not inspect.ismethod(method) and\
@@ -104,10 +107,16 @@ class BaseServiceHandler(BaseHandler):
         return result
 
     def _list_objects_request_execute(self, method_name, *args, **kwargs):
+        """
+        @deprecated
+        """
         data = self._execute_driver_method(method_name, *args, **kwargs)
         return self.json_response(data)
 
     def _load_json(self, data, validator=None):
+        """
+        @deprecated
+        """
         try:
             json_data = json.loads(data)
         except (ValueError, TypeError), e:
@@ -128,48 +137,16 @@ class BaseServiceHandler(BaseHandler):
             self.__class__._providers_list_response = response
         return self._providers_list_response
 
-
-#noinspection PyUnresolvedReferences
-class ComputeHandler(BaseServiceHandler):
-    from libcloud.compute.providers import Provider as _Providers
-    from libcloud.compute.providers import DRIVERS as _DRIVERS
-
-    obj_attrs = {
-        compute_base.Node: ['id', 'name', 'state', 'public_ips'],
-        compute_base.NodeSize: ['id', 'name', 'ram', 'bandwidth', 'price'],
-        compute_base.NodeImage: ['id', 'name'],
-        compute_base.NodeLocation: ['id', 'name', 'country']
-    }
-
-    def create_node(self):
-        response = self.invoke_method()
-        node_id = json.loads(response.data)['id']
-        response.autocorrect_location_header = False
-        response.headers.add_header('Location', node_id)
-        response.status_code = httplib.CREATED
-        return response
-
-    def reboot_node(self):
-        """
-
-        @return:This operation does not return a response body.
-        """
-        node_id = self.params.get('node_id', None)
-        node = compute_base.Node(node_id, None, None, None, None, None)
-        self._execute_driver_method('reboot_node', node)
-        return self.json_response("")
-
-    def destroy_node(self):
-        """
-
-        @return:This operation does not return a response body.
-        """
-        node_id = self.params.get('node_id', None)
-        node = compute_base.Node(node_id, None, None, None, None, None)
-        self._execute_driver_method('destroy_node', node)
-        return self.json_response("", status_code=httplib.NO_CONTENT)
-
     def provider_info(self):
+        """
+        Introspect provider class and return response what contain:
+        name - provider.name attribute
+        website - provider.website attribute
+        x-headers - list of provider API credentials which user should provide
+            in request headers  (parsed from from __init__ method docstrings)
+        supported_methods - list of all methods information which supported by
+            provider, Method information parsed from method docstings
+        """
         provider_name = self.params.get('provider_name', '')
         provider_name = provider_name.upper()
         providers = get_providers_dict(self._DRIVERS, self._Providers)
@@ -196,6 +173,52 @@ class ComputeHandler(BaseServiceHandler):
                   'x-headers': init_arguments,
                   'supported_methods': supported_methods}
         return self.json_response(result, status_code=httplib.OK)
+
+
+#noinspection PyUnresolvedReferences
+class ComputeHandler(BaseServiceHandler):
+    from libcloud.compute.providers import Provider as _Providers
+    from libcloud.compute.providers import DRIVERS as _DRIVERS
+
+    obj_attrs = {
+        compute_base.Node: ['id', 'name', 'state', 'public_ips'],
+        compute_base.NodeSize: ['id', 'name', 'ram', 'bandwidth', 'price'],
+        compute_base.NodeImage: ['id', 'name'],
+        compute_base.NodeLocation: ['id', 'name', 'country']
+    }
+
+    def create_node(self):
+        """
+        Invoke create_node method and patch response.
+
+        @return: Response object with newly created node ID in Location.
+        """
+        response = self.invoke_method()
+        node_id = json.loads(response.data)['id']
+        response.autocorrect_location_header = False
+        response.headers.add_header('Location', node_id)
+        response.status_code = httplib.CREATED
+        return response
+
+    def reboot_node(self):
+        """
+        @deprecated
+        @return:This operation does not return a response body.
+        """
+        node_id = self.params.get('node_id', None)
+        node = compute_base.Node(node_id, None, None, None, None, None)
+        self._execute_driver_method('reboot_node', node)
+        return self.json_response("")
+
+    def destroy_node(self):
+        """
+        @deprecated
+        @return:This operation does not return a response body.
+        """
+        node_id = self.params.get('node_id', None)
+        node = compute_base.Node(node_id, None, None, None, None, None)
+        self._execute_driver_method('destroy_node', node)
+        return self.json_response("", status_code=httplib.NO_CONTENT)
 
     def invoke_method(self, status_code=httplib.OK):
         driver = self._get_driver_instance()

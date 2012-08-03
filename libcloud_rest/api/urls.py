@@ -62,6 +62,7 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
 
 loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoabBalancerHandler, [
     providers_list_rule,
+    provider_info_rule,
 ])
 
 dns_urls = HandlerEndpoint('/dns', DNSHandler, [

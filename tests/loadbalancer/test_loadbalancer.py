@@ -34,5 +34,11 @@ class LoadBalancerTest(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertIn(provider, resp_data)
 
+    def test_provider_info(self):
+        url = rest_versions[libcloud.__version__] +\
+            '/loadbalancer/providers/RACKSPACE_US'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, httplib.OK)
+
 if __name__ == '__main__':
     sys.exit(unittest2.main())
