@@ -56,3 +56,29 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertTrue(Algorithm.LEAST_CONNECTIONS in algorithms)
         self.assertTrue(Algorithm.WEIGHTED_ROUND_ROBIN in algorithms)
         self.assertTrue(Algorithm.WEIGHTED_LEAST_CONNECTIONS in algorithms)
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_ex_list_algorithms(self):
+        url = self.url_tmpl % ('ex_list_algorithm_names')
+        resp = self.client.post(url, headers=self.headers,
+                                content_type='application/json')
+        algorithms = json.loads(resp.data)
+        self.assertIn("RANDOM", algorithms)
+        self.assertIn("ROUND_ROBIN", algorithms)
+        self.assertIn("LEAST_CONNECTIONS", algorithms)
+        self.assertIn("WEIGHTED_ROUND_ROBIN", algorithms)
+        self.assertIn("WEIGHTED_LEAST_CONNECTIONS", algorithms)
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_list_balancers(self):
+        url = self.url_tmpl % ('balancers')
+        resp = self.client.get(url, headers=self.headers)
+        balancers = json.loads(resp.data)
+        self.assertEquals(len(balancers), 2)
+        self.assertEquals(balancers[0]['name'], "test0")
+        self.assertEquals(balancers[0]['id'], "8155")
+        self.assertEquals(balancers[0]['port'], 80)
+        self.assertEquals(balancers[0]['ip'], "1.1.1.25")
+        self.assertEquals(balancers[1]['name'], "test1")
+        self.assertEquals(balancers[1]['id'], "8156")
+        self.assertEqual(resp.status_code, httplib.OK)
