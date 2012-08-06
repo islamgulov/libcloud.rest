@@ -13,8 +13,7 @@ from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.loadbalancer.base import Algorithm
-from libcloud.test.loadbalancer.test_rackspace import RackspaceLBMockHttp, \
-    RackspaceLBDriver
+from libcloud.test.loadbalancer.test_rackspace import RackspaceLBMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
@@ -82,3 +81,20 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEquals(balancers[1]['name'], "test1")
         self.assertEquals(balancers[1]['id'], "8156")
         self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_list_balancers_ex_member_address(self):
+        RackspaceLBMockHttp.type = 'EX_MEMBER_ADDRESS'
+        url = rest_versions[libcloud.__version__] +\
+            '/loadbalancer/RACKSPACE_US/balancers'
+        resp = self.client.get(url, headers=self.headers,
+                               query_string={'ex_member_address': '127.0.0.1',
+                                             'test': 1})
+        balancers = json.loads(resp.data)
+
+        self.assertEquals(len(balancers), 3)
+        self.assertEquals(balancers[0]['name'], 'First Loadbalancer')
+        self.assertEquals(balancers[0]['id'], '1')
+        self.assertEquals(balancers[1]['name'], 'Second Loadbalancer')
+        self.assertEquals(balancers[1]['id'], '2')
+        self.assertEquals(balancers[2]['name'], 'Third Loadbalancer')
+        self.assertEquals(balancers[2]['id'], '8')

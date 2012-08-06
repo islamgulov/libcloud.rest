@@ -13,7 +13,6 @@ class RackspaceLBPatch(BaseDriverPatch):
     """
 
     def pre_process(self, Driver):
-        RackspaceLBMockHttp.type = None
         self._mock_type = RackspaceLBMockHttp.type
         RackspaceLBMockHttp.type = None
         Driver.connectionCls.conn_classes = (None,
@@ -23,7 +22,6 @@ class RackspaceLBPatch(BaseDriverPatch):
         driver.connection.poll_interval = 0.0
         # normally authentication happens lazily, but we force it here
         driver.connection._populate_hosts_and_request_paths()
-        driver.connection.poll_interval = 0.0
         RackspaceLBMockHttp.type = self._mock_type
 
 PATCHES = {

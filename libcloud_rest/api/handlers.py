@@ -78,7 +78,7 @@ class BaseServiceHandler(BaseHandler):
         api_data = parse_request_headers(headers)
         Driver = get_driver_by_provider_name(
             self._DRIVERS, self._Providers, provider_name)
-        if self.request.query_string == TEST_QUERY_STRING and DEBUG:
+        if TEST_QUERY_STRING in self.request.query_string and DEBUG:
             from tests.utils import get_test_driver_instance
 
             driver_instance = get_test_driver_instance(Driver, **api_data)
