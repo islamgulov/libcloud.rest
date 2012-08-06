@@ -37,5 +37,15 @@ class RackspaceUSTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         protocols = json.loads(resp.data)
         self.assertEqual(len(protocols), 10)
-        self.assertTrue('http' in protocols)
+        self.assertIn('http', protocols)
         self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_ex_list_protocols_with_default_ports(self):
+        url = self.url_tmpl % ('ex_list_protocols_with_default_ports')
+        resp = self.client.post(url, headers=self.headers,
+                                content_type='application/json')
+        protocols = json.loads(resp.data)
+        self.assertEqual(len(protocols), 10)
+        self.assertIn(['http', 80], protocols)
+        self.assertEqual(resp.status_code, httplib.OK)
+
