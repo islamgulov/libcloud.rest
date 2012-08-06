@@ -12,14 +12,12 @@ except ImportError:
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
-from libcloud.dns.types import RecordType
+from libcloud.loadbalancer.base import Algorithm
 from libcloud.test.loadbalancer.test_rackspace import RackspaceLBMockHttp, \
     RackspaceLBDriver
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.errors import NoSuchZoneError, LibcloudError, \
-    NoSuchRecordError, ValidationError, NoSuchRecordError
 from tests.file_fixtures import DNSFixtures
 
 
@@ -49,3 +47,12 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertIn(['http', 80], protocols)
         self.assertEqual(resp.status_code, httplib.OK)
 
+    def test_list_supported_algorithms(self):
+        url = self.url_tmpl % ('algorithms')
+        resp = self.client.get(url, headers=self.headers)
+        algorithms = json.loads(resp.data)
+        self.assertTrue(Algorithm.RANDOM in algorithms)
+        self.assertTrue(Algorithm.ROUND_ROBIN in algorithms)
+        self.assertTrue(Algorithm.LEAST_CONNECTIONS in algorithms)
+        self.assertTrue(Algorithm.WEIGHTED_ROUND_ROBIN in algorithms)
+        self.assertTrue(Algorithm.WEIGHTED_LEAST_CONNECTIONS in algorithms)
