@@ -5,6 +5,7 @@ from libcloud_rest.api.providers import get_driver_instance
 
 from tests.compute.drivers_patches import PATCHES as COMPUTE_PATCHES
 from tests.dns.drivers_patches import PATCHES as DNS_PATCHES
+from tests.loadbalancer.drivers_patches import PATCHES as LB_PATCHES
 
 
 def get_test_driver_instance(Driver, *args, **kwarrgs):
@@ -20,3 +21,4 @@ def get_test_driver_instance(Driver, *args, **kwarrgs):
 
 DRIVERS_PATCHES = COMPUTE_PATCHES
 DRIVERS_PATCHES.update(DNS_PATCHES)
+DRIVERS_PATCHES.update(LB_PATCHES)

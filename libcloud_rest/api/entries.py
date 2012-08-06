@@ -281,6 +281,8 @@ class SimpleEntry(BasicEntry):
 
     def to_json(self, obj):
         try:
+            if not self.name:
+                return json.dumps(obj)
             data = json.dumps({self.name: obj})
             json_data = self._get_json(data)
             self._validate(json_data)

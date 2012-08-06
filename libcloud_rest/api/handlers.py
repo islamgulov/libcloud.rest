@@ -174,6 +174,18 @@ class BaseServiceHandler(BaseHandler):
                   'supported_methods': supported_methods}
         return self.json_response(result, status_code=httplib.OK)
 
+    def invoke_method(self, status_code=httplib.OK):
+        """
+        Invoke method and return response with result represented as json.
+        """
+        driver = self._get_driver_instance()
+        method_name = self.params.get('method_name')
+        driver_method = DriverMethod(driver, method_name)
+        result = driver_method.invoke(self.request.data)
+        return Response(driver_method.invoke_result_to_json(result),
+                        mimetype='application/json',
+                        status=status_code)
+
 
 #noinspection PyUnresolvedReferences
 class ComputeHandler(BaseServiceHandler):
@@ -219,15 +231,6 @@ class ComputeHandler(BaseServiceHandler):
         node = compute_base.Node(node_id, None, None, None, None, None)
         self._execute_driver_method('destroy_node', node)
         return self.json_response("", status_code=httplib.NO_CONTENT)
-
-    def invoke_method(self, status_code=httplib.OK):
-        driver = self._get_driver_instance()
-        method_name = self.params.get('method_name')
-        driver_method = DriverMethod(driver, method_name)
-        result = driver_method.invoke(self.request.data)
-        return Response(driver_method.invoke_result_to_json(result),
-                        mimetype='application/json',
-                        status=status_code)
 
 
 #noinspection PyUnresolvedReferences
