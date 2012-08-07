@@ -470,14 +470,14 @@ class MemberEntry(LibcloudObjectEntry):
 
 
 class AlgorithmEntry(LibcloudObjectEntry):
-    _types = dict((k, v) for k, v in lb_base.Algorithm.__dict__.items()
-                  if not k.startswith('_'))
-    algorithm = ChoicesField(_types.keys(),
-                             'Name of algorithm which should be used')
+    _type_ids = list(v for k, v in lb_base.Algorithm.__dict__.items()
+                     if not k.startswith('_'))
+    algorithm = ChoicesField(_type_ids,
+                             'ID of algorithm which should be used')
 
     def _get_object(self, json_data, driver):
-        algorithm = json_data['algorithm']
-        return self._types[algorithm]
+        algorithm_id = json_data['algorithm']
+        return algorithm_id
 
 
 class RackspaceAccessRuleEntry(LibcloudObjectEntry):

@@ -115,7 +115,7 @@ class RackspaceUSTests(unittest2.TestCase):
                         {'member_id': '',
                          'member_ip': '10.1.0.11',
                          'member_port': 80}, ],
-            'algorithm': 'ROUND_ROBIN',
+            'algorithm': Algorithm.ROUND_ROBIN,
         }
         resp = self.client.post(url, headers=self.headers,
                                 data=json.dumps(request_data),
