@@ -275,6 +275,10 @@ class LoadBalancerHandler(BaseServiceHandler):
         self.request.data = json.dumps(json_data)
         return self.invoke_method(status_code=httplib.OK)
 
+    def get_balancer(self):
+        data = json.dumps({'balancer_id': self.params['balancer_id']})
+        return self.invoke_method(data=data)
+
 
 #noinspection PyUnresolvedReferences
 class DNSHandler(BaseServiceHandler):

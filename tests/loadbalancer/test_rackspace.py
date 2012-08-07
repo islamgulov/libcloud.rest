@@ -160,3 +160,11 @@ class RackspaceUSTests(unittest2.TestCase):
         balancer = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(balancer['name'], 'new_lb_name')
+
+    def test_get_balancer(self):
+        url = self.url_tmpl % ('/'.join(['balancers', '8290']))
+        resp = self.client.get(url, headers=self.headers)
+        balancer = json.loads(resp.data)
+        self.assertEquals(balancer['name'], 'test2')
+        self.assertEquals(balancer['id'], '8290')
+        self.assertEqual(resp.status_code, httplib.OK)
