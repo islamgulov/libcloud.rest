@@ -13,6 +13,7 @@ from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.loadbalancer.base import Algorithm
+from libcloud.loadbalancer.types import MemberCondition
 from libcloud.test.loadbalancer.test_rackspace import RackspaceLBMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
@@ -98,3 +99,28 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEquals(balancers[1]['id'], '2')
         self.assertEquals(balancers[2]['name'], 'Third Loadbalancer')
         self.assertEquals(balancers[2]['id'], '8')
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_create_node(self):
+        url = self.url_tmpl % ('balancers')
+        RackspaceLBMockHttp.type = None
+        request_data = {
+            'name': 'test2',
+            'port': '80',
+            'members': [{'member_id': '',
+                         'member_ip': '10.1.0.10',
+                         'member_port': 80,
+                         'member_extra':{'condition': MemberCondition.DISABLED,
+                                         'weight': 10}},
+                        {'member_id': '',
+                         'member_ip': '10.1.0.11',
+                         'member_port': 80}, ],
+            'algorithm': 'ROUND_ROBIN',
+        }
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(request_data),
+                                content_type='application/json')
+        self.assertEqual(resp.status_code, httplib.CREATED)
+        self.assertEqual(resp.headers.get('Location'), '8290')
+        balancer = json.loads(resp.data)
+        self.assertEqual(balancer['name'], 'test2')

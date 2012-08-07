@@ -244,6 +244,19 @@ class LoadBalancerHandler(BaseServiceHandler):
     from libcloud.loadbalancer.providers import Provider as _Providers
     from libcloud.loadbalancer.providers import DRIVERS as _DRIVERS
 
+    def create_balancer(self):
+        """
+        Invoke create_balancer method and patch response.
+
+        @return: Response object with newly created balancer ID in Location.
+        """
+        response = self.invoke_method()
+        balancer_id = json.loads(response.data)['id']
+        response.autocorrect_location_header = False
+        response.headers.add_header('Location', balancer_id)
+        response.status_code = httplib.CREATED
+        return response
+
 
 #noinspection PyUnresolvedReferences
 class DNSHandler(BaseServiceHandler):

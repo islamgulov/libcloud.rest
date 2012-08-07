@@ -69,7 +69,10 @@ loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [
     Rule('/<string:provider>/algorithms',
          endpoint='invoke_method',
          defaults={'method_name': 'list_supported_algorithms'},
-         methods=['GET'])
+         methods=['GET']),
+    Rule('/<string:provider>/balancers',
+         defaults={'method_name': 'create_balancer'},
+         endpoint='create_balancer', methods=['POST']),
 ])
 
 dns_urls = HandlerEndpoint('/dns', DNSHandler, [

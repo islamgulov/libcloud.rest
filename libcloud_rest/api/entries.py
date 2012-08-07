@@ -165,8 +165,6 @@ class BasicEntry(object):
             json_data = json.loads(data)
         except (ValueError, TypeError), e:
             raise MalformedJSONError(detail=str(e))
-        if not isinstance(json_data, dict):
-            raise MalformedJSONError('Bad json format')
         return json_data
 
     def _validate(self, json_data):
@@ -452,10 +450,19 @@ class LoadBalancerEntry(LibcloudObjectEntry):
 
 
 class MemberEntry(LibcloudObjectEntry):
-    membed_id = StringField('ID of the member which should be used')
-    membed_ip = StringField('IP of the member which should be used')
-    membed_port = StringField('Port of the member which should be used')
+    member_id = StringField('ID of the member which should be used')
+    member_ip = StringField('IP of the member which should be used')
+    member_port = IntegerField('Port of the member which should be used')
+    member_extra = DictField('Extra member arguments which should be used',
+                             required=False)
     render_attrs = ('id', 'ip', 'port',)
+
+    def _get_object(self, json_data, driver):
+        id = json_data['member_id']
+        ip = json_data['member_ip']
+        port = json_data['member_port']
+        extra = json_data.get('member_extra', {})
+        return lb_base.Member(id, ip, port, extra)
 
 
 class AlgorithmEntry(LibcloudObjectEntry):
