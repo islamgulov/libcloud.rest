@@ -132,3 +132,31 @@ class RackspaceUSTests(unittest2.TestCase):
         url = self.url_tmpl % ('/'.join(['balancers', balancer['id']]))
         resp = self.client.delete(url, headers=self.headers)
         self.assertEqual(resp.status_code, httplib.ACCEPTED)
+
+    def test_update_balancer_protocols(self):
+        url = self.url_tmpl % ('/'.join(['balancers', '3130']))
+        request_data = {'protocol': 'HTTPS'}
+        resp = self.client.put(url, headers=self.headers,
+                               data=json.dumps(request_data),
+                               content_type='application/json')
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_update_balancer_port(self):
+        url = self.url_tmpl % ('/'.join(['balancers', '3131']))
+        request_data = {'port': 1337}
+        resp = self.client.put(url, headers=self.headers,
+                               data=json.dumps(request_data),
+                               content_type='application/json')
+        balancer = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(balancer['port'], 1337)
+
+    def test_update_balancer_name(self):
+        url = self.url_tmpl % ('/'.join(['balancers', '3132']))
+        request_data = {'name': 'new_lb_name'}
+        resp = self.client.put(url, headers=self.headers,
+                               data=json.dumps(request_data),
+                               content_type='application/json')
+        balancer = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(balancer['name'], 'new_lb_name')
