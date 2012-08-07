@@ -73,6 +73,9 @@ loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [
     Rule('/<string:provider>/balancers',
          defaults={'method_name': 'create_balancer'},
          endpoint='create_balancer', methods=['POST']),
+    Rule('/<string:provider>/balancers/<string:loadbalancer_id>',
+         endpoint='destroy_balancer', methods=['DELETE'],
+         defaults={'method_name': 'destroy_balancer'}),
 ])
 
 dns_urls = HandlerEndpoint('/dns', DNSHandler, [

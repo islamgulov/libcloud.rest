@@ -448,6 +448,10 @@ class LoadBalancerEntry(LibcloudObjectEntry):
         'ID of the load balancer which should be used')
     render_attrs = ('id', 'name', 'state', 'ip', 'port',)
 
+    def _get_object(self, json_data, driver):
+        id = json_data['loadbalancer_id']
+        return lb_base.LoadBalancer(id, None, None, None, None, None)
+
 
 class MemberEntry(LibcloudObjectEntry):
     member_id = StringField('ID of the member which should be used')

@@ -174,14 +174,16 @@ class BaseServiceHandler(BaseHandler):
                   'supported_methods': supported_methods}
         return self.json_response(result, status_code=httplib.OK)
 
-    def invoke_method(self, status_code=httplib.OK):
+    def invoke_method(self, status_code=httplib.OK, data=None):
         """
         Invoke method and return response with result represented as json.
         """
+        if data is None:
+            data = self.request.data
         driver = self._get_driver_instance()
         method_name = self.params.get('method_name')
         driver_method = DriverMethod(driver, method_name)
-        result = driver_method.invoke(self.request.data)
+        result = driver_method.invoke(data)
         return Response(driver_method.invoke_result_to_json(result),
                         mimetype='application/json',
                         status=status_code)
@@ -214,7 +216,6 @@ class ComputeHandler(BaseServiceHandler):
 
     def reboot_node(self):
         """
-        @deprecated
         @return:This operation does not return a response body.
         """
         node_id = self.params.get('node_id', None)
@@ -224,7 +225,6 @@ class ComputeHandler(BaseServiceHandler):
 
     def destroy_node(self):
         """
-        @deprecated
         @return:This operation does not return a response body.
         """
         node_id = self.params.get('node_id', None)
@@ -256,6 +256,14 @@ class LoadBalancerHandler(BaseServiceHandler):
         response.headers.add_header('Location', balancer_id)
         response.status_code = httplib.CREATED
         return response
+
+    def destroy_balancer(self):
+        """
+        Get balancer id from params and invoke destroy_balancer driver method.
+        @return: Empty response body
+        """
+        self.invoke_method(data=json.dumps(self.params))
+        return self.json_response("", status_code=httplib.ACCEPTED)
 
 
 #noinspection PyUnresolvedReferences

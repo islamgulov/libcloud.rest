@@ -124,3 +124,11 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.headers.get('Location'), '8290')
         balancer = json.loads(resp.data)
         self.assertEqual(balancer['name'], 'test2')
+
+    def test_destroy_balancer(self):
+        url = self.url_tmpl % ('balancers')
+        resp = self.client.get(url, headers=self.headers)
+        balancer = json.loads(resp.data)[0]
+        url = self.url_tmpl % ('/'.join(['balancers', balancer['id']]))
+        resp = self.client.delete(url, headers=self.headers)
+        self.assertEqual(resp.status_code, httplib.ACCEPTED)
