@@ -268,7 +268,8 @@ class LibcloudObjectEntry(BasicEntry):
     @classmethod
     def to_json(cls, obj):
         if not isinstance(obj, cls.object_class):
-            raise ValueError('Bad object type')
+            raise ValueError('Bad object type, %s is not instance of %s' %
+                             (type(obj), type(cls.object_class)))
         return cls.entry_json_render(obj)
 
     def _get_object(self, json_data, driver):
@@ -649,7 +650,7 @@ class RackspaceAccessRuleEntry(LibcloudObjectEntry):
     def _get_object(self, json_data, driver):
         rule_id = json_data.get('rule_id', None)
         rule_type = json_data['rule_type']
-        rule_address = json_data['rule_adress']
+        rule_address = json_data['rule_address']
         return lb_rackspace.RackspaceAccessRule(rule_id, rule_type,
                                                 rule_address)
 
