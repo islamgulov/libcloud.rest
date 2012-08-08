@@ -268,3 +268,9 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEquals(member['ip'], '10.1.0.12')
         self.assertEquals(member['port'], 80)
+
+    def test_balancer_detach_member(self):
+        url = self.url_tmpl % (
+            '/'.join(['balancers', '8290', 'members', '30944']))
+        resp = self.client.delete(url, headers=self.headers)
+        self.assertEqual(resp.status_code, httplib.ACCEPTED)

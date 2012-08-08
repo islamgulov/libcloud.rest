@@ -488,6 +488,7 @@ class GandiDiskEntry(LibcloudObjectEntry):
 
 class GandiNetworkInterfaceEntry(LibcloudObjectEntry):
     object_class = gandi_common.NetworkInterface
+    type_name = 'L{GandiNetworkInterface}'
     render_attrs = ('id', 'mac', 'state', 'node')
     gandi_network_iface_id = StringField('ID of Gandi  network interface '
                                          'which should be used')
@@ -608,15 +609,17 @@ class MemberEntry(LibcloudObjectEntry):
     object_class = lb_base.Member
     render_attrs = ('id', 'ip', 'port', 'extra')
     member_id = StringField('ID of the member which should be used')
-    member_ip = StringField('IP of the member which should be used')
-    member_port = IntegerField('Port of the member which should be used')
+    member_ip = StringField('IP of the member which should be used',
+                            required=False)
+    member_port = IntegerField('Port of the member which should be used',
+                               required=False)
     member_extra = DictField('Extra member arguments which should be used',
                              required=False)
 
     def _get_object(self, json_data, driver):
         id = json_data['member_id']
-        ip = json_data['member_ip']
-        port = json_data['member_port']
+        ip = json_data.get('member_ip', None)
+        port = json_data.get('member_port', None)
         extra = json_data.get('member_extra', {})
         return lb_base.Member(id, ip, port, extra)
 

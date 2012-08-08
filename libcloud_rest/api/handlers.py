@@ -280,6 +280,15 @@ class LoadBalancerHandler(BaseServiceHandler):
         data = json.dumps({'balancer_id': self.params['balancer_id']})
         return self.invoke_method(data=data)
 
+    def detach_member(self):
+        """
+        @return:This operation does not return a response body.
+        """
+        json_data = {'loadbalancer_id': self.params['loadbalancer_id'],
+                     'member_id': self.params['member_id']}
+        self.request.data = json.dumps(json_data)
+        return self.invoke_method(status_code=httplib.ACCEPTED)
+
 
 #noinspection PyUnresolvedReferences
 class DNSHandler(BaseServiceHandler):
