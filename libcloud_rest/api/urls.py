@@ -83,7 +83,9 @@ loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [
          endpoint='get_balancer',
          defaults={'method_name': 'get_balancer'},
          methods=['GET']),
-
+         Rule('/<string:provider>/balancers/<string:loadbalancer_id>/members',
+              defaults={'method_name': 'balancer_list_members'},
+              endpoint='list_members', methods=['GET']),
 ])
 
 dns_urls = HandlerEndpoint('/dns', DNSHandler, [

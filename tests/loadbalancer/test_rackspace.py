@@ -240,3 +240,16 @@ class RackspaceUSTests(unittest2.TestCase):
         rule = json.loads(resp.data)
         self.assertEquals(2883, rule['id'])
         self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_balancer_list_members(self):
+        expected = set(['10.1.0.10:80', '10.1.0.11:80', '10.1.0.9:8080'])
+        url = self.url_tmpl % ('/'.join(['balancers', '8290','members']))
+        resp = self.client.get(url, headers=self.headers)
+        members = json.loads(resp.data)
+
+        self.assertEquals(len(members), 3)
+        self.assertEquals(expected,
+                          set(["%s:%s" % (member['ip'], member['port']) for
+                                         member in members]))
+        self.assertEqual(resp.status_code, httplib.OK)
+

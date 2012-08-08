@@ -273,11 +273,18 @@ class LoadBalancerHandler(BaseServiceHandler):
         json_data = json.loads(self.request.data)
         json_data['loadbalancer_id'] = self.params['loadbalancer_id']
         self.request.data = json.dumps(json_data)
-        return self.invoke_method(status_code=httplib.OK)
+        return self.invoke_method()
 
     def get_balancer(self):
         data = json.dumps({'balancer_id': self.params['balancer_id']})
         return self.invoke_method(data=data)
+
+    def list_members(self):
+        json_data = json.loads(self.request.data)
+        json_data['loadbalancer_id'] = self.params['loadbalancer_id']
+        self.request.data = json.dumps(json_data)
+        return self.invoke_method()
+
 
 
 #noinspection PyUnresolvedReferences
