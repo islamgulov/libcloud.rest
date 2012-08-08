@@ -78,6 +78,8 @@ class FakeObject(object):
 
 
 class FakeEntry(LibcloudObjectEntry):
+    object_class = FakeObject
+    type_name = 'L{Fake}'
     render_attrs = ['id', 'name', ]
     fake_id = StringField('Required argument')
     fake_name = StringField('Optional argument', required=False)
@@ -274,9 +276,10 @@ class OneOfEntryTests(unittest2.TestCase):
 
     def test_to_json(self):
         node_ssh_key = NodeAuthSSHKey('pk')
-        self.assertEqual('{}', self.entry.to_json(node_ssh_key))
+        self.assertEqual('{"pubkey": "pk"}', self.entry.to_json(node_ssh_key))
         node_password = NodeAuthPassword('pwd')
-        self.assertEqual('{}', self.entry.to_json(node_password))
+        self.assertEqual('{"password": "pwd"}',
+                         self.entry.to_json(node_password))
 
 
 class DefaultOneOfEntryTests(unittest2.TestCase):
@@ -351,7 +354,7 @@ class RecordTypeTest(unittest2.TestCase):
         self.entry = Entry('type', 'L{RecordType}', 'pass', True)
 
     def test_from_json(self):
-        valid_json = '{"record_type": "AAAA"}'
+        valid_json = '{"record_type": 1}'
         self.assertEqual(self.entry.from_json(valid_json, None),
                          RecordType.AAAA)
         invalid_json = '{"record_type": "ABC"}'

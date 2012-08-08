@@ -2,16 +2,22 @@
 from functools import partial
 import re
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 from libcloud.compute import base as compute_base
+from libcloud.compute.drivers import openstack as compute_openstack
+from libcloud.compute.drivers import cloudstack as compute_cloudstack
+from libcloud.compute.drivers import ec2
+from libcloud.common import gandi as gandi_common
+from libcloud.compute.drivers import opennebula as opennebula_compute
+from libcloud.common import gogrid as gogrid_common
+from libcloud.compute.drivers import gogrid as gogrid_compute
+from libcloud.compute.drivers import opsource as opsourse_compute
+from libcloud.compute.drivers import vcloud as vcloud_compute
 from libcloud.dns import types as dns_types
+from libcloud.dns import base as dns_base
 from libcloud.loadbalancer import base as lb_base
 from libcloud.loadbalancer.drivers import rackspace as lb_rackspace
 
+from libcloud_rest.utils import json, DateTimeJsonEncoder
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
     NoSuchObjectError, MissingArguments, TooManyArgumentsError
@@ -110,7 +116,17 @@ class NoneField(Field):
 class LibcloudObjectEntryBase(type):
     """
     Metaclass for all entries.
+    Store all created entries type names in entries attribute.
     """
+
+    entries_types = {}
+    class_entries = {}
+
+    @classmethod
+    def get_entry(mcs, value):
+        if isinstance(value, basestring):
+            return mcs.entries_types.get(value, None)
+        return mcs.class_entries.get(value, None)
 
     def __new__(mcs, name, bases, attrs):
         super_new = super(LibcloudObjectEntryBase, mcs).__new__
@@ -126,7 +142,13 @@ class LibcloudObjectEntryBase(type):
         # Add all attributes to the class.
         for obj_name, obj in attrs.items():
             new_class.add_to_class(obj_name, obj)
-
+        if new_class.type_name:
+            type_name = new_class.type_name
+        else:
+            type_name = 'L{%s}' % (new_class.object_class.__name__)
+        LibcloudObjectEntryBase.entries_types[type_name] = new_class
+        LibcloudObjectEntryBase.class_entries[new_class.object_class] = \
+            new_class
         return new_class
 
     def add_to_class(cls, name, value):
@@ -135,6 +157,15 @@ class LibcloudObjectEntryBase(type):
             cls._fields.append(value)
         else:
             setattr(cls, name, value)
+
+
+class EntryJsonEncoder(DateTimeJsonEncoder):
+    def default(self, obj):
+        entry = LibcloudObjectEntryBase.get_entry(obj.__class__)
+        if entry:
+            return dict(((name, getattr(obj, name))
+                        for name in entry.render_attrs))
+        return super(EntryJsonEncoder, self).default(obj)
 
 
 class BasicEntry(object):
@@ -215,18 +246,30 @@ class BasicEntry(object):
 
 
 class LibcloudObjectEntry(BasicEntry):
+    """
+    Libcloud object entries are classes which used to render to json and
+    created from json libcloud objects.
+    To provide this LibcloudObjectEntry must:
+        - have `render_attrs` attribute - list of object attributes
+        which should be added to json representation
+        - `object_class` attribute - class that described by entry
+        - overload `_get_object` method - this used to create object from json
+    Optionally `type_name` attribute can be provided (by default created from
+        object_class name), this attribute used to describe which for which
+        `@type` annotation provided entry
+    """
     __metaclass__ = LibcloudObjectEntryBase
+    object_class = None
     render_attrs = None
+    type_name = ''
+
+    entry_json_render = partial(json.dumps, cls=EntryJsonEncoder)
 
     @classmethod
     def to_json(cls, obj):
-        try:
-            data = dict(((name, getattr(obj, name))
-                         for name in cls.render_attrs))
-        except AttributeError, e:
-            #FIXME: create new error class for this
-            raise ValueError('Can not represent object as json %s' % (str(e)))
-        return json.dumps(data)
+        if not isinstance(obj, cls.object_class):
+            raise ValueError('Bad object type')
+        return cls.entry_json_render(obj)
 
     def _get_object(self, json_data, driver):
         raise NotImplementedError('Method not implented in %s' %
@@ -301,17 +344,19 @@ class SimpleEntry(BasicEntry):
 
 
 class NodeEntry(LibcloudObjectEntry):
+    object_class = compute_base.Node
     render_attrs = ['id', 'name', 'state', 'public_ips']
     node_id = StringField('ID of the node which should be used')
 
     def _get_object(self, json_data, driver=None):
         node_id = json_data['node_id']
-        node = compute_base.Node(node_id, None, None, None, None, driver)
+        node = self.object_class(node_id, None, None, None, None, driver)
         return node
 
 
 class NodeAuthSSHKeyEntry(LibcloudObjectEntry):
-    render_attrs = []
+    object_class = compute_base.NodeAuthSSHKey
+    render_attrs = ['pubkey']
     node_pubkey = StringField('An SSH key to be installed for'
                               ' authentication to a node.')
 
@@ -320,7 +365,8 @@ class NodeAuthSSHKeyEntry(LibcloudObjectEntry):
 
 
 class NodeAuthPasswordEntry(LibcloudObjectEntry):
-    render_attrs = []
+    object_class = compute_base.NodeAuthPassword
+    render_attrs = ['password']
     node_password = StringField('A password to be used for'
                                 ' authentication to a node.')
 
@@ -329,20 +375,23 @@ class NodeAuthPasswordEntry(LibcloudObjectEntry):
 
 
 class StorageVolumeFakeEntry(LibcloudObjectEntry):
+    object_class = compute_base.StorageVolume
     volume_id = StringField('ID of the storage volume which should be used')
 
 
 class NodeImageEntry(LibcloudObjectEntry):
+    object_class = compute_base.NodeImage
     render_attrs = ['id', 'name']
     image_id = StringField('ID of the node image which should be used')
 
     def _get_object(self, json_data, driver=None):
         image_id = json_data['image_id']
-        image = compute_base.NodeImage(image_id, None, None)
+        image = compute_base.NodeImage(image_id, None, driver)
         return image
 
 
 class NodeSizeEntry(LibcloudObjectEntry):
+    object_class = compute_base.NodeSize
     render_attrs = ('id', 'name', 'ram', 'bandwidth', 'price',)
     size_id = StringField('ID of the node size which should be used')
 
@@ -354,6 +403,7 @@ class NodeSizeEntry(LibcloudObjectEntry):
 
 
 class NodeLocationEntry(LibcloudObjectEntry):
+    object_class = compute_base.NodeLocation
     render_attrs = ('id', 'name', 'country',)
     location_id = StringField('ID of the node location which should be used')
 
@@ -364,57 +414,155 @@ class NodeLocationEntry(LibcloudObjectEntry):
 
 
 class OpenStack_1_0_SharedIpGroupEntry(LibcloudObjectEntry):
+    object_class = compute_openstack.OpenStack_1_0_SharedIpGroup
+    render_attrs = ['id', 'name', 'server']
     shared_ip_group_id = StringField('ID of the shared ip '
                                      'group which should be used')
 
 
 class CloudStackDiskOfferingEntry(LibcloudObjectEntry):
+    object_class = compute_cloudstack.CloudStackDiskOffering
     render_attrs = ('id', 'name', 'size', 'customizable',)
+    disk_offering_id = StringField('ID of a disk offering within CloudStack.')
+
+    def _get_object(self, json_data, driver=None):
+        disk_offering_id = json_data['disk_offering_id']
+        return compute_cloudstack.CloudStackDiskOffering(
+            disk_offering_id, None, None, None)
 
 
 class CloudStackAddressEntry(LibcloudObjectEntry):
-    render_attrs = ('id', 'address',)
+    object_class = compute_cloudstack.CloudStackAddress
+    render_attrs = ('node', 'id', 'address',)
+    cloudstack_address_ip = StringField('IP of address which should be used')
+    cloudstack_address_id = StringField('ID of address which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        cloudstack_address_ip = json_data['cloudstack_address_ip']
+        cloudstack_address_id = json_data['cloudstack_address_id']
+        return compute_cloudstack.CloudStackAddress(
+            None, cloudstack_address_id, cloudstack_address_ip)
 
 
 class CloudStackForwardingRuleEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+    object_class = compute_cloudstack.CloudStackForwardingRule
+    render_attrs = ('node', 'id', 'address', 'protocol',
+                    'start_port', 'end_port')
+
+    cloudstack_forwarding_rule_id = StringField('ID of forwarding rule '
+                                                'which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        rule_id = json_data['cloudstack_forwarding_rule_id']
+        return compute_cloudstack.CloudStackForwardingRule(
+            None, rule_id, None, None, None)
+
+
+class CloudStackNodeEntry(NodeEntry):
+    object_class = compute_cloudstack.CloudStackNode
 
 
 class ExEC2AvailabilityZoneEntry(LibcloudObjectEntry):
+    object_class = ec2.ExEC2AvailabilityZone
     render_attrs = ('name', 'zone_state', 'region_name',)
+    availability_zone_name = StringField('Name of availability zone '
+                                         'which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        zone_name = json_data['availability_zone_name']
+        return ec2.ExEC2AvailabilityZone(
+            zone_name, None, None)
 
 
 class GandiDiskEntry(LibcloudObjectEntry):
+    object_class = gandi_common.Disk
+    type_name = 'L{GandiDisk}'
     render_attrs = ('id', 'state', 'name', 'size', 'extra',)
+    gandi_disk_id = StringField('ID of Gandi disk which should be used')
+
+    def _get_object(self, json_data, driver):
+        disk_id = json_data['gandi_disk_id']
+        return gandi_common.Disk(disk_id, None, None, driver, None)
 
 
 class GandiNetworkInterfaceEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+    object_class = gandi_common.NetworkInterface
+    render_attrs = ('id', 'mac', 'state', 'node')
+    gandi_network_iface_id = StringField('ID of Gandi  network interface '
+                                         'which should be used')
+
+    def _get_object(self, json_data, driver):
+        iface_id = json_data['gandi_network_iface_id']
+        return gandi_common.NetworkInterface(iface_id, None, None, driver)
 
 
 class GoGridIpAddressEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+    object_class = gogrid_common.GoGridIpAddress
+    render_attrs = ('id', 'ip', 'public', 'state', 'subnet')
+    gogrid_address_id = StringField('ID of address which should be used')
+
+    def _get_object(self, json_data, driver):
+        address_id = json_data['gogrid_address_id']
+        return gogrid_common.GoGridIpAddress(address_id,
+                                             None, None, None, None)
+
+
+class GoGridNodeEntry(NodeEntry):
+    object_class = gogrid_compute.GoGridNode
 
 
 class OpenNebulaNetworkEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+    object_class = opennebula_compute.OpenNebulaNetwork
+    render_attrs = ('id', 'name', 'address', 'size', 'extra')
+    opennebula_network_id = StringField('ID of network which should be used')
+    opennebula_network_address = StringField(
+        'Address of network which should be used', required=False)
+
+    def _get_object(self, json_data, driver):
+        network_id = json_data['opennebula_network_id']
+        network_address = json_data.get('opennebula_network_address', None)
+        return opennebula_compute.OpenNebulaNetwork(
+            network_id, None, network_address, None, driver)
 
 
-class OpenNebulaNodeSizeEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+class OpenNebulaNodeSizeEntry(NodeSizeEntry):
+    object_class = opennebula_compute.OpenNebulaNodeSize
+    render_attrs = ('id', 'name', 'ram', 'bandwidth', 'price',)
+    size_id = StringField('ID of the node size which should be used')
+
+    def _get_object(self, json_data, driver=None):
+        size_id = json_data['size_id']
+        return opennebula_compute.OpenNebulaNodeSize(
+            size_id, None, None, None, None, None, driver)
 
 
 class OpsourceNetworkEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+    object_class = opsourse_compute.OpsourceNetwork
+    render_attrs = ('id', 'name', 'description', 'location', 'privateNet',
+                    'multicast', 'status')
+    opsource_network_id = StringField('ID of network which should be used')
+
+    def _get_object(self, json_data, driver):
+        network_id = json_data['opsource_network_id']
+        return opsourse_compute.OpsourceNetwork(
+            network_id, None, None, None, None, None, None)
 
 
 class VCloudVdcEntry(LibcloudObjectEntry):
-    render_attrs = ('id',)
+    object_class = vcloud_compute.Vdc
+    type_name = 'L{VCloudVDC}'
+    render_attrs = ('id', 'name')
+    vcloud_vdc_id = StringField('ID of vDC which should be used')
+
+    def _get_object(self, json_data, driver):
+        vdc_id = json_data['vcloud_vdc_id']
+        return vcloud_compute.Vdc(vdc_id, None, driver)
 
 
 class ZoneEntry(LibcloudObjectEntry):
+    object_class = dns_base.Zone
+    render_attrs = ('id', 'domain', 'type', 'ttl', 'extra')
     zone_id = StringField('ID of the zone which should be used')
-    render_attrs = ('id', 'domain', 'type', 'ttl',)
 
     def _get_object(self, json_data, driver):
         zone_id = json_data['zone_id']
@@ -422,20 +570,21 @@ class ZoneEntry(LibcloudObjectEntry):
 
 
 class RecordTypeEntry(LibcloudObjectEntry):
-    _types = dict((k, v) for k, v in dns_types.RecordType.__dict__.items()
-                  if not k.startswith('_'))
-    record_type = ChoicesField(_types.keys(),
+    object_class = dns_types.RecordType
+    _type_ids = list(v for k, v in dns_types.RecordType.__dict__.items()
+                     if not k.startswith('_'))
+    record_type = ChoicesField(_type_ids,
                                'Type of record which should be used')
 
     def _get_object(self, json_data, driver):
-        record = json_data['record_type']
-        return self._types[record]
+        return json_data['record_type']
 
 
 class RecordEntry(LibcloudObjectEntry):
+    object_class = dns_base.Record
+    render_attrs = ('id', 'name', 'type', 'data', 'zone', 'extra')
     zone_id = StringField('ID of the zone which should be used')
     record_id = StringField('ID of the record which should be used')
-    render_attrs = ('id', 'name', 'type', 'data',)
 
     def _get_object(self, json_data, driver):
         zone_id = json_data['zone_id']
@@ -444,9 +593,10 @@ class RecordEntry(LibcloudObjectEntry):
 
 
 class LoadBalancerEntry(LibcloudObjectEntry):
+    object_class = lb_base.LoadBalancer
+    render_attrs = ('id', 'name', 'state', 'ip', 'port', 'extra')
     loadbalancer_id = StringField(
         'ID of the load balancer which should be used')
-    render_attrs = ('id', 'name', 'state', 'ip', 'port')
 
     def _get_object(self, json_data, driver):
         id = json_data['loadbalancer_id']
@@ -454,12 +604,13 @@ class LoadBalancerEntry(LibcloudObjectEntry):
 
 
 class MemberEntry(LibcloudObjectEntry):
+    object_class = lb_base.Member
+    render_attrs = ('id', 'ip', 'port', 'extra')
     member_id = StringField('ID of the member which should be used')
     member_ip = StringField('IP of the member which should be used')
     member_port = IntegerField('Port of the member which should be used')
     member_extra = DictField('Extra member arguments which should be used',
                              required=False)
-    render_attrs = ('id', 'ip', 'port',)
 
     def _get_object(self, json_data, driver):
         id = json_data['member_id']
@@ -470,6 +621,7 @@ class MemberEntry(LibcloudObjectEntry):
 
 
 class AlgorithmEntry(LibcloudObjectEntry):
+    object_class = lb_base.Algorithm
     _type_ids = list(v for k, v in lb_base.Algorithm.__dict__.items()
                      if not k.startswith('_'))
     algorithm = ChoicesField(_type_ids,
@@ -481,35 +633,43 @@ class AlgorithmEntry(LibcloudObjectEntry):
 
 
 class RackspaceAccessRuleEntry(LibcloudObjectEntry):
-    _rule_types = dict((k, v) for k, v in
-                       lb_rackspace.RackspaceAccessRuleType.__dict__.items()
-                       if not k.startswith('_'))
+    object_class = lb_rackspace.RackspaceAccessRule
+    render_attrs = ('id', 'rule_type', 'address')
+    _rule_types_ids = list(
+        v for k, v in
+        lb_rackspace.RackspaceAccessRuleType.__dict__.items()
+        if not k.startswith('_'))
     rule_id = StringField(
         'ID of the Rackspace access rule which should be used', required=False)
-    rule_type = ChoicesField(_rule_types, 'RackspaceAccessRuleType')
+    rule_type = ChoicesField(_rule_types_ids, 'RackspaceAccessRuleType')
     rule_address = StringField(
         'IP address or cidr (can be IPv4 or IPv6) of '
         'the Rackspace access rule which should be used')
 
     def _get_object(self, json_data, driver):
         rule_id = json_data.get('rule_id', None)
-        rule_type = self._rule_types[json_data['rule_type']]
+        rule_type = json_data['rule_type']
         rule_address = json_data['rule_adress']
         return lb_rackspace.RackspaceAccessRule(rule_id, rule_type,
                                                 rule_address)
 
 
 class RackspaceAccessRuleTypeEntry(LibcloudObjectEntry):
-    _rule_types = dict((k, v) for k, v in
-                       lb_rackspace.RackspaceAccessRuleType.__dict__.items()
-                       if not k.startswith('_'))
-    rule_type = ChoicesField(_rule_types, 'RackspaceAccessRuleType')
+    object_class = lb_rackspace.RackspaceAccessRuleType
+    _rule_types_ids = list(
+        v for k, v in
+        lb_rackspace.RackspaceAccessRuleType.__dict__.items()
+        if not k.startswith('_'))
+    rule_type = ChoicesField(_rule_types_ids, 'RackspaceAccessRuleType')
 
     def _get_object(self, json_data, driver):
-        return self._rule_types[json_data['rule_type']]
+        return json_data['rule_type']
 
 
 class RackspaceConnectionThrottle(LibcloudObjectEntry):
+    object_class = lb_rackspace.RackspaceConnectionThrottle
+    render_attrs = ('min_connections', 'max_connections',
+                    'max_connection_rate', 'rate_interval_seconds')
     min_connections = IntegerField(
         'Connection throttle minimum number of connections per IP '
         'address before applying throttling.')
@@ -537,6 +697,8 @@ class RackspaceConnectionThrottle(LibcloudObjectEntry):
 
 
 class RackspaceHealthMonitorEntry(LibcloudObjectEntry):
+    object_class = lb_rackspace.RackspaceHealthMonitor
+    render_attrs = ('type', 'delay', 'timeout', 'attempts_before_deactivation')
     health_monitor_type = StringField(
         'type of load balancer.  currently CONNECT (connection monitoring), '
         'HTTP, HTTPS (connection and HTTP monitoring) are supported)')
@@ -554,7 +716,7 @@ class RackspaceHealthMonitorEntry(LibcloudObjectEntry):
         type = json_data['health_monitor_type']
         delay = json_data['health_monitor_delay']
         timeout = json_data['health_monitor_timeout']
-        attempts_before_deactivation = \
+        attempts_before_deactivation =\
             json_data['health_monitor_attempts_before_deactivation']
         return lb_rackspace.RackspaceHealthMonitor(
             type, delay, timeout, attempts_before_deactivation)
@@ -570,40 +732,6 @@ simple_types_fields = {
     'C{tuple}': TupleField,
     'L{Deployment}': StringField,  # FIXME
     'L{UUID}': StringField,  # FIXME
-}
-
-complex_entries = {
-    'L{Node}': NodeEntry,
-    'L{NodeAuthSSHKey}': NodeAuthSSHKeyEntry,
-    'L{NodeAuthPassword}': NodeAuthPasswordEntry,
-    'L{StorageVolume}': StorageVolumeFakeEntry,  # FIXME
-    'L{NodeImage}': NodeImageEntry,
-    'L{NodeLocation}': NodeLocationEntry,
-    'L{NodeSize}': NodeSizeEntry,  # FIXME
-    'L{OpenStack_1_0_SharedIpGroup}': OpenStack_1_0_SharedIpGroupEntry,
-    'L{CloudStackDiskOffering}': CloudStackDiskOfferingEntry,  # FIXME
-    'L{CloudStackAddress}': CloudStackAddressEntry,  # FIXME
-    'L{CloudStackForwardingRule}': CloudStackForwardingRuleEntry,  # FIXME
-    'L{ExEC2AvailabilityZone}': ExEC2AvailabilityZoneEntry,  # FIXME
-    'L{GandiDisk}': GandiDiskEntry,  # FIXME
-    'L{GandiNetworkInterface}': GandiNetworkInterfaceEntry,  # FIXME
-    'L{GoGridIpAddress}': GoGridIpAddressEntry,  # FIXME
-    'L{OpenNebulaNetwork}': OpenNebulaNetworkEntry,  # FIXME
-    'L{OpenNebulaNodeSize}': OpenNebulaNodeSizeEntry,  # FIXME
-    'L{OpsourceNetwork}': OpsourceNetworkEntry,  # FIXME
-    'L{VCloudVDC}': VCloudVdcEntry,  # FIXME
-    #DNS entries
-    'L{Zone}': ZoneEntry,
-    'L{RecordType}': RecordTypeEntry,
-    'L{Record}': RecordEntry,
-    #LoadBalancer entries
-    'L{LoadBalancer}': LoadBalancerEntry,
-    'L{Algorithm}': AlgorithmEntry,
-    'L{Member}': MemberEntry,
-    'L{RackspaceAccessRule}': RackspaceAccessRuleEntry,
-    'L{RackspaceAccessRuleType}': RackspaceAccessRuleTypeEntry,
-    'L{RackspaceConnectionThrottle}': RackspaceConnectionThrottle,
-    'L{RackspaceHealthMonitor}': RackspaceHealthMonitorEntry,
 }
 
 
@@ -722,8 +850,8 @@ class Entry(object):
         if not ' or ' in type_name:
             if type_name in simple_types_fields:
                 entry_class = SimpleEntry
-            elif type_name in complex_entries:
-                entry_class = complex_entries[type_name]
+            elif LibcloudObjectEntryBase.get_entry(type_name):
+                entry_class = LibcloudObjectEntryBase.get_entry(type_name)
             elif re.match(cls._container_regex, type_name):
                 entry_class = ListEntry
             else:

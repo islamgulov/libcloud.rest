@@ -1,4 +1,7 @@
 # -*- coding:utf-8 -*-
+import datetime
+from functools import partial
+
 try:
     import simplejson as json
 except ImportError:
@@ -6,12 +9,18 @@ except ImportError:
 
 
 class ExtJSONEndoder(json.JSONEncoder):
+    """
+    @deprecated
+    """
     def __init__(self, obj_attrs, *args, **kwargs):
         self.obj_attrs = obj_attrs
         indent = kwargs.pop('indent', 4)
         super(ExtJSONEndoder, self).__init__(indent=indent, *args, **kwargs)
 
     def default(self, obj):
+        if getattr(obj, 'render_attrs', None) is not None:
+            return dict(((name, getattr(obj, name))
+                        for name in obj.render_attrs))
         for obj_attr_cls in self.obj_attrs:
             if isinstance(obj, obj_attr_cls):
                 render_attrs = self.obj_attrs[obj_attr_cls]
@@ -26,6 +35,32 @@ class ExtJSONEndoder(json.JSONEncoder):
         return dict(
             ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
         )
+
+
+class DateTimeJsonEncoder(json.JSONEncoder):
+    """
+    JSONEncoder subclass that knows how to encode date/time.
+    """
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            r = obj.isoformat()
+            if obj.microsecond:
+                r = r[:23] + r[26:]
+            if r.endswith('+00:00'):
+                r = r[:-6] + 'Z'
+            return r
+        elif isinstance(obj, datetime.date):
+            return obj.isoformat()
+        elif isinstance(obj, datetime.time):
+            #determines if a given datetime.datetime is aware.
+            if obj.tzinfo is not None and\
+                    obj.tzinfo.utcoffset(obj) is not None:
+                raise ValueError("JSON can't represent timezone-aware times.")
+            r = obj.isoformat()
+            if obj.microsecond:
+                r = r[:12]
+            return r
+        return super(DateTimeJsonEncoder, self).default(obj)
 
 
 # Backport of OrderedDict() class that runs
