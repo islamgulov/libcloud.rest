@@ -243,13 +243,28 @@ class RackspaceUSTests(unittest2.TestCase):
 
     def test_balancer_list_members(self):
         expected = set(['10.1.0.10:80', '10.1.0.11:80', '10.1.0.9:8080'])
-        url = self.url_tmpl % ('/'.join(['balancers', '8290','members']))
+        url = self.url_tmpl % ('/'.join(['balancers', '8290', 'members']))
         resp = self.client.get(url, headers=self.headers)
         members = json.loads(resp.data)
 
         self.assertEquals(len(members), 3)
         self.assertEquals(expected,
-                          set(["%s:%s" % (member['ip'], member['port']) for
-                                         member in members]))
+                          set(["%s:%s" % (member['ip'], member['port'])
+                               for member in members]))
         self.assertEqual(resp.status_code, httplib.OK)
 
+    def test_balancer_attach_member(self):
+        url = self.url_tmpl % ('/'.join(['balancers', '8290', 'members']))
+        request_data = {'member_id': '',
+                        'member_ip': '10.1.0.12',
+                        'member_port': 80,
+                        'member_extra': {'condition': MemberCondition.DISABLED,
+                                         'weight': 10}
+                        }
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(request_data),
+                                content_type='application/json')
+        member = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEquals(member['ip'], '10.1.0.12')
+        self.assertEquals(member['port'], 80)

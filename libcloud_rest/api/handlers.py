@@ -12,6 +12,7 @@ from werkzeug.wrappers import Response
 import libcloud
 from libcloud.compute import base as compute_base
 from libcloud.dns import base as dns_base
+from libcloud.loadbalancer import base as lb_base
 
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers,\
@@ -265,9 +266,9 @@ class LoadBalancerHandler(BaseServiceHandler):
         self.invoke_method(data=json.dumps(self.params))
         return self.json_response("", status_code=httplib.ACCEPTED)
 
-    def update_balancer(self):
+    def patch_request_and_invoke(self):
         """
-        Get balancer id from params and invoke update_balancer driver method.
+        Get balancer id from params and  add it to request data.
         @return: Balancer information in response body
         """
         json_data = json.loads(self.request.data)
@@ -278,13 +279,6 @@ class LoadBalancerHandler(BaseServiceHandler):
     def get_balancer(self):
         data = json.dumps({'balancer_id': self.params['balancer_id']})
         return self.invoke_method(data=data)
-
-    def list_members(self):
-        json_data = json.loads(self.request.data)
-        json_data['loadbalancer_id'] = self.params['loadbalancer_id']
-        self.request.data = json.dumps(json_data)
-        return self.invoke_method()
-
 
 
 #noinspection PyUnresolvedReferences

@@ -77,15 +77,18 @@ loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [
          endpoint='destroy_balancer', methods=['DELETE'],
          defaults={'method_name': 'destroy_balancer'}),
     Rule('/<string:provider>/balancers/<string:loadbalancer_id>',
-         endpoint='update_balancer', methods=['PUT'],
+         endpoint='patch_request_and_invoke', methods=['PUT'],
          defaults={'method_name': 'update_balancer'}),
     Rule('/<string:provider>/balancers/<string:balancer_id>',
          endpoint='get_balancer',
          defaults={'method_name': 'get_balancer'},
          methods=['GET']),
-         Rule('/<string:provider>/balancers/<string:loadbalancer_id>/members',
-              defaults={'method_name': 'balancer_list_members'},
-              endpoint='list_members', methods=['GET']),
+    Rule('/<string:provider>/balancers/<string:loadbalancer_id>/members',
+         defaults={'method_name': 'balancer_list_members'},
+         endpoint='patch_request_and_invoke', methods=['GET']),
+    Rule('/<string:provider>/balancers/<string:loadbalancer_id>/members',
+         defaults={'method_name': 'balancer_attach_member'},
+         endpoint='patch_request_and_invoke', methods=['POST']),
 ])
 
 dns_urls = HandlerEndpoint('/dns', DNSHandler, [
