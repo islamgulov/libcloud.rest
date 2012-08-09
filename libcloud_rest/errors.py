@@ -7,13 +7,13 @@ except ImportError:
     import json
 
 from libcloud.dns import types as dns_types
-from libcloud.common import types as common_types
 
 
 class MissingArguments(Exception):
 
     def __init__(self, arguments):
         self.arguments = arguments
+        super(MissingArguments, self).__init__()
 
     def __str__(self):
         return "Missing arguments: %s" % (str(self.arguments))
@@ -22,6 +22,7 @@ class MissingArguments(Exception):
 class UnknownArgument(Exception):
     def __init__(self, arguments):
         self.arguments = arguments
+        super(UnknownArgument, self).__init__()
 
     def __str__(self):
         return "Unknown arguments: %s" % (str(self.arguments))

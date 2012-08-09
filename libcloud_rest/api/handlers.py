@@ -1,56 +1,29 @@
 # -*- coding:utf-8 -*-
 import httplib
 import inspect
-import traceback
-
-try:
-    import simplejson as json
-except ImportError:
-    import json
 
 from werkzeug.wrappers import Response
 import libcloud
-from libcloud.compute import base as compute_base
-from libcloud.dns import base as dns_base
-from libcloud.loadbalancer import base as lb_base
 from libcloud.common import types as common_types
 
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers,\
     ARGS_TO_XHEADERS_DICT
-from libcloud_rest.api import validators as valid
-from libcloud_rest.errors import InternalError,\
-    LibcloudError, MalformedJSONError, INTERNAL_LIBCLOUD_ERRORS_MAP,\
+from libcloud_rest.errors import LibcloudError, INTERNAL_LIBCLOUD_ERRORS_MAP,\
     ProviderNotSupportedError, MethodParsingException
-from libcloud_rest.utils import ExtJSONEndoder
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
 from libcloud_rest.log import logger
 from libcloud_rest.api.providers import get_providers_info,\
     get_driver_by_provider_name, get_driver_instance, get_providers_dict,\
     DriverMethod
+from libcloud_rest.utils import json
 
 if DEBUG:
     import mock
 
 
-class BaseHandler(object):
-    obj_attrs = {}
-
-    def json_response(self, obj, headers=(), status_code=httplib.OK):
-        """
-
-        @param status_code:
-        @param obj:
-        @return:
-        """
-        encoder = ExtJSONEndoder(self.obj_attrs)
-        reply = encoder.encode(obj)
-        return Response(reply, mimetype='application/json',
-                        headers=headers, status=status_code)
-
-
-class ApplicationHandler(BaseHandler):
+class ApplicationHandler(object):
     def index(self):
         """
 
@@ -65,10 +38,9 @@ class ApplicationHandler(BaseHandler):
         return self.json_response(response)
 
 
-class BaseServiceHandler(BaseHandler):
+class BaseServiceHandler(object):
     """
     To use this class inherit from it and define _DRIVERS and _Providers
-    Also to encode to json response custom object add them to obj_attrs dict.
     """
     _DRIVERS = None
     _Providers = None
@@ -88,45 +60,6 @@ class BaseServiceHandler(BaseHandler):
             driver_instance = get_driver_instance(Driver, **api_data)
         return driver_instance
 
-    def _execute_driver_method(self, method_name, *args, **kwargs):
-        """
-        @deprecated
-        """
-        driver = self._get_driver_instance()
-        method = getattr(driver, method_name, None)
-        if not inspect.ismethod(method) and\
-                not (DEBUG and isinstance(method, mock.MagicMock)):
-            raise InternalError(detail='Unknown method %s' % (method_name))
-        try:
-            result = method(*args, **kwargs)
-        except Exception, e:
-            for libcloud_error, error in INTERNAL_LIBCLOUD_ERRORS_MAP.items():
-                if isinstance(e, libcloud_error):
-                    raise error()
-            else:
-                logger.debug(traceback.format_exc())
-                raise LibcloudError(detail=str(e))
-        return result
-
-    def _list_objects_request_execute(self, method_name, *args, **kwargs):
-        """
-        @deprecated
-        """
-        data = self._execute_driver_method(method_name, *args, **kwargs)
-        return self.json_response(data)
-
-    def _load_json(self, data, validator=None):
-        """
-        @deprecated
-        """
-        try:
-            json_data = json.loads(data)
-        except (ValueError, TypeError), e:
-            raise MalformedJSONError(detail=str(e))
-        if validator is not None:
-            validator(json_data)
-        return json_data
-
     def providers(self):
         """
 
@@ -135,7 +68,8 @@ class BaseServiceHandler(BaseHandler):
         if self._providers_list_response is None:
             providers_info = get_providers_info(self._DRIVERS,
                                                 self._Providers)
-            response = self.json_response(providers_info)
+            response = Response(json.dumps(providers_info),
+                                mimetype='application/json', status=httplib.OK)
             self.__class__._providers_list_response = response
         return self._providers_list_response
 
@@ -174,7 +108,8 @@ class BaseServiceHandler(BaseHandler):
                   'website': driver.website,
                   'x-headers': init_arguments,
                   'supported_methods': supported_methods}
-        return self.json_response(result, status_code=httplib.OK)
+        return Response(json.dumps(result), mimetype='application/json',
+                        status=httplib.OK)
 
     def invoke_method(self, status_code=httplib.OK, data=None):
         """
@@ -203,13 +138,6 @@ class ComputeHandler(BaseServiceHandler):
     from libcloud.compute.providers import Provider as _Providers
     from libcloud.compute.providers import DRIVERS as _DRIVERS
 
-    obj_attrs = {
-        compute_base.Node: ['id', 'name', 'state', 'public_ips'],
-        compute_base.NodeSize: ['id', 'name', 'ram', 'bandwidth', 'price'],
-        compute_base.NodeImage: ['id', 'name'],
-        compute_base.NodeLocation: ['id', 'name', 'country']
-    }
-
     def create_node(self):
         """
         Invoke create_node method and patch response.
@@ -224,22 +152,14 @@ class ComputeHandler(BaseServiceHandler):
         return response
 
     def reboot_node(self):
-        """
-        @return:This operation does not return a response body.
-        """
-        node_id = self.params.get('node_id', None)
-        node = compute_base.Node(node_id, None, None, None, None, None)
-        self._execute_driver_method('reboot_node', node)
-        return self.json_response("")
+        json_data = {'node_id': self.params['node_id']}
+        return self.invoke_method(data=json.dumps(json_data),
+                                  status_code=httplib.ACCEPTED)
 
     def destroy_node(self):
-        """
-        @return:This operation does not return a response body.
-        """
-        node_id = self.params.get('node_id', None)
-        node = compute_base.Node(node_id, None, None, None, None, None)
-        self._execute_driver_method('destroy_node', node)
-        return self.json_response("", status_code=httplib.NO_CONTENT)
+        json_data = {'node_id': self.params['node_id']}
+        return self.invoke_method(data=json.dumps(json_data),
+                                  status_code=httplib.NO_CONTENT)
 
 
 #noinspection PyUnresolvedReferences
@@ -303,11 +223,6 @@ class LoadBalancerHandler(BaseServiceHandler):
 class DNSHandler(BaseServiceHandler):
     from libcloud.dns.providers import Provider as _Providers
     from libcloud.dns.providers import DRIVERS as _DRIVERS
-
-    obj_attrs = {
-        dns_base.Zone: ['id', 'domain', 'type', 'ttl'],
-        dns_base.Record: ['id', 'name', 'type', 'data']
-    }
 
     def extract_zone_id_and_invoke(self):
         """

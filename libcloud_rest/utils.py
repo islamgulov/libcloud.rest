@@ -1,40 +1,10 @@
 # -*- coding:utf-8 -*-
 import datetime
-from functools import partial
 
 try:
     import simplejson as json
 except ImportError:
     import json
-
-
-class ExtJSONEndoder(json.JSONEncoder):
-    """
-    @deprecated
-    """
-    def __init__(self, obj_attrs, *args, **kwargs):
-        self.obj_attrs = obj_attrs
-        indent = kwargs.pop('indent', 4)
-        super(ExtJSONEndoder, self).__init__(indent=indent, *args, **kwargs)
-
-    def default(self, obj):
-        if getattr(obj, 'render_attrs', None) is not None:
-            return dict(((name, getattr(obj, name))
-                        for name in obj.render_attrs))
-        for obj_attr_cls in self.obj_attrs:
-            if isinstance(obj, obj_attr_cls):
-                render_attrs = self.obj_attrs[obj_attr_cls]
-                break
-        else:
-            try:
-                iterable = iter(obj)
-            except TypeError:
-                raise KeyError('Unknown object type: %s' % (str(type(obj))))
-            else:
-                return list(iterable)
-        return dict(
-            ((a_name, getattr(obj, a_name)) for a_name in render_attrs)
-        )
 
 
 class DateTimeJsonEncoder(json.JSONEncoder):

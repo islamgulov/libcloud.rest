@@ -20,7 +20,7 @@ from libcloud.loadbalancer.drivers import rackspace as lb_rackspace
 from libcloud_rest.utils import json, DateTimeJsonEncoder
 from libcloud_rest.api import validators as valid
 from libcloud_rest.errors import MalformedJSONError, ValidationError,\
-    NoSuchObjectError, MissingArguments, TooManyArgumentsError
+    MissingArguments, TooManyArgumentsError
 
 
 class Field(object):
@@ -774,7 +774,7 @@ class OneOfEntry(BasicEntry):
             except (ValueError, ), e:
                 continue
         else:
-            raise ValueError('Can not represent object as json %s' % (str(e)))
+            raise ValueError('Can not represent object as json')
 
     def from_json(self, data, driver):
         missed_arguments = []

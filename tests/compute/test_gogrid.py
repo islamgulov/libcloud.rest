@@ -144,7 +144,7 @@ class GoGridTests(unittest2.TestCase):
         url = self.url_tmpl % ('/'.join(['nodes', str(node_id), 'reboot']))
         resp = self.client.post(url, headers=self.headers,
                                 content_type='application/json')
-        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.status_code, httplib.ACCEPTED)
 
     def test_reboot_node_not_successful(self):
         GoGridMockHttp.type = 'FAIL'
@@ -158,7 +158,7 @@ class GoGridTests(unittest2.TestCase):
         node_id = 90967
         url = self.url_tmpl % ('/'.join(['nodes', str(node_id)]))
         resp = self.client.delete(url, headers=self.headers)
-        self.assertEqual(resp.status_code, 204)
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
 
     def test_ex_save_image(self):
         url = self.url_tmpl % ('nodes')

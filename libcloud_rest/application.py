@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-from exceptions import BaseException
 import traceback
 
 from werkzeug.wrappers import Request
@@ -49,8 +48,8 @@ class LibcloudRestApp(object):
             logger.debug(traceback.format_exc())
             return Response(error.to_json(), status=error.http_status_code,
                             mimetype='application/json')
-        except BaseException, error:
-            logger.error(traceback.format_exc())
+        except Exception, error:
+            logger.warning(traceback.format_exc())
             fake_error = LibcloudRestError(detail=str(error))  # FIXME
             return Response(
                 fake_error.to_json(), status=fake_error.http_status_code,

@@ -49,11 +49,11 @@ compute_urls = HandlerEndpoint('/compute', ComputeHandler, [
     Rule('/<string:provider>/nodes', defaults={'method_name': 'create_node'},
          endpoint='create_node', methods=['POST']),
     Rule('/<string:provider>/nodes/<string:node_id>/reboot',
-         endpoint='reboot_node',
-         methods=['POST']),
+         endpoint='reboot_node', methods=['POST'],
+         defaults={'method_name': 'reboot_node'}),
     Rule('/<string:provider>/nodes/<string:node_id>',
-         endpoint='destroy_node',
-         methods=['DELETE']),
+         endpoint='destroy_node', methods=['DELETE'],
+         defaults={'method_name': 'destroy_node'}),
 ])
 
 storage_urls = HandlerEndpoint('/storage', StorageHandler, [

@@ -34,7 +34,7 @@ def start_server(host, port, logger, debug):
 
         @werkzeug.serving.run_with_reloader
         def run_server():
-            class debug_logger():
+            class debug_logger(object):
                 @staticmethod
                 def write(*args, **kwargs):
                     logger.debug(*args, **kwargs)

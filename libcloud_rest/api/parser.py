@@ -1,9 +1,8 @@
 # -*- coding:utf-8 -*-
 import inspect
 from collections import defaultdict
-from itertools import chain, takewhile
+from itertools import takewhile
 import re
-import sys
 
 from libcloud_rest.utils import LastUpdatedOrderedDict
 from libcloud_rest.errors import MethodParsingException
