@@ -6,7 +6,8 @@ try:
 except ImportError:
     import json
 
-from libcloud.dns import types
+from libcloud.dns import types as dns_types
+from libcloud.common import types as common_types
 
 
 class MissingArguments(Exception):
@@ -158,8 +159,8 @@ class TooManyArgumentsError(LibcloudError):
 
 
 INTERNAL_LIBCLOUD_ERRORS_MAP = {
-    types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
-    types.ZoneDoesNotExistError: NoSuchZoneError,
-    types.RecordAlreadyExistsError: RecordAlreadyExistsError,
-    types.RecordDoesNotExistError: NoSuchRecordError,
+    dns_types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
+    dns_types.ZoneDoesNotExistError: NoSuchZoneError,
+    dns_types.RecordAlreadyExistsError: RecordAlreadyExistsError,
+    dns_types.RecordDoesNotExistError: NoSuchRecordError,
 }

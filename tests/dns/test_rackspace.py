@@ -100,7 +100,7 @@ class RackspaceUSTests(unittest2.TestCase):
         zone_id = zones_resp_data[0]['id']
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id)]))
         resp = self.client.delete(url, headers=self.headers)
-        self.assertEqual(resp.status_code, 204)
+        self.assertEqual(resp.status_code, httplib.ACCEPTED)
 
     def test_delete_does_not_exists(self):
         zone_id = self.get_zones()[0]['id']
