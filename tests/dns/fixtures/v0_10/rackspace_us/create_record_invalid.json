@@ -1,5 +1,5 @@
 {
     "name": "www",
-    "type": "a",
+    "record_type": "a",
     "data": "127.1.1.1"
 }

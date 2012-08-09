@@ -110,22 +110,21 @@ dns_urls = HandlerEndpoint('/dns', DNSHandler, [
          defaults={'method_name': 'update_zone'},
          endpoint='extract_zone_id_and_invoke', methods=['PUT']),
     Rule('/<string:provider>/zones/<zone_id>',
-         defaults={'method_name': 'update_zone'},
-         endpoint='extract_zone_id_and_invoke', methods=['PUT']),
-    Rule('/<string:provider>/zones/<zone_id>',
          defaults={'method_name': 'delete_zone'},
          endpoint='delete_zone', methods=['DELETE']),
-
-    Rule('/<string:provider>/zones/<string:zone_id>'
-         '/records/<string:record_id>',
-         endpoint='get_record', methods=['GET']),
-    Rule('/<string:provider>/zones/<string:zone_id>/records',
+    Rule('/<string:provider>/zones/<zone_id>/records/<string:record_id>',
+         defaults={'method_name': 'get_record'},
+         endpoint='extract_zone_record_and_invoke', methods=['GET']),
+    Rule('/<string:provider>/zones/<zone_id>/records',
+         defaults={'method_name': 'create_record'},
          endpoint='create_record', methods=['POST']),
     Rule('/<string:provider>/zones/<string:zone_id>/'
          'records/<string:record_id>',
-         endpoint='update_record', methods=['PUT']),
+         defaults={'method_name': 'update_record'},
+         endpoint='extract_zone_record_and_invoke', methods=['PUT']),
     Rule('/<string:provider>/zones/<string:zone_id>/'
          'records/<string:record_id>',
+         defaults={'method_name': 'delete_record'},
          endpoint='delete_record', methods=['DELETE']),
 ])
 

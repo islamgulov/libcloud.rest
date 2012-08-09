@@ -41,13 +41,16 @@ class LinodeTests(unittest2.TestCase):
                     zone_data['ttl'], None)
 
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
-        test_request = self.fixtures.load('create_record.json')
-        test_request_json = json.loads(test_request)
+        request_data = {
+            "name": "www",
+            "record_type": 0,
+            "data": "127.0.0.1"
+        }
         with mock.patch.object(LinodeDNSDriver, 'get_zone',
                                mocksignature=True) as get_zone_mock:
             get_zone_mock.return_value = zone
             resp = self.client.post(url, headers=self.headers,
-                                    data=json.dumps(test_request_json),
+                                    data=json.dumps(request_data),
                                     content_type='application/json')
         record = json.loads(resp.data)
 

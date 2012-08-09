@@ -150,17 +150,17 @@ class RackspaceUSTests(unittest2.TestCase):
         zone_data = self.get_zones()[0]
         zone = Zone(zone_data['id'], zone_data['domain'], zone_data['type'],
                     zone_data['ttl'], None)
-
         RackspaceMockHttp.type = 'CREATE_RECORD'
         url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
                                          'records']))
-        test_request = self.fixtures.load('create_record.json')
-        test_request_json = json.loads(test_request)
+        request_data = {'name': 'www',
+                        'record_type': 0,
+                        'data': '127.1.1.1'}
         with patch.object(RackspaceUSDNSDriver, 'get_zone',
                           mocksignature=True) as get_zone_mock:
             get_zone_mock.return_value = zone
             resp = self.client.post(url, headers=self.headers,
-                                    data=json.dumps(test_request_json),
+                                    data=json.dumps(request_data),
                                     content_type='application/json')
         record = json.loads(resp.data)
         self.assertEqual(record['id'], 'A-7423317')
@@ -170,7 +170,7 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.CREATED)
 
     def test_create_record_validation_error(self):
-        zone_id = '123'
+        zone_id = '12345678'
         url = self.url_tmpl % ('/'.join(['zones', str(zone_id), 'records']))
         test_request = self.fixtures.load('create_record_invalid.json')
         test_request_json = json.loads(test_request)
@@ -206,20 +206,31 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(record.name, 'test3')
         self.assertEqual(record.data, '127.7.7.7')
-
         self.assertEqual(updated_record['id'], record.id)
         self.assertEqual(updated_record['name'], record.name)
         self.assertEqual(updated_record['type'], record.type)
         self.assertEqual(updated_record['data'], '127.3.3.3')
 
-    def test_create_record_validation_error(self):
-        zone_id = '123'
-        record_id = '123'
-        url = self.url_tmpl % ('/'.join(['zones', zone_id,
-                                         'records', record_id]))
-        resp = self.client.put(url, headers=self.headers,
-                               data='{"type": "127.3.3.3"}',
-                               content_type='application/json')
+    def test_update_record_validation_error(self):
+        zone_data = self.get_zones()[0]
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records']))
+        record_resp = self.client.get(url, headers=self.headers)
+        record_data = json.loads(record_resp.data)[0]
+        zone = Zone(zone_data['id'], zone_data['domain'], zone_data['type'],
+                    zone_data['ttl'], None)
+        record = Record(record_data['id'], record_data['name'],
+                        record_data['type'], record_data['data'],
+                        zone, None)
+
+        url = self.url_tmpl % ('/'.join(['zones', str(zone_data['id']),
+                                         'records', str(record.id)]))
+        with patch.object(RackspaceUSDNSDriver, 'get_record',
+                          mocksignature=True) as get_record_mock:
+            get_record_mock.return_value = record
+            resp = self.client.put(url, headers=self.headers,
+                                   data='{"record_type": "127.3.3.3"}',
+                                   content_type='application/json')
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(resp_data['error']['code'], ValidationError.code)
@@ -241,7 +252,7 @@ class RackspaceUSTests(unittest2.TestCase):
                           mocksignature=True) as get_record_mock:
             get_record_mock.return_value = record
             resp = self.client.delete(url, headers=self.headers)
-        self.assertEqual(resp.status_code, 204)
+        self.assertEqual(resp.status_code, httplib.ACCEPTED)
 
     def test_delete_record_does_not_exists(self):
         zone_data = self.get_zones()[0]

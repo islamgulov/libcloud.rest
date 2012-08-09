@@ -315,6 +315,15 @@ class DNSHandler(BaseServiceHandler):
         """
         json_data = json.loads(self.request.data)
         json_data['zone_id'] = self.params['zone_id']
+        return self.invoke_method(data=json.dumps(json_data))
+
+    def extract_zone_record_and_invoke(self):
+        """
+        Get zone id from params and add it to request data.
+        """
+        json_data = json.loads(self.request.data)
+        json_data['zone_id'] = self.params['zone_id']
+        json_data['record_id'] = self.params['record_id']
         self.request.data = json.dumps(json_data)
         return self.invoke_method()
 
@@ -339,58 +348,19 @@ class DNSHandler(BaseServiceHandler):
         return self.invoke_method(data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)
 
-    def get_record(self):
-        zone_id = self.params.get('zone_id', None)
-        record_id = self.params.get('record_id', None)
-        record = self._execute_driver_method('get_record', zone_id=zone_id,
-                                             record_id=record_id)
-        return self.json_response(record)
-
     def create_record(self):
-        record_validator = valid.DictValidator({
-            'name': valid.StringValidator(),
-            'type': valid.IntegerValidator(),
-            'data': valid.StringValidator(),
-        })
-        record_data = self._load_json(self.request.data, record_validator)
-        zone_id = self.params.get('zone_id', None)
-        zone = self._execute_driver_method('get_zone', zone_id)
-        create_record_args = {
-            'name': record_data['name'],
-            'type': record_data['type'],
-            'data': record_data['data'],
-            'zone': zone,
-        }
-        record = self._execute_driver_method('create_record',
-                                             **create_record_args)
-        return self.json_response(record,
-                                  status_code=httplib.CREATED)
-
-    def update_record(self):
-        update_record_validator = valid.DictValidator({
-            'name': valid.StringValidator(required=False),
-            'type': valid.IntegerValidator(required=False),
-            'data': valid.StringValidator(required=False),
-        })
-        record_data = self._load_json(self.request.data,
-                                      update_record_validator)
-        zone_id = self.params.get('zone_id', None)
-        record_id = self.params.get('record_id', None)
-        record = self._execute_driver_method('get_record', zone_id=zone_id,
-                                             record_id=record_id)
-        update_record_args = {}
-        for arg in update_record_validator.items_validators.keys():
-            if record_data.get(arg, None):
-                update_record_args[arg] = record_data[arg]
-        updated_record = self._execute_driver_method('update_record',
-                                                     record,
-                                                     **update_record_args)
-        return self.json_response(updated_record)
+        json_data = json.loads(self.request.data)
+        json_data['zone_id'] = self.params['zone_id']
+        response = self.invoke_method(data=json.dumps(json_data),
+                                      status_code=httplib.ACCEPTED)
+        record_id = json.loads(response.data)['id']
+        response.autocorrect_location_header = False
+        response.headers.add_header('Location', record_id)
+        response.status_code = httplib.CREATED
+        return response
 
     def delete_record(self):
-        zone_id = self.params.get('zone_id', None)
-        record_id = self.params.get('record_id', None)
-        record = self._execute_driver_method('get_record', zone_id=zone_id,
-                                             record_id=record_id)
-        self._execute_driver_method('delete_record', record)
-        return self.json_response("", status_code=httplib.NO_CONTENT)
+        json_data = {'zone_id': self.params['zone_id'],
+                     'record_id': self.params['record_id']}
+        return self.invoke_method(data=json.dumps(json_data),
+                                  status_code=httplib.ACCEPTED)
