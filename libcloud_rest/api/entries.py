@@ -731,8 +731,8 @@ class ContainerEntry(LibcloudObjectEntry):
     object_class = storage_base.Container
     render_attrs = ('name', 'extra')
     container_name = StringField('Name of container which should be used')
-    container_name = DictField('Extra of container which should be used',
-                               required=False)
+    container_extra = DictField('Extra of container which should be used',
+                                required=False)
 
     def _get_object(self, json_data, driver):
         name = json_data['container_name']

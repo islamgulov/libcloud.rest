@@ -66,6 +66,9 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
     Rule('/<string:provider>/containers',
          defaults={'method_name': 'create_container'},
          endpoint='create_container', methods=['POST']),
+    Rule('/<string:provider>/containers/<string:container_name>',
+         endpoint='delete_container', methods=['DELETE'],
+         defaults={'method_name': 'delete_container'}),
 ])
 
 loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [

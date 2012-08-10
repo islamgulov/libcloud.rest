@@ -184,6 +184,11 @@ class StorageHandler(BaseServiceHandler):
         response.status_code = httplib.CREATED
         return response
 
+    def delete_container(self):
+        data = {'container_name': self.params['container_name']}
+        return self.invoke_method(data=json.dumps(data),
+                                  status_code=httplib.NO_CONTENT)
+
 
 #noinspection PyUnresolvedReferences
 class LoadBalancerHandler(BaseServiceHandler):

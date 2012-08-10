@@ -179,6 +179,14 @@ class InvalidContainerNameError(LibcloudError):
     http_status_code = httplib.BAD_REQUEST
     message = 'Invalid container name was provided'
 
+
+class ContainerIsNotEmptyError(LibcloudError):
+    code = 1017
+    name = 'ContainerIsNotEmpty'
+    http_status_code = httplib.BAD_REQUEST
+    message = 'Container is not empty'
+
+
 INTERNAL_LIBCLOUD_ERRORS_MAP = {
     dns_types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
     dns_types.ZoneDoesNotExistError: NoSuchZoneError,
@@ -187,4 +195,5 @@ INTERNAL_LIBCLOUD_ERRORS_MAP = {
     storage_types.ContainerDoesNotExistError: NoSuchContainerError,
     storage_types.ContainerAlreadyExistsError: ContainerAlreadyExistsError,
     storage_types.InvalidContainerNameError: InvalidContainerNameError,
+    storage_types.ContainerIsNotEmptyError: ContainerIsNotEmptyError,
 }

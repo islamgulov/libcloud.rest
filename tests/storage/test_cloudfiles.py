@@ -17,7 +17,8 @@ from libcloud.test.storage.test_cloudfiles import CloudFilesMockHttp,\
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from libcloud_rest.errors import NoSuchContainerError, \
-    ContainerAlreadyExistsError, InvalidContainerNameError
+    ContainerAlreadyExistsError, InvalidContainerNameError,\
+    ContainerIsNotEmptyError
 
 
 class RackspaceUSTests(unittest2.TestCase):
@@ -109,3 +110,25 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(result['error']['code'],
                          InvalidContainerNameError.code)
+
+    def test_delete_container_success(self):
+        url = self.url_tmpl % ('/'.join(['containers', 'foo_bar_container']))
+        resp = self.client.delete(url, headers=self.headers)
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
+
+    def test_delete_container_not_found(self):
+        CloudFilesMockHttp.type = 'NOT_FOUND'
+        url = self.url_tmpl % ('/'.join(['containers', 'foo_bar_container']))
+        resp = self.client.delete(url, headers=self.headers)
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(result['error']['code'], NoSuchContainerError.code)
+
+    def test_delete_container_not_empty(self):
+        CloudFilesMockHttp.type = 'NOT_EMPTY'
+        url = self.url_tmpl % ('/'.join(['containers', 'foo_bar_container']))
+        resp = self.client.delete(url, headers=self.headers)
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(result['error']['code'],
+                         ContainerIsNotEmptyError.code)
