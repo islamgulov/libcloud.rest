@@ -72,6 +72,10 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
     Rule('/<string:provider>/containers/<string:container_name>/objects',
          defaults={'method_name': 'list_container_objects'},
          endpoint='extract_params_and_invoke', methods=['GET']),
+    Rule('/<string:provider>/containers/<string:container_name>'
+         '/objects/<string:object_name>',
+         defaults={'method_name': 'get_object'},
+         endpoint='extract_params_and_invoke', methods=['GET']),
 ])
 
 loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [

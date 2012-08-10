@@ -187,6 +187,12 @@ class ContainerIsNotEmptyError(LibcloudError):
     message = 'Container is not empty'
 
 
+class NoSuchObjectError(NoSuchObjectError):
+    code = 1018
+    name = 'NoSuchObject'
+    message = 'The specified Object does not exist'
+
+
 INTERNAL_LIBCLOUD_ERRORS_MAP = {
     dns_types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
     dns_types.ZoneDoesNotExistError: NoSuchZoneError,
@@ -196,4 +202,5 @@ INTERNAL_LIBCLOUD_ERRORS_MAP = {
     storage_types.ContainerAlreadyExistsError: ContainerAlreadyExistsError,
     storage_types.InvalidContainerNameError: InvalidContainerNameError,
     storage_types.ContainerIsNotEmptyError: ContainerIsNotEmptyError,
+    storage_types.ObjectDoesNotExistError: NoSuchObjectError,
 }

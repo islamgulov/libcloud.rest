@@ -18,7 +18,7 @@ from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from libcloud_rest.errors import NoSuchContainerError, \
     ContainerAlreadyExistsError, InvalidContainerNameError,\
-    ContainerIsNotEmptyError
+    ContainerIsNotEmptyError, NoSuchObjectError
 
 
 class RackspaceUSTests(unittest2.TestCase):
@@ -153,3 +153,29 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(obj['hash'], '16265549b5bda64ecdaa5156de4c97cc')
         self.assertEqual(obj['size'], 1160520)
         self.assertEqual(obj['container']['name'], 'test_container')
+
+    def test_get_object_success(self):
+        url = self.url_tmpl % (
+            '/'.join(['containers', 'test_container',
+                      'objects', 'test_object']))
+        resp = self.client.get(url, headers=self.headers)
+        obj = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(obj['container']['name'], 'test_container')
+        self.assertEqual(obj['size'], 555)
+        self.assertEqual(obj['hash'], '6b21c4a111ac178feacf9ec9d0c71f17')
+        self.assertEqual(obj['extra']['content_type'], 'application/zip')
+        self.assertEqual(
+            obj['extra']['last_modified'], 'Tue, 25 Jan 2011 22:01:49 GMT')
+        self.assertEqual(obj['meta_data']['foo-bar'], 'test 1')
+        self.assertEqual(obj['meta_data']['bar-foo'], 'test 2')
+
+    def test_get_object_not_found(self):
+        url = self.url_tmpl % (
+            '/'.join(['containers', 'test_container',
+                      'objects', 'not_found']))
+        resp = self.client.get(url, headers=self.headers)
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(result['error']['code'],
+                         NoSuchObjectError.code)
