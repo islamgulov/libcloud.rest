@@ -167,6 +167,10 @@ class StorageHandler(BaseServiceHandler):
     from libcloud.storage.providers import Provider as _Providers
     from libcloud.storage.providers import DRIVERS as _DRIVERS
 
+    def get_container(self):
+        data = {'container_name': self.params['container_name']}
+        return self.invoke_method(data=json.dumps(data))
+
 
 #noinspection PyUnresolvedReferences
 class LoadBalancerHandler(BaseServiceHandler):

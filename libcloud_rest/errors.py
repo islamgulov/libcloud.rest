@@ -7,6 +7,7 @@ except ImportError:
     import json
 
 from libcloud.dns import types as dns_types
+from libcloud.storage import types as storage_types
 
 
 class MissingArguments(Exception):
@@ -159,9 +160,24 @@ class TooManyArgumentsError(LibcloudError):
               'mutually exclusive arguments'
 
 
+class NoSuchContainerError(NoSuchObjectError):
+    code = 1014
+    name = 'NoSuchContainer'
+    message = 'The specified container does not exist'
+
+
+class ContainerAlreadyExistsError(LibcloudError):
+    code = 1015
+    name = 'ContainerAlreadyExists'
+    http_status_code = httplib.CONFLICT
+    message = 'The requested container already exists.'
+
+
 INTERNAL_LIBCLOUD_ERRORS_MAP = {
     dns_types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
     dns_types.ZoneDoesNotExistError: NoSuchZoneError,
     dns_types.RecordAlreadyExistsError: RecordAlreadyExistsError,
     dns_types.RecordDoesNotExistError: NoSuchRecordError,
+    storage_types.ContainerDoesNotExistError: NoSuchContainerError,
+    storage_types.ContainerAlreadyExistsError: ContainerAlreadyExistsError,
 }

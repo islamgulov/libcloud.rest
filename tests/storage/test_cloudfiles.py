@@ -16,7 +16,7 @@ from libcloud.test.storage.test_cloudfiles import CloudFilesMockHttp,\
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from tests.file_fixtures import DNSFixtures
+from libcloud_rest.errors import NoSuchContainerError
 
 
 class RackspaceUSTests(unittest2.TestCase):
@@ -46,3 +46,19 @@ class RackspaceUSTests(unittest2.TestCase):
         container = [c for c in containers if c['name'] == 'container2'][0]
         self.assertEqual(container['extra']['object_count'], 120)
         self.assertEqual(container['extra']['size'], 340084450)
+
+    def test_get_container(self):
+        url = self.url_tmpl % ('/'.join(['containers', 'test_container']))
+        resp = self.client.get(url, headers=self.headers)
+        container = json.loads(resp.data)
+        self.assertEqual(container['name'], 'test_container')
+        self.assertEqual(container['extra']['object_count'], 800)
+        self.assertEqual(container['extra']['size'], 1234568)
+        self.assertEqual(resp.status_code, httplib.OK)
+
+    def test_get_container_not_found(self):
+        url = self.url_tmpl % ('/'.join(['containers', 'not_found']))
+        resp = self.client.get(url, headers=self.headers)
+        resp_data = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        self.assertEqual(resp_data['error']['code'], NoSuchContainerError.code)
