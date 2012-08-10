@@ -171,6 +171,19 @@ class StorageHandler(BaseServiceHandler):
         data = {'container_name': self.params['container_name']}
         return self.invoke_method(data=json.dumps(data))
 
+    def create_container(self):
+        """
+        Invoke create_container method and patch response.
+
+        @return: Response object with newly created container name in Location.
+        """
+        response = self.invoke_method()
+        balancer_id = json.loads(response.data)['name']
+        response.autocorrect_location_header = False
+        response.headers.add_header('Location', balancer_id)
+        response.status_code = httplib.CREATED
+        return response
+
 
 #noinspection PyUnresolvedReferences
 class LoadBalancerHandler(BaseServiceHandler):

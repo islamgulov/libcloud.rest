@@ -16,7 +16,8 @@ from libcloud.test.storage.test_cloudfiles import CloudFilesMockHttp,\
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.errors import NoSuchContainerError
+from libcloud_rest.errors import NoSuchContainerError, \
+    ContainerAlreadyExistsError
 
 
 class RackspaceUSTests(unittest2.TestCase):
@@ -62,3 +63,25 @@ class RackspaceUSTests(unittest2.TestCase):
         resp_data = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
         self.assertEqual(resp_data['error']['code'], NoSuchContainerError.code)
+
+    def test_create_container_success(self):
+        url = self.url_tmpl % ('containers')
+        request_data = {'container_name': 'test_create_container'}
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(request_data),
+                                content_type='application/json')
+        container = json.loads(resp.data)
+        self.assertEqual(container['name'], 'test_create_container')
+        self.assertEqual(container['extra']['object_count'], 0)
+
+    def test_create_container_already_exists(self):
+        CloudFilesMockHttp.type = 'ALREADY_EXISTS'
+        url = self.url_tmpl % ('containers')
+        request_data = {'container_name': 'test_create_container'}
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(request_data),
+                                content_type='application/json')
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.CONFLICT)
+        self.assertEqual(result['error']['code'],
+                         ContainerAlreadyExistsError.code)
