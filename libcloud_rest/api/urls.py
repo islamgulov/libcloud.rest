@@ -58,6 +58,7 @@ compute_urls = HandlerEndpoint('/compute', ComputeHandler, [
 
 storage_urls = HandlerEndpoint('/storage', StorageHandler, [
     providers_list_rule,
+    list_objects_rule_template(objects='containers'),
 ])
 
 loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [

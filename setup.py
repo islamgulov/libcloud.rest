@@ -9,7 +9,8 @@ from unittest import TextTestRunner, TestLoader
 from glob import glob
 from os.path import splitext, basename, join as pjoin
 
-TEST_PATHS = ['tests', 'tests/compute', 'tests/dns', 'tests/loadbalancer']
+TEST_PATHS = ['tests', 'tests/compute', 'tests/dns', 'tests/loadbalancer',
+              'tests/storage']
 
 SUPPORTED_VERSIONS = ['2.5', '2.6', '2.7', 'PyPy', ]
 

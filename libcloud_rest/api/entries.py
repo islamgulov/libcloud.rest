@@ -16,6 +16,7 @@ from libcloud.dns import types as dns_types
 from libcloud.dns import base as dns_base
 from libcloud.loadbalancer import base as lb_base
 from libcloud.loadbalancer.drivers import rackspace as lb_rackspace
+from libcloud.storage import base as storage_base
 
 from libcloud_rest.utils import json, DateTimeJsonEncoder
 from libcloud_rest.api import validators as valid
@@ -724,6 +725,19 @@ class RackspaceHealthMonitorEntry(LibcloudObjectEntry):
             json_data['health_monitor_attempts_before_deactivation']
         return lb_rackspace.RackspaceHealthMonitor(
             type, delay, timeout, attempts_before_deactivation)
+
+
+class ContainerEntry(LibcloudObjectEntry):
+    object_class = storage_base.Container
+    render_attrs = ('name', 'extra')
+    container_name = StringField('Name of container which should be used')
+    container_name = DictField('Extra of container which should be used',
+                               required=False)
+
+    def _get_object(self, json_data, driver):
+        name = json_data['container_name']
+        extra = json_data.get('container_extra', {})
+        return storage_base.Container(name, extra, driver)
 
 
 simple_types_fields = {
