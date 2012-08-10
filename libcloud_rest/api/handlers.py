@@ -189,6 +189,20 @@ class StorageHandler(BaseServiceHandler):
         return self.invoke_method(data=json.dumps(data),
                                   status_code=httplib.NO_CONTENT)
 
+    def extract_params_and_invoke(self):
+        """
+        Get container name and object name from params
+            and add it to request data.
+        """
+        if self.request.data:
+            data = json.loads(self.request.data)
+        else:
+            data = {}
+        data['container_name'] = self.params['container_name']
+        if 'object_name' in self.params:
+            data['object_name'] = self.params['object_name']
+        return self.invoke_method(data=json.dumps(data))
+
 
 #noinspection PyUnresolvedReferences
 class LoadBalancerHandler(BaseServiceHandler):

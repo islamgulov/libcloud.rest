@@ -74,6 +74,7 @@ class RackspaceUSTests(unittest2.TestCase):
         container = json.loads(resp.data)
         self.assertEqual(container['name'], 'test_create_container')
         self.assertEqual(container['extra']['object_count'], 0)
+        self.assertEqual(resp.status_code, httplib.CREATED)
 
     def test_create_container_already_exists(self):
         CloudFilesMockHttp.type = 'ALREADY_EXISTS'
@@ -132,3 +133,23 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
         self.assertEqual(result['error']['code'],
                          ContainerIsNotEmptyError.code)
+
+    def test_list_container_objects(self):
+        CloudFilesMockHttp.type = 'EMPTY'
+        url = self.url_tmpl % (
+            '/'.join(['containers', 'test_container', 'objects']))
+        resp = self.client.get(url, headers=self.headers)
+        objects = json.loads(resp.data)
+        self.assertEqual(len(objects), 0)
+        self.assertEqual(resp.status_code, httplib.OK)
+
+        CloudFilesMockHttp.type = None
+        resp = self.client.get(url, headers=self.headers)
+        objects = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(len(objects), 4)
+
+        obj = [o for o in objects if o['name'] == 'foo test 1'][0]
+        self.assertEqual(obj['hash'], '16265549b5bda64ecdaa5156de4c97cc')
+        self.assertEqual(obj['size'], 1160520)
+        self.assertEqual(obj['container']['name'], 'test_container')

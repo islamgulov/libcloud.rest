@@ -729,7 +729,7 @@ class RackspaceHealthMonitorEntry(LibcloudObjectEntry):
 
 class ContainerEntry(LibcloudObjectEntry):
     object_class = storage_base.Container
-    render_attrs = ('name', 'extra')
+    render_attrs = ('name', 'extra',)
     container_name = StringField('Name of container which should be used')
     container_extra = DictField('Extra of container which should be used',
                                 required=False)
@@ -738,6 +738,18 @@ class ContainerEntry(LibcloudObjectEntry):
         name = json_data['container_name']
         extra = json_data.get('container_extra', {})
         return storage_base.Container(name, extra, driver)
+
+
+class ObjectEntry(LibcloudObjectEntry):
+    object_class = storage_base.Object
+    render_attrs = ('name', 'size', 'hash', 'extra', 'meta_data', 'container')
+    container_name = StringField('Name of container which should be used')
+    object_name = StringField('Name of object which should be used')
+
+    def _get_object(self, json_data, driver):
+        container_name = json_data['container_name']
+        object_name = json_data['container_name']
+        return driver.get_container(container_name, object_name)
 
 
 simple_types_fields = {
