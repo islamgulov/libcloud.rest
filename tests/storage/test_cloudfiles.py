@@ -17,7 +17,7 @@ from libcloud.test.storage.test_cloudfiles import CloudFilesMockHttp,\
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
 from libcloud_rest.errors import NoSuchContainerError, \
-    ContainerAlreadyExistsError
+    ContainerAlreadyExistsError, InvalidContainerNameError
 
 
 class RackspaceUSTests(unittest2.TestCase):
@@ -85,3 +85,27 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.CONFLICT)
         self.assertEqual(result['error']['code'],
                          ContainerAlreadyExistsError.code)
+
+    def test_create_container_invalid_name_too_long(self):
+        name = ''.join(['x' for x in range(0, 257)])
+        url = self.url_tmpl % ('containers')
+        request_data = {'container_name': name}
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(request_data),
+                                content_type='application/json')
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(result['error']['code'],
+                         InvalidContainerNameError.code)
+
+    def test_create_container_invalid_name_slashes_in_name(self):
+        name = 'test/slahes/'
+        url = self.url_tmpl % ('containers')
+        request_data = {'container_name': name}
+        resp = self.client.post(url, headers=self.headers,
+                                data=json.dumps(request_data),
+                                content_type='application/json')
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(result['error']['code'],
+                         InvalidContainerNameError.code)

@@ -173,6 +173,12 @@ class ContainerAlreadyExistsError(LibcloudError):
     message = 'The requested container already exists.'
 
 
+class InvalidContainerNameError(LibcloudError):
+    code = 1016
+    name = 'InvalidContainerName'
+    http_status_code = httplib.BAD_REQUEST
+    message = 'Invalid container name was provided'
+
 INTERNAL_LIBCLOUD_ERRORS_MAP = {
     dns_types.ZoneAlreadyExistsError: ZoneAlreadyExistsError,
     dns_types.ZoneDoesNotExistError: NoSuchZoneError,
@@ -180,4 +186,5 @@ INTERNAL_LIBCLOUD_ERRORS_MAP = {
     dns_types.RecordDoesNotExistError: NoSuchRecordError,
     storage_types.ContainerDoesNotExistError: NoSuchContainerError,
     storage_types.ContainerAlreadyExistsError: ContainerAlreadyExistsError,
+    storage_types.InvalidContainerNameError: InvalidContainerNameError,
 }
