@@ -11,7 +11,7 @@ import libcloud_rest.log
 from libcloud_rest.log import get_logger
 from libcloud_rest.constants import VALID_LOG_LEVELS
 
-DEBUG = True
+DEBUG = False
 
 
 def start_server(host, port, logger, debug):
@@ -27,7 +27,7 @@ def start_server(host, port, logger, debug):
                    use_debugger=True, use_reloader=True)
     else:
         from gevent.monkey import patch_all
-        from gevent import wsgi
+        from gevent import pywsgi as wsgi
 
         patch_all()
         logger.info('HTTP server listening on %s:%s' % (host, port))

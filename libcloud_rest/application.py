@@ -20,7 +20,7 @@ class LibcloudRestApp(object):
     """
     url_map = urls
 
-    def dispatch(self, controller, action_name, request, params):
+    def dispatch(self, controller, action_name, request, params, env):
         """
 
         @param controller:
@@ -64,9 +64,9 @@ class LibcloudRestApp(object):
                          (request.remote_addr, request.method, request.url))
             endpoint, params = urls.match()
 
-            (controller_class, action) = endpoint
-            controller = controller_class()
-            response = self.dispatch(controller, action, request, params)
+            (handler_class, action) = endpoint
+            handler = handler_class()
+            response = self.dispatch(handler, action, request, params, environ)
         except HTTPException, e:
             response = e
 

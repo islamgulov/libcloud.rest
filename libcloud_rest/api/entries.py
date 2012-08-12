@@ -748,8 +748,17 @@ class ObjectEntry(LibcloudObjectEntry):
 
     def _get_object(self, json_data, driver):
         container_name = json_data['container_name']
-        object_name = json_data['container_name']
-        return driver.get_container(container_name, object_name)
+        object_name = json_data['object_name']
+        return driver.get_object(container_name, object_name)
+
+
+class ObjectFileIteratorEntry(LibcloudObjectEntry):
+    object_class = None
+    type_name = 'L{ObjectFileIterator}'
+    render_attrs = tuple()
+
+    def _get_object(self, json_data, driver):
+        raise NotImplementedError('This object can not be provided by user')
 
 
 simple_types_fields = {

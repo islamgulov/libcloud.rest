@@ -111,9 +111,12 @@ class BaseServiceHandler(object):
         return Response(json.dumps(result), mimetype='application/json',
                         status=httplib.OK)
 
-    def invoke_method(self, status_code=httplib.OK, data=None):
+    def invoke_method(self, status_code=httplib.OK, data=None,
+                      file_result=False):
         """
         Invoke method and return response with result represented as json.
+
+        @param file_result: If True wraps result
         """
         if data is None:
             data = self.request.data
@@ -128,6 +131,9 @@ class BaseServiceHandler(object):
             if isinstance(e, common_types.LibcloudError):
                 raise LibcloudError(detail=str(e))
             raise
+        if file_result:
+            return Response(result, status=httplib.OK,
+                            direct_passthrough=True)
         return Response(driver_method.invoke_result_to_json(result),
                         mimetype='application/json',
                         status=status_code)
@@ -202,6 +208,13 @@ class StorageHandler(BaseServiceHandler):
         if 'object_name' in self.params:
             data['object_name'] = self.params['object_name']
         return self.invoke_method(data=json.dumps(data))
+
+    def download_object(self):
+        data = {}
+        data['container_name'] = self.params['container_name']
+        data['object_name'] = self.params['object_name']
+        response = self.invoke_method(data=json.dumps(data), file_result=True)
+        return response
 
 
 #noinspection PyUnresolvedReferences

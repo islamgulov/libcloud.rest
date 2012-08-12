@@ -13,6 +13,9 @@ from werkzeug.wrappers import BaseResponse
 import libcloud
 from libcloud.test.storage.test_cloudfiles import CloudFilesMockHttp,\
     CloudFilesMockRawResponse
+from libcloud.storage.drivers.cloudfiles import CloudFilesUSStorageDriver
+from libcloud.storage.base import Container, Object
+from mock import patch
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
@@ -179,3 +182,18 @@ class RackspaceUSTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
         self.assertEqual(result['error']['code'],
                          NoSuchObjectError.code)
+
+    def test_download_object(self):
+        url = self.url_tmpl % (
+            '/'.join(['containers', 'foo_bar_container',
+                      'objects', 'foo_bar_object', 'download']))
+        container = Container(name='foo_bar_container', extra={}, driver=None)
+        obj = Object(name='foo_bar_object', size=1000, hash=None, extra={},
+                     container=container, meta_data=None,
+                     driver=None)
+
+        with patch.object(CloudFilesUSStorageDriver, 'get_object',
+                          mocksignature=True) as get_object_mock:
+            get_object_mock.return_value = obj
+            resp = self.client.get(url, headers=self.headers)
+        self.assertEqual(resp.status_code, httplib.OK)
