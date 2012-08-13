@@ -622,7 +622,7 @@ class MemberEntry(LibcloudObjectEntry):
         ip = json_data.get('member_ip', None)
         port = json_data.get('member_port', None)
         extra = json_data.get('member_extra', {})
-        return lb_base.Member(id, ip, port, extra)
+        return lb_base.Member(id, ip, port, extra=extra)
 
 
 class AlgorithmEntry(LibcloudObjectEntry):
