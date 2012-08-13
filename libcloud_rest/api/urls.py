@@ -84,6 +84,10 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
          '/objects/<string:object_name>',
          defaults={'method_name': 'upload_object_as_stream'},
          endpoint='upload_object', methods=['POST']),
+    Rule('/<string:provider>/containers/<string:container_name>'
+         '/objects/<string:object_name>',
+         defaults={'method_name': 'delete_object'},
+         endpoint='extract_params_and_invoke', methods=['DELETE']),
 ])
 
 loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [
