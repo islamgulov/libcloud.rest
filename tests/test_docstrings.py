@@ -5,6 +5,7 @@ from inspect import getmembers, ismethod
 from libcloud.compute import providers as compute_providers
 from libcloud.dns import providers as dns_providers
 from libcloud.loadbalancer import providers as lb_providers
+from libcloud.storage import providers as storage_providers
 from libcloud.test import secrets
 
 from libcloud_rest.api.providers import get_driver_by_provider_name
@@ -76,6 +77,11 @@ class TestDocstring(unittest2.TestCase):
         drivers = lb_providers.DRIVERS
         self._check_docstrings(providers, drivers)
 
+    def test_storage_docstrings(self):
+        providers = storage_providers.Provider
+        drivers = storage_providers.DRIVERS
+        self._check_docstrings(providers, drivers)
+
     def test_compute_provider_website(self):
         providers = compute_providers.Provider
         drivers = compute_providers.DRIVERS
@@ -89,4 +95,9 @@ class TestDocstring(unittest2.TestCase):
     def test_loadbalacner_provider_website(self):
         providers = lb_providers.Provider
         drivers = lb_providers.DRIVERS
+        self._check_website(providers, drivers)
+
+    def test_storage_provider_website(self):
+        providers = storage_providers.Provider
+        drivers = storage_providers.DRIVERS
         self._check_website(providers, drivers)
