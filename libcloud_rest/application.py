@@ -12,6 +12,7 @@ from libcloud_rest.log import logger
 from libcloud_rest.errors import LibcloudRestError
 from libcloud_rest.constants import MAX_BODY_LENGTH
 from libcloud_rest.utils import json
+from libcloud_rest.api.handlers import StorageHandler
 
 
 class LibcloudRestApp(object):
@@ -40,7 +41,8 @@ class LibcloudRestApp(object):
             if request.method == 'GET':
                 data = url_decode(request.query_string, cls=dict)
                 request.data = json.dumps(data)
-            if request.method in ['POST', 'PUT']:
+            if request.method in ['POST', 'PUT'] and\
+                    not isinstance(controller, StorageHandler):
                 request_header_validator(dict(request.headers))
             retval = action()
             return retval

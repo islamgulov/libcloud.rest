@@ -80,6 +80,10 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
          '/objects/<string:object_name>/download',
          defaults={'method_name': 'download_object_as_stream'},
          endpoint='download_object', methods=['GET']),
+    Rule('/<string:provider>/containers/<string:container_name>'
+         '/objects/<string:object_name>',
+         defaults={'method_name': 'upload_object_as_stream'},
+         endpoint='upload_object', methods=['POST']),
 ])
 
 loadbalancer_urls = HandlerEndpoint('/loadbalancer', LoadBalancerHandler, [

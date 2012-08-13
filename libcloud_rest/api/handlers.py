@@ -5,6 +5,7 @@ import inspect
 from werkzeug.wrappers import Response
 import libcloud
 from libcloud.common import types as common_types
+from werkzeug.wsgi import wrap_file
 
 from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers,\
@@ -18,6 +19,7 @@ from libcloud_rest.api.providers import get_providers_info,\
     get_driver_by_provider_name, get_driver_instance, get_providers_dict,\
     DriverMethod
 from libcloud_rest.utils import json
+from libcloud_rest.api import entries
 
 if DEBUG:
     import mock
@@ -213,8 +215,17 @@ class StorageHandler(BaseServiceHandler):
         data = {}
         data['container_name'] = self.params['container_name']
         data['object_name'] = self.params['object_name']
-        response = self.invoke_method(data=json.dumps(data), file_result=True)
-        return response
+        return self.invoke_method(data=json.dumps(data), file_result=True)
+
+    def upload_object(self):
+        driver = self._get_driver_instance()
+        data = {'container_name': self.params['container_name']}
+        container = entries.ContainerEntry._get_object(data, driver)
+        extra = {'content_type': self.request.content_type}
+        result = driver.upload_object_via_stream(
+            wrap_file(self.request.environ, self.request.stream, 8096),
+            container, self.params['object_name'], extra)
+        return Response(entries.ObjectEntry.to_json(result), status=httplib.OK)
 
 
 #noinspection PyUnresolvedReferences
