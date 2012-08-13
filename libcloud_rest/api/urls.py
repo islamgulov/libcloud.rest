@@ -73,11 +73,11 @@ storage_urls = HandlerEndpoint('/storage', StorageHandler, [
          defaults={'method_name': 'list_container_objects'},
          endpoint='extract_params_and_invoke', methods=['GET']),
     Rule('/<string:provider>/containers/<string:container_name>'
-         '/objects/<string:object_name>',
+         '/objects/<string:object_name>/metadata',
          defaults={'method_name': 'get_object'},
          endpoint='extract_params_and_invoke', methods=['GET']),
     Rule('/<string:provider>/containers/<string:container_name>'
-         '/objects/<string:object_name>/download',
+         '/objects/<string:object_name>',
          defaults={'method_name': 'download_object_as_stream'},
          endpoint='download_object', methods=['GET']),
     Rule('/<string:provider>/containers/<string:container_name>'

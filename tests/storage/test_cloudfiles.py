@@ -160,7 +160,7 @@ class RackspaceUSTests(unittest2.TestCase):
     def test_get_object_success(self):
         url = self.url_tmpl % (
             '/'.join(['containers', 'test_container',
-                      'objects', 'test_object']))
+                      'objects', 'test_object', 'metadata']))
         resp = self.client.get(url, headers=self.headers)
         obj = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.OK)
@@ -176,7 +176,7 @@ class RackspaceUSTests(unittest2.TestCase):
     def test_get_object_not_found(self):
         url = self.url_tmpl % (
             '/'.join(['containers', 'test_container',
-                      'objects', 'not_found']))
+                      'objects', 'not_found', 'metadata']))
         resp = self.client.get(url, headers=self.headers)
         result = json.loads(resp.data)
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
@@ -186,7 +186,7 @@ class RackspaceUSTests(unittest2.TestCase):
     def test_download_object(self):
         url = self.url_tmpl % (
             '/'.join(['containers', 'foo_bar_container',
-                      'objects', 'foo_bar_object', 'download']))
+                      'objects', 'foo_bar_object']))
         container = Container(name='foo_bar_container', extra={}, driver=None)
         obj = Object(name='foo_bar_object', size=1000, hash=None, extra={},
                      container=container, meta_data=None,
