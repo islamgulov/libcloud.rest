@@ -122,9 +122,9 @@ setup(
     package_dir={'libcloud_rest': 'libcloud_rest'},
     install_requires=[
         'Werkzeug==0.8.3',
-        'apache-libcloud>=0.9.1',
+        'apache-libcloud>=0.11.1',
         'argparse==1.2.1',
-        'wsgiref==0.1.2',
+        'gevent>=0.13.6'
     ],
     url='https://github.com/islamgulov/libcloud.rest/',
     license='Apache License (2.0)',
