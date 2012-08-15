@@ -55,14 +55,33 @@ Client have to sends provider specific credentials in X-headers with every reque
 List of required X-headers described in provider information.
 
 ##Error Codes & Responses##
-Error responses structure:
+When there is an error, the header information contains:
+ * Content-Type: application/json
+ * HTTP status code
 
+The body of the response constains elemements: 
  * code -  integer unique identifier for an error
  * name - error name
  * message - error message
  * detail - detailed error message
 
-The following table lists Libcloud.REST error codes.
+Sample of error response:
+```http
+HTTP/1.1 400 BAD REQUEST
+Content-Length: 122
+Content-Type: application/json
+
+{
+    "error": {
+        "code": 1001, 
+        "detail": "", 
+        "message": "Provider UNKNOWN does not supported.", 
+        "name": "ProviderNotSupported"
+    }
+}
+```
+
+The following table lists Libcloud.REST error codes:
 
 | Error Code | Name | Message | HTTP Status Code |
 |----------|----|-------|----------------|
