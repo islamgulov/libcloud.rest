@@ -62,7 +62,29 @@ Error responses structure:
  * message - error message
  * detail - detailed error message
 
-[List of error codes](example.com) 
+The following table lists Libcloud.REST error codes.
+
+| Error Code | Name | Message | HTTP Status Code |
+|----------|----|-------|----------------|
+|1000|UnknownError|An unknown error occurred.|500 Internal Server Error|
+|1001|ProviderNotSupported|Provider `provider` does not supported.|400 Bad Request|
+|1002|InternalError|We encountered an internal error.|500 Internal Server Error|
+|1003|MissingHeaders|Your request was missing a required headers: `headers`.|400 Bad Request|
+|1004|UnknownHeaders|Your request is containing a unknown headers: `headers`.|400 Bad Request|
+|1005|InternalLibcloudError|We encountered an internal error in libcloud.|500 Internal Server Error|
+|1006|ValidationError|An unknown error occurred.|400 Bad Request|
+|1007|MalformedJSON|The JSON you provided is not well-formed.|400 Bad Request|
+|1009|NoSuchZone|The specified zone does not exist|404 Not Found|
+|1010|ZoneAlreadyExists|The requested zone already exists.|409 Conflict|
+|1011|NoSuchRecord|The specified record does not exist|404 Not Found|
+|1012|RecordAlreadyExists|The requested record already exists.|409 Conflict|
+|1013|ArgumentsError|The request contain more than one of mutually exclusive arguments|400 Bad Request|
+|1014|NoSuchContainer|The specified container does not exist|404 Not Found|
+|1015|ContainerAlreadyExists|The requested container already exists.|409 Conflict|
+|1016|InvalidContainerName|Invalid container name was provided|400 Bad Request|
+|1017|ContainerIsNotEmpty|Container is not empty|400 Bad Request|
+|1018|NoSuchObject|The specified Object does not exist|404 Not Found|
+
 
 
 
