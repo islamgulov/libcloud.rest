@@ -108,7 +108,7 @@ class BaseServiceHandler(object):
             arg['name'] = ARGS_TO_XHEADERS_DICT[arg['name']]
         result = {'name': driver.name,
                   'website': driver.website,
-                  'x-headers': init_arguments,
+                  'X-headers': init_arguments,
                   'supported_methods': supported_methods}
         return Response(json.dumps(result), mimetype='application/json',
                         status=httplib.OK)
