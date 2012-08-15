@@ -11,7 +11,7 @@ from libcloud_rest.api.versions import versions
 from libcloud_rest.api.parser import parse_request_headers,\
     ARGS_TO_XHEADERS_DICT
 from libcloud_rest.errors import LibcloudError, INTERNAL_LIBCLOUD_ERRORS_MAP,\
-    ProviderNotSupportedError, MethodParsingException
+    ProviderNotSupportedError, MethodParsingException, NoSuchOperationError
 from libcloud_rest.constants import TEST_QUERY_STRING
 from libcloud_rest.server import DEBUG
 from libcloud_rest.log import logger
@@ -123,7 +123,7 @@ class BaseServiceHandler(object):
         if data is None:
             data = self.request.data
         driver = self._get_driver_instance()
-        method_name = self.params.get('method_name')
+        method_name = self.params.get('method_name', None)
         driver_method = DriverMethod(driver, method_name)
         try:
             result = driver_method.invoke(data)
@@ -139,6 +139,12 @@ class BaseServiceHandler(object):
         return Response(driver_method.invoke_result_to_json(result),
                         mimetype='application/json',
                         status=status_code)
+
+    def invoke_extension_method(self, *args, **kwargs):
+        method_name = self.params.get('method_name', None)
+        if method_name is None or not method_name.startswith('ex_'):
+            raise NoSuchOperationError()
+        return self.invoke_method()
 
 
 #noinspection PyUnresolvedReferences

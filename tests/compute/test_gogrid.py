@@ -16,7 +16,7 @@ from libcloud.test.compute.test_gogrid import GoGridMockHttp
 
 from libcloud_rest.api.versions import versions as rest_versions
 from libcloud_rest.application import LibcloudRestApp
-from libcloud_rest.errors import UnknownHeadersError, ValidationError,\
+from libcloud_rest.errors import NoSuchOperationError, ValidationError,\
     MalformedJSONError
 from tests.file_fixtures import ComputeFixtures
 
@@ -173,6 +173,22 @@ class GoGridTests(unittest2.TestCase):
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(resp_data['name'], 'testimage')
 
+    def test_bad_extension_method(self):
+        url = self.url_tmpl % 'list_nodes'
+        resp = self.client.post(url, headers=self.headers,
+                                content_type='application/json')
+        result = json.loads(resp.data)
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(result['error']['code'],
+                         NoSuchOperationError.code)
+        url = self.url_tmpl % 'ex_list_nodes'
+        resp = self.client.post(url, headers=self.headers,
+                                content_type='application/json')
+        result = json.loads(resp.data)
+        print result
+        self.assertEqual(resp.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(result['error']['code'],
+                         NoSuchOperationError.code)
 
 if __name__ == '__main__':
     sys.exit(unittest2.main())

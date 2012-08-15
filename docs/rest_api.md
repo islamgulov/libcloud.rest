@@ -86,10 +86,10 @@ The following table lists Libcloud.REST error codes:
 | Error Code | Name | Message | HTTP Status Code |
 |----------|----|-------|----------------|
 |1000|UnknownError|An unknown error occurred.|500 Internal Server Error|
-|1001|ProviderNotSupported|Provider `provider` does not supported.|400 Bad Request|
+|1001|ProviderNotSupported|Provider %(provider)s does not supported.|400 Bad Request|
 |1002|InternalError|We encountered an internal error.|500 Internal Server Error|
-|1003|MissingHeaders|Your request was missing a required headers: `headers`.|400 Bad Request|
-|1004|UnknownHeaders|Your request is containing a unknown headers: `headers`.|400 Bad Request|
+|1003|MissingHeaders|Your request was missing a required headers: %(headers)s.|400 Bad Request|
+|1004|UnknownHeaders|Your request is containing a unknown headers: %(headers)s.|400 Bad Request|
 |1005|InternalLibcloudError|We encountered an internal error in libcloud.|500 Internal Server Error|
 |1006|ValidationError|An unknown error occurred.|400 Bad Request|
 |1007|MalformedJSON|The JSON you provided is not well-formed.|400 Bad Request|
@@ -103,6 +103,8 @@ The following table lists Libcloud.REST error codes:
 |1016|InvalidContainerName|Invalid container name was provided|400 Bad Request|
 |1017|ContainerIsNotEmpty|Container is not empty|400 Bad Request|
 |1018|NoSuchObject|The specified Object does not exist|404 Not Found|
+|1019|NoSuchOperation|The specified operation name does not supported by provider.|400 Bad Request|
+
 
 
 

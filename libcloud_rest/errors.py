@@ -119,7 +119,7 @@ class MalformedJSONError(LibcloudRestError):
     message = 'The JSON you provided is not well-formed.'
 
 
-class NoSuchObjectError(LibcloudError):
+class NoSuchObjectError(LibcloudRestError):
     code = 1008
     name = 'NoSuchObject'
     http_status_code = httplib.NOT_FOUND
@@ -191,6 +191,13 @@ class NoSuchObjectError(NoSuchObjectError):
     code = 1018
     name = 'NoSuchObject'
     message = 'The specified Object does not exist'
+
+
+class NoSuchOperationError(LibcloudRestError):
+    code = 1019
+    name = 'NoSuchOperation'
+    message = 'The specified operation name does not supported by provider.'
+    http_status_code = httplib.BAD_REQUEST
 
 
 INTERNAL_LIBCLOUD_ERRORS_MAP = {

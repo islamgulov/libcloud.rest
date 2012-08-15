@@ -32,7 +32,7 @@ provider_info_rule = Rule(
     endpoint='provider_info', methods=['GET'])
 
 extra_method_rule = Rule('/<string:provider>/<string:method_name>',
-                         endpoint='invoke_method', methods=['POST'])
+                         endpoint='invoke_extension_method', methods=['POST'])
 
 list_objects_rule_template = RuleTemplate([Rule(
     '/<string:provider>/$objects', defaults={'method_name': 'list_$objects'},

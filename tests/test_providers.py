@@ -2,8 +2,7 @@
 import unittest2
 
 from libcloud_rest.api.providers import DriverMethod
-from libcloud_rest.utils import json
-from libcloud_rest.errors import MethodParsingException
+from libcloud_rest.errors import NoSuchOperationError, MethodParsingException
 
 
 class FakeDriver(object):
@@ -91,7 +90,7 @@ class FakeDriverTests(unittest2.TestCase):
 class DriverMethodTests(unittest2.TestCase):
     def test_method(self):
         self.assertTrue(DriverMethod(FakeDriver, 'ex_create_fake'))
-        self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
+        self.assertRaises(NoSuchOperationError, DriverMethod, FakeDriver,
                           'variable')
         self.assertRaises(MethodParsingException, DriverMethod, FakeDriver,
                           'get_not_documented')

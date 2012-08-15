@@ -7,7 +7,8 @@ from libcloud.utils.misc import get_driver
 from libcloud_rest.api.parser import ARGS_TO_XHEADERS_DICT,\
     parse_args, parse_docstring, get_method_docstring
 from libcloud_rest.errors import ProviderNotSupportedError,\
-    MissingArguments, MissingHeadersError, MethodParsingException
+    MissingArguments, MissingHeadersError, MethodParsingException,\
+    NoSuchOperationError
 from libcloud_rest.api.entries import Entry
 from libcloud_rest.utils import json
 
@@ -24,7 +25,7 @@ class DriverMethod(object):
         self.method_name = method_name
         self.method = getattr(self.driver_obj, method_name, None)
         if not inspect.ismethod(self.method):
-            raise MethodParsingException('Bad method.')
+            raise NoSuchOperationError()
         method_doc = get_method_docstring(self.driver_cls, method_name)
         if not method_doc:
             raise MethodParsingException('Empty docstring')
