@@ -142,7 +142,7 @@ class GoGridTests(unittest2.TestCase):
     def test_reboot_node(self):
         node_id = 90967
         url = self.url_tmpl % ('/'.join(['nodes', str(node_id), 'reboot']))
-        resp = self.client.post(url, headers=self.headers,
+        resp = self.client.put(url, headers=self.headers,
                                 content_type='application/json')
         self.assertEqual(resp.status_code, httplib.ACCEPTED)
 
@@ -150,7 +150,7 @@ class GoGridTests(unittest2.TestCase):
         GoGridMockHttp.type = 'FAIL'
         node_id = 90967
         url = self.url_tmpl % ('/'.join(['nodes', str(node_id), 'reboot']))
-        resp = self.client.post(url, headers=self.headers,
+        resp = self.client.put(url, headers=self.headers,
                                 content_type='application/json')
         self.assertEqual(resp.status_code, httplib.INTERNAL_SERVER_ERROR)
 
