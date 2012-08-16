@@ -173,7 +173,7 @@ class ComputeHandler(BaseServiceHandler):
     def destroy_node(self):
         json_data = {'node_id': self.params['node_id']}
         return self.invoke_method(data=json.dumps(json_data),
-                                  status_code=httplib.NO_CONTENT)
+                                  status_code=httplib.ACCEPTED)
 
 
 #noinspection PyUnresolvedReferences
