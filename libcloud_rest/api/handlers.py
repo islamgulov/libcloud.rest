@@ -37,7 +37,7 @@ class ApplicationHandler(object):
             'libcloud_version': libcloud.__version__,
             'api_version': versions[libcloud.__version__]
         }
-        return self.json_response(response)
+        return Response(json.dumps(response))
 
 
 class BaseServiceHandler(object):
