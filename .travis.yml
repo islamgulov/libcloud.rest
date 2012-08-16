@@ -5,7 +5,7 @@ python:
   - "pypy"
 
 install:
-  - pip install -r requirements.txt --use-mirrors
+  - pip install Werkzeug
   - pip install mock unittest2
   - pip install --upgrade -e git://git.apache.org/libcloud.git#egg=libcloud
 
