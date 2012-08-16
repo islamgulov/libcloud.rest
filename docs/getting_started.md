@@ -40,10 +40,8 @@ Options:
 It can be used to interact with the Libcloud REST API.
 
 
-**Get list of images**
+**Get list of images**  
 You can request a image list  with this command in cURL:
-`GET /compute/<provider>/images`
-cURL list images exampel
 ```shell
 curl libcloud-api:5000/0.1/compute/RACKSPACE_UK/images -H x-auth-user:user -H x-api-key:123
 ```
@@ -55,8 +53,8 @@ In return, you should get 200 OK response with list of images.
  ...
 ]
 ```
-**Create node**
-Create node endpoint:
+**Create node**  
+The call to create a server must use the POST method and request body must be JSON payload with node arguments.
 ```shell
 curl -i -X POST localhost:5000/0.1/compute/RACKSPACE_UK/nodes -H x-auth-user:user -H x-api-key:123
 -H  "Content-Type: application/json" -d '{"name": "rest_test","size_id" : "1", "image_id": "115"}'
