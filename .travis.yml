@@ -6,6 +6,7 @@ python:
 
 install:
   - pip install Werkzeug
+  - pip install pep8
   - pip install mock unittest2
   - pip install --upgrade -e git://git.apache.org/libcloud.git#egg=libcloud
 
