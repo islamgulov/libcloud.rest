@@ -34,11 +34,27 @@ The API provide interface for four libcloud components:
  * [DNS](example.com)
 
 Each component have base API. Also some  provider have extension operations and some of base method can contain extra arguments.  
-###List of supported providers###
-`GET /<component>/providers/` - Returns list of component supported providers.
 
-###Provider information###
-`GET /<component>/providers/<provider id>` - Returns an array of provider specific operations information and required credentials. 
+You can get provider required createntials and supported endpoints from automatically
+ generated documentation on every server running the Libcloud.REST.
+ Documenation avaliable in JSON.
+ 
+###Information endpoints:###
+**List of supported providers**  
+`GET /<component>/providers/` - Returns list of component supported providers. 
+
+**Provider information**  
+`GET /<component>/providers/<provider id>` - Returns provider information dictionaty with following key.  
+ * website - provider website
+ * supported_methods - the dictionary object. methods names are keys with method information values.  
+   Method infromation contain is also dictation with keys:
+  * name - method name
+  * description - method description
+  * arguments - a list of arguments
+  * return - return value information
+ * x-headers - list of provider supported creantials
+
+
 
 ##Error Codes & Responses##
 When there is an error, the header information contains:
