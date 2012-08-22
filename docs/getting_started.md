@@ -20,7 +20,11 @@
 	$ python setup.py install`
 
 
+**Note** that you either have to have setuptools or distribute installed, the latter is preferred.
 **Note**: If installing `Gevent` fails you probably need to install the `libevent`. On Ubuntu the package name for apt-get is `libevent-dev`.
+If you don't want install Gevent, you can install with `--without-gevent` argument(`python setup.py install --without-gevent`)
+ and start server with `--debug` argument, buildin Werkzeug will be used.
+(`libcloud_rest --debug`).
 
 
 ## Run ##
@@ -33,7 +37,7 @@ Options:
     --port=PORT        Port to listen on
     --log-level=LEVEL  Log level
     --log-file=PATH    Log file path. If not provided logs will go to stdout
-    --debug            Enable debug mode
+    --debug            Enable debug mode, start serving without gevent with debug output
 
 ## Examples ##
 [cURL](http://curl.haxx.se/) is a command line tool for transferring data with URL syntax.
