@@ -27,9 +27,9 @@ class ComputeTest(unittest2.TestCase):
         resp = self.client.get(url)
         resp_data = json.loads(resp.data)
         provider = {
-            "website": "http://www.rackspace.com/",
-            "friendly_name": "RackspaceNovalon",
-            "id": "RACKSPACE_NOVA_LON"
+            'website': 'http://www.rackspace.com',
+            'friendly_name': 'Rackspace Cloud',
+            'id': 'RACKSPACE'
         }
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertIn(provider, resp_data)
