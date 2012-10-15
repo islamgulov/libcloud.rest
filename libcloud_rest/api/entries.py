@@ -422,6 +422,17 @@ class OpenStack_1_0_SharedIpGroupEntry(LibcloudObjectEntry):
                                      'group which should be used')
 
 
+class OpenStackNetworkEntry(LibcloudObjectEntry):
+    object_class = compute_openstack.OpenStackNetwork
+    render_attrs = ['id', 'name', 'cidr']
+    openstack_network_id = StringField('ID of openstack network '
+                                         'which should be used')
+
+    def _get_object(self, json_data, driver):
+        network_id = json_data['openstack_network_id']
+        return self.object_class(network_id, None, None, None)
+
+
 class CloudStackDiskOfferingEntry(LibcloudObjectEntry):
     object_class = compute_cloudstack.CloudStackDiskOffering
     render_attrs = ('id', 'name', 'size', 'customizable',)

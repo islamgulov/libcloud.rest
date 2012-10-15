@@ -5,7 +5,7 @@ from libcloud.compute.drivers.gogrid import GoGridNodeDriver
 from libcloud.test.compute.test_gogrid import GoGridMockHttp
 from libcloud.compute.drivers.cloudstack import CloudStackNodeDriver
 from libcloud.test.compute.test_cloudstack import CloudStackMockHttp
-from libcloud.compute.drivers.rackspace import RackspaceNodeDriver
+from libcloud.compute.drivers.rackspace import RackspaceFirstGenNodeDriver
 from libcloud.test.compute.test_openstack import OpenStackMockHttp
 
 from tests.patch import ConnClassDriverPatch, BaseDriverPatch
@@ -39,5 +39,5 @@ PATCHES = {
                                                     GoGridMockHttp),
     CloudStackNodeDriver.__name__: ConnClassDriverPatch(None,
                                                         CloudStackMockHttp),
-    RackspaceNodeDriver.__name__: RackspaceComputePatch(),
+    RackspaceFirstGenNodeDriver.__name__: RackspaceComputePatch(),
 }

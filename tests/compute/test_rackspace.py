@@ -23,7 +23,7 @@ class RackspaceTests(unittest2.TestCase):
         self.fixtures = ComputeFixtures('rackspace')
         self.headers = {'x-auth-user': 'user', 'x-api-key': 'key'}
         self.url_tmpl = rest_versions[libcloud.__version__] +\
-            '/compute/rackspace/%s?test=1'
+            '/compute/RACKSPACE_FIRST_GEN/%s?test=1'
         OpenStackMockHttp.type = None
 
     def test_create_node(self):
