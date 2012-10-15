@@ -12,6 +12,7 @@ from libcloud.common import gogrid as gogrid_common
 from libcloud.compute.drivers import gogrid as gogrid_compute
 from libcloud.compute.drivers import opsource as opsourse_compute
 from libcloud.compute.drivers import vcloud as vcloud_compute
+from libcloud.compute.drivers import ibm_sce as ibm_sce_compute
 from libcloud.dns import types as dns_types
 from libcloud.dns import base as dns_base
 from libcloud.loadbalancer import base as lb_base
@@ -426,7 +427,7 @@ class OpenStackNetworkEntry(LibcloudObjectEntry):
     object_class = compute_openstack.OpenStackNetwork
     render_attrs = ['id', 'name', 'cidr']
     openstack_network_id = StringField('ID of openstack network '
-                                         'which should be used')
+                                       'which should be used')
 
     def _get_object(self, json_data, driver):
         network_id = json_data['openstack_network_id']
@@ -548,6 +549,29 @@ class OpenNebulaNodeSizeEntry(NodeSizeEntry):
         size_id = json_data['size_id']
         return opennebula_compute.OpenNebulaNodeSize(
             size_id, None, None, None, None, None, driver)
+
+
+class IBMAddressEntry(LibcloudObjectEntry):
+    object_class = ibm_sce_compute.Address
+    render_attrs = ('id', 'ip', 'state', 'option')
+    ibm_sce_address_id = StringField('ID of address which should be used')
+
+    def _get_object(self, json_data, driver):
+        address_id = json_data['ibm_sce_address_id']
+        return ibm_sce_compute.Address(
+            address_id, None, None, None)
+
+
+class IBMVolumeOfferingEntry(LibcloudObjectEntry):
+    object_class = ibm_sce_compute.VolumeOffering
+    render_attrs = ('id', 'location', 'name', 'extra')
+    ibm_voluem_offering_id = StringField('ID of volume offering '
+                                         'which should be used')
+
+    def _get_object(self, json_data, driver):
+        address_id = json_data['ibm_volume_offering_id']
+        return ibm_sce_compute.VolumeOffering(
+            address_id, None, None, {})
 
 
 class OpsourceNetworkEntry(LibcloudObjectEntry):
