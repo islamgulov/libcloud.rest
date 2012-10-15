@@ -588,7 +588,6 @@ class OpsourceNetworkEntry(LibcloudObjectEntry):
 
 class VCloudVdcEntry(LibcloudObjectEntry):
     object_class = vcloud_compute.Vdc
-    type_name = 'L{VCloudVDC}'
     render_attrs = ('id', 'name')
     vcloud_vdc_id = StringField('ID of vDC which should be used')
 
