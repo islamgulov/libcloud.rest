@@ -26,7 +26,7 @@ if DEBUG:
 
 
 class ApplicationHandler(object):
-    def index(self):
+    def index(self, request):
         """
 
         @return:
@@ -48,13 +48,14 @@ class BaseServiceHandler(object):
     _Providers = None
     _providers_list_response = None
 
-    def _get_driver_instance(self):
-        provider_name = self.params.get('provider')
-        headers = self.request.headers
+    @classmethod
+    def _get_driver_instance(cls, request):
+        provider_name = request.args.get('provider')
+        headers = request.headers
         api_data = parse_request_headers(headers)
         Driver = get_driver_by_provider_name(
-            self._DRIVERS, self._Providers, provider_name)
-        if TEST_QUERY_STRING in self.request.query_string and DEBUG:
+            cls._DRIVERS, cls._Providers, provider_name)
+        if TEST_QUERY_STRING in request.query_string and DEBUG:
             from tests.utils import get_test_driver_instance
 
             driver_instance = get_test_driver_instance(Driver, **api_data)
@@ -62,20 +63,22 @@ class BaseServiceHandler(object):
             driver_instance = get_driver_instance(Driver, **api_data)
         return driver_instance
 
-    def providers(self):
+    @classmethod
+    def providers(cls, request):
         """
 
         @return:
         """
-        if self._providers_list_response is None:
-            providers_info = get_providers_info(self._DRIVERS,
-                                                self._Providers)
+        if cls._providers_list_response is None:
+            providers_info = get_providers_info(cls._DRIVERS,
+                                                cls._Providers)
             response = Response(json.dumps(providers_info),
                                 mimetype='application/json', status=httplib.OK)
-            self.__class__._providers_list_response = response
-        return self._providers_list_response
+            cls._providers_list_response = response
+        return cls._providers_list_response
 
-    def provider_info(self):
+    @classmethod
+    def provider_info(cls, request):
         """
         Introspect provider class and return response what contain:
         name - provider.name attribute
@@ -85,9 +88,9 @@ class BaseServiceHandler(object):
         supported_methods - list of all methods information which supported by
             provider, Method information parsed from method docstings
         """
-        provider_name = self.params.get('provider_name', '')
+        provider_name = request.args.get('provider_name', '')
         provider_name = provider_name.upper()
-        providers = get_providers_dict(self._DRIVERS, self._Providers)
+        providers = get_providers_dict(cls._DRIVERS, cls._Providers)
         if not provider_name in providers:
             raise ProviderNotSupportedError(provider=provider_name)
         driver = providers[provider_name]
@@ -113,7 +116,8 @@ class BaseServiceHandler(object):
         return Response(json.dumps(result), mimetype='application/json',
                         status=httplib.OK)
 
-    def invoke_method(self, status_code=httplib.OK, data=None,
+    @classmethod
+    def invoke_method(cls, request, status_code=httplib.OK, data=None,
                       file_result=False):
         """
         Invoke method and return response with result represented as json.
@@ -121,9 +125,9 @@ class BaseServiceHandler(object):
         @param file_result: If True wraps result
         """
         if data is None:
-            data = self.request.data
-        driver = self._get_driver_instance()
-        method_name = self.params.get('method_name', None)
+            data = request.data
+        driver = cls._get_driver_instance(request)
+        method_name = request.args.get('method_name', None)
         driver_method = DriverMethod(driver, method_name)
         try:
             result = driver_method.invoke(data)
@@ -140,199 +144,212 @@ class BaseServiceHandler(object):
                         mimetype='application/json',
                         status=status_code)
 
-    def invoke_extension_method(self, *args, **kwargs):
-        method_name = self.params.get('method_name', None)
+    def invoke_extension_method(self, request, *args, **kwargs):
+        method_name = request.args.get('method_name', None)
         if method_name is None or not method_name.startswith('ex_'):
             raise NoSuchOperationError()
-        return self.invoke_method()
+        return self.invoke_method(request)
 
 
-#noinspection PyUnresolvedReferences
 class ComputeHandler(BaseServiceHandler):
     from libcloud.compute.providers import Provider as _Providers
     from libcloud.compute.providers import DRIVERS as _DRIVERS
 
-    def create_node(self):
+    @classmethod
+    def create_node(cls, request):
         """
         Invoke create_node method and patch response.
 
         @return: Response object with newly created node ID in Location.
         """
-        response = self.invoke_method()
+        response = cls.invoke_method(request)
         node_id = json.loads(response.data)['id']
         response.autocorrect_location_header = False
         response.headers.add_header('Location', node_id)
         response.status_code = httplib.CREATED
         return response
 
-    def reboot_node(self):
-        json_data = {'node_id': self.params['node_id']}
-        return self.invoke_method(data=json.dumps(json_data),
+    @classmethod
+    def reboot_node(cls, request):
+        json_data = {'node_id': request.args['node_id']}
+        return cls.invoke_method(request, data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)
 
-    def destroy_node(self):
-        json_data = {'node_id': self.params['node_id']}
-        return self.invoke_method(data=json.dumps(json_data),
+    @classmethod
+    def destroy_node(cls, request):
+        json_data = {'node_id': request.args['node_id']}
+        return cls.invoke_method(request, data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)
 
 
-#noinspection PyUnresolvedReferences
 class StorageHandler(BaseServiceHandler):
     from libcloud.storage.providers import Provider as _Providers
     from libcloud.storage.providers import DRIVERS as _DRIVERS
 
-    def get_container(self):
-        data = {'container_name': self.params['container_name']}
-        return self.invoke_method(data=json.dumps(data))
+    @classmethod
+    def get_container(cls, request):
+        data = {'container_name': request.args['container_name']}
+        return cls.invoke_method(request, data=json.dumps(data))
 
-    def create_container(self):
+    @classmethod
+    def create_container(cls, request):
         """
         Invoke create_container method and patch response.
 
         @return: Response object with newly created container name in Location.
         """
-        response = self.invoke_method()
+        response = cls.invoke_method(request)
         balancer_id = json.loads(response.data)['name']
         response.autocorrect_location_header = False
         response.headers.add_header('Location', balancer_id)
         response.status_code = httplib.CREATED
         return response
 
-    def delete_container(self):
-        data = {'container_name': self.params['container_name']}
-        return self.invoke_method(data=json.dumps(data),
+    @classmethod
+    def delete_container(cls, request):
+        data = {'container_name': request.args['container_name']}
+        return cls.invoke_method(request, data=json.dumps(data),
                                   status_code=httplib.NO_CONTENT)
 
-    def extract_params_and_invoke(self):
+    @classmethod
+    def extract_params_and_invoke(cls, request):
         """
         Get container name and object name from params
             and add it to request data.
         """
-        if self.request.data:
-            data = json.loads(self.request.data)
+        if request.data:
+            data = json.loads(request.data)
         else:
             data = {}
-        data['container_name'] = self.params['container_name']
-        if 'object_name' in self.params:
-            data['object_name'] = self.params['object_name']
-        return self.invoke_method(data=json.dumps(data))
+        data['container_name'] = request.args['container_name']
+        if 'object_name' in request.args:
+            data['object_name'] = request.args['object_name']
+        return cls.invoke_method(request, data=json.dumps(data))
 
-    def download_object(self):
-        data = {}
-        data['container_name'] = self.params['container_name']
-        data['object_name'] = self.params['object_name']
-        return self.invoke_method(data=json.dumps(data), file_result=True)
+    @classmethod
+    def download_object(cls, request):
+        data = {
+            'container_name': request.args['container_name'],
+            'object_name': request.args['object_name']
+        }
+        return cls.invoke_method(request, data=json.dumps(data), file_result=True)
 
-    def upload_object(self):
-        driver = self._get_driver_instance()
-        data = {'container_name': self.params['container_name']}
+    @classmethod
+    def upload_object(cls, request):
+        driver = cls._get_driver_instance(request)
+        data = {'container_name': request.args['container_name']}
         container = entries.ContainerEntry._get_object(data, driver)
-        extra = {'content_type': self.request.content_type}
+        extra = {'content_type': request.content_type}
         result = driver.upload_object_via_stream(
-            wrap_file(self.request.environ, self.request.stream, 8096),
-            container, self.params['object_name'], extra)
+            wrap_file(request.environ, request.stream, 8096),
+            container, request.args['object_name'], extra)
         return Response(entries.ObjectEntry.to_json(result), status=httplib.OK)
 
-
-#noinspection PyUnresolvedReferences
 class LoadBalancerHandler(BaseServiceHandler):
     from libcloud.loadbalancer.providers import Provider as _Providers
     from libcloud.loadbalancer.providers import DRIVERS as _DRIVERS
 
-    def create_balancer(self):
+    @classmethod
+    def create_balancer(cls, request):
         """
         Invoke create_balancer method and patch response.
 
         @return: Response object with newly created balancer ID in Location.
         """
-        response = self.invoke_method()
+        response = cls.invoke_method(request)
         balancer_id = json.loads(response.data)['id']
         response.autocorrect_location_header = False
         response.headers.add_header('Location', balancer_id)
         response.status_code = httplib.CREATED
         return response
 
-    def destroy_balancer(self):
+    @classmethod
+    def destroy_balancer(cls, request):
         """
         Get balancer id from params and invoke destroy_balancer driver method.
         @return: Empty response body
         """
-        json_data = {'loadbalancer_id': self.params['loadbalancer_id']}
-        return self.invoke_method(data=json.dumps(json_data),
+        json_data = {'loadbalancer_id': request.args['loadbalancer_id']}
+        return cls.invoke_method(request, data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)
 
-    def patch_request_and_invoke(self):
+    @classmethod
+    def patch_request_and_invoke(cls, request):
         """
         Get balancer id from params and  add it to request data.
         @return: Balancer information in response body
         """
-        json_data = json.loads(self.request.data)
-        json_data['loadbalancer_id'] = self.params['loadbalancer_id']
-        self.request.data = json.dumps(json_data)
-        return self.invoke_method()
+        json_data = json.loads(request.data)
+        json_data['loadbalancer_id'] = request.args['loadbalancer_id']
+        return cls.invoke_method(request, data=json.dumps(json_data))
 
-    def get_balancer(self):
-        data = json.dumps({'balancer_id': self.params['balancer_id']})
-        return self.invoke_method(data=data)
+    @classmethod
+    def get_balancer(cls, request):
+        data = json.dumps({'balancer_id': request.args['balancer_id']})
+        return cls.invoke_method(request, data=data)
 
-    def detach_member(self):
+    @classmethod
+    def detach_member(cls, request):
         """
         @return:This operation does not return a response body.
         """
-        json_data = {'loadbalancer_id': self.params['loadbalancer_id'],
-                     'member_id': self.params['member_id']}
-        return self.invoke_method(data=json.dumps(json_data),
+        json_data = {'loadbalancer_id': request.args['loadbalancer_id'],
+                     'member_id': request.args['member_id']}
+        return cls.invoke_method(request, data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)
 
 
-#noinspection PyUnresolvedReferences
 class DNSHandler(BaseServiceHandler):
     from libcloud.dns.providers import Provider as _Providers
     from libcloud.dns.providers import DRIVERS as _DRIVERS
 
-    def extract_zone_id_and_invoke(self):
+    @classmethod
+    def extract_zone_id_and_invoke(cls, request):
         """
         Get zone id from params and add it to request data.
         """
-        json_data = json.loads(self.request.data)
-        json_data['zone_id'] = self.params['zone_id']
-        return self.invoke_method(data=json.dumps(json_data))
+        json_data = json.loads(request.data)
+        json_data['zone_id'] = request.args['zone_id']
+        return cls.invoke_method(request, data=json.dumps(json_data))
 
-    def extract_zone_record_and_invoke(self):
+    @classmethod
+    def extract_zone_record_and_invoke(cls, request):
         """
         Get zone id from params and add it to request data.
         """
-        json_data = json.loads(self.request.data)
-        json_data['zone_id'] = self.params['zone_id']
-        json_data['record_id'] = self.params['record_id']
-        self.request.data = json.dumps(json_data)
-        return self.invoke_method()
+        json_data = json.loads(request.data)
+        json_data['zone_id'] = request.args['zone_id']
+        json_data['record_id'] = request.args['record_id']
+        return cls.invoke_method(request, data=json.dumps(json_data))
 
-    def create_zone(self):
+    @classmethod
+    def create_zone(cls, request):
         """
         Invoke create_zone method and patch response.
 
         @return: Response object with newly created balancer ID in Location.
         """
-        response = self.invoke_method()
+        response = cls.invoke_method(request)
         zone_id = json.loads(response.data)['id']
         response.autocorrect_location_header = False
         response.headers.add_header('Location', zone_id)
         response.status_code = httplib.CREATED
         return response
 
-    def delete_zone(self):
+    @classmethod
+    def delete_zone(cls, request):
         """
         @return:This operation does not return a response body.
         """
-        json_data = {'zone_id': self.params['zone_id']}
-        return self.invoke_method(data=json.dumps(json_data),
+        json_data = {'zone_id': request.args['zone_id']}
+        return cls.invoke_method(request, data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)
 
-    def create_record(self):
-        json_data = json.loads(self.request.data)
-        json_data['zone_id'] = self.params['zone_id']
-        response = self.invoke_method(data=json.dumps(json_data),
+    @classmethod
+    def create_record(cls, request):
+        json_data = json.loads(request.data)
+        json_data['zone_id'] = request.args['zone_id']
+        response = cls.invoke_method(request, data=json.dumps(json_data),
                                       status_code=httplib.ACCEPTED)
         record_id = json.loads(response.data)['id']
         response.autocorrect_location_header = False
@@ -340,8 +357,9 @@ class DNSHandler(BaseServiceHandler):
         response.status_code = httplib.CREATED
         return response
 
-    def delete_record(self):
-        json_data = {'zone_id': self.params['zone_id'],
-                     'record_id': self.params['record_id']}
-        return self.invoke_method(data=json.dumps(json_data),
+    @classmethod
+    def delete_record(cls, request):
+        json_data = {'zone_id': request.args['zone_id'],
+                     'record_id': request.args['record_id']}
+        return cls.invoke_method(request, data=json.dumps(json_data),
                                   status_code=httplib.ACCEPTED)

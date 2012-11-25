@@ -23,7 +23,8 @@ class LibcloudRestApp(object):
         if request.method == 'GET':
             data = url_decode(request.query_string, cls=dict)
             request.data = json.dumps(data)
-        return getattr(handler, request.action)()
+        method = getattr(handler, request.action)
+        return method(request)
 
     def preprocess_request(self, request):
         request_header_validator = valid.DictValidator({
