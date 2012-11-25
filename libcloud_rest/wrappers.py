@@ -7,16 +7,14 @@ class Request(RequestBase):
     args = None
 
     @property
-    def handler(self):
-        """
-        The name of current handler
-        """
-        if self.url_rule and '.' in self.url_rule.endpoint:
-            return self.url_rule.endpoint.rsplit('.', 1)[0]
-
-    def endpoint(self):
+    def handler_class(self):
         if self.url_rule is not None:
-            self.url_rule.endpoint
+            return self.url_rule[0]
+
+    @property
+    def action(self):
+        if self.url_rule is not None:
+            return  self.url_rule[1]
 
 
 class Response(ResponseBase):

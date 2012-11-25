@@ -1,14 +1,11 @@
 # -*- coding:utf-8 -*-
-import traceback
 import sys
 
-from werkzeug.exceptions import HTTPException
 from werkzeug.urls import url_decode
 
 from libcloud_rest.api.urls import urls
 from libcloud_rest.api import validators as valid
 from libcloud_rest.log import logger
-from libcloud_rest.errors import LibcloudRestError
 from .errors import LibcloudRestError, InternalError
 from libcloud_rest.constants import MAX_BODY_LENGTH
 from libcloud_rest.utils import json
@@ -19,35 +16,27 @@ from .wrappers import Request, Response
 class LibcloudRestApp(object):
     url_map = urls
 
-    def dispatch(self, controller, action_name, request, params):
-        """
+    def dispatch(self, request):
+        handler = request.handler_class()
+        handler.request = request
+        handler.params = request.args
+        if request.method == 'GET':
+            data = url_decode(request.query_string, cls=dict)
+            request.data = json.dumps(data)
+        return getattr(handler, request.action)()
 
-        @param controller:
-        @param action_name:
-        @param request:
-        @param params:
-        @return:
-        """
+    def preprocess_request(self, request):
         request_header_validator = valid.DictValidator({
             'Content-Length': valid.IntegerValidator(max=MAX_BODY_LENGTH),
             'Content-Type': valid.ConstValidator('application/json'),
         })
-        controller.request = request
-        controller.params = params
-        action = getattr(controller, action_name)
-        if request.method == 'GET':
-            data = url_decode(request.query_string, cls=dict)
-            request.data = json.dumps(data)
         if request.method in ['POST', 'PUT'] and\
-                not isinstance(controller, StorageHandler):
+                not issubclass(request.handler_class, StorageHandler):
             request_header_validator(dict(request.headers))
-        retval = action()
-        return retval
 
     def dispatch_request(self, request):
-        (handler_class, action) = request.url_rule
-        handler = handler_class()
-        return self.dispatch(handler, action, request, request.args)
+        self.preprocess_request(request)
+        return self.dispatch(request)
 
     def make_response(self, *args):
         """
