@@ -16,16 +16,6 @@ from .wrappers import Request, Response
 class LibcloudRestApp(object):
     url_map = urls
 
-    def dispatch(self, request):
-        handler = request.handler_class()
-        handler.request = request
-        handler.params = request.args
-        if request.method == 'GET':
-            data = url_decode(request.query_string, cls=dict)
-            request.data = json.dumps(data)
-        method = getattr(handler, request.action)
-        return method(request)
-
     def preprocess_request(self, request):
         request_header_validator = valid.DictValidator({
             'Content-Length': valid.IntegerValidator(max=MAX_BODY_LENGTH),
@@ -34,10 +24,14 @@ class LibcloudRestApp(object):
         if request.method in ['POST', 'PUT'] and\
                 not issubclass(request.handler_class, StorageHandler):
             request_header_validator(dict(request.headers))
+        if request.method == 'GET':
+            data = url_decode(request.query_string, cls=dict)
+            request.data = json.dumps(data)
 
     def dispatch_request(self, request):
         self.preprocess_request(request)
-        return self.dispatch(request)
+        method = getattr(request.handler_class, request.action)
+        return method(request)
 
     def make_response(self, *args):
         """

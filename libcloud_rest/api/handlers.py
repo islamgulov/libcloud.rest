@@ -26,13 +26,9 @@ if DEBUG:
 
 
 class ApplicationHandler(object):
-    def index(self, request):
-        """
-
-        @return:
-        """
+    @classmethod
+    def index(cls, request):
         response = {
-            'Project strategic plan': 'http://goo.gl/TIxkg',
             'GitHub page': 'https://github.com/islamgulov/libcloud.rest',
             'libcloud_version': libcloud.__version__,
             'api_version': versions[libcloud.__version__]
@@ -144,11 +140,12 @@ class BaseServiceHandler(object):
                         mimetype='application/json',
                         status=status_code)
 
-    def invoke_extension_method(self, request, *args, **kwargs):
+    @classmethod
+    def invoke_extension_method(cls, request, *args, **kwargs):
         method_name = request.args.get('method_name', None)
         if method_name is None or not method_name.startswith('ex_'):
             raise NoSuchOperationError()
-        return self.invoke_method(request)
+        return cls.invoke_method(request, *args, **kwargs)
 
 
 class ComputeHandler(BaseServiceHandler):
@@ -173,13 +170,13 @@ class ComputeHandler(BaseServiceHandler):
     def reboot_node(cls, request):
         json_data = {'node_id': request.args['node_id']}
         return cls.invoke_method(request, data=json.dumps(json_data),
-                                  status_code=httplib.ACCEPTED)
+                                 status_code=httplib.ACCEPTED)
 
     @classmethod
     def destroy_node(cls, request):
         json_data = {'node_id': request.args['node_id']}
         return cls.invoke_method(request, data=json.dumps(json_data),
-                                  status_code=httplib.ACCEPTED)
+                                 status_code=httplib.ACCEPTED)
 
 
 class StorageHandler(BaseServiceHandler):
@@ -209,7 +206,7 @@ class StorageHandler(BaseServiceHandler):
     def delete_container(cls, request):
         data = {'container_name': request.args['container_name']}
         return cls.invoke_method(request, data=json.dumps(data),
-                                  status_code=httplib.NO_CONTENT)
+                                 status_code=httplib.NO_CONTENT)
 
     @classmethod
     def extract_params_and_invoke(cls, request):
@@ -232,7 +229,8 @@ class StorageHandler(BaseServiceHandler):
             'container_name': request.args['container_name'],
             'object_name': request.args['object_name']
         }
-        return cls.invoke_method(request, data=json.dumps(data), file_result=True)
+        return cls.invoke_method(request, data=json.dumps(data),
+                                 file_result=True)
 
     @classmethod
     def upload_object(cls, request):
@@ -244,6 +242,7 @@ class StorageHandler(BaseServiceHandler):
             wrap_file(request.environ, request.stream, 8096),
             container, request.args['object_name'], extra)
         return Response(entries.ObjectEntry.to_json(result), status=httplib.OK)
+
 
 class LoadBalancerHandler(BaseServiceHandler):
     from libcloud.loadbalancer.providers import Provider as _Providers
@@ -271,7 +270,7 @@ class LoadBalancerHandler(BaseServiceHandler):
         """
         json_data = {'loadbalancer_id': request.args['loadbalancer_id']}
         return cls.invoke_method(request, data=json.dumps(json_data),
-                                  status_code=httplib.ACCEPTED)
+                                 status_code=httplib.ACCEPTED)
 
     @classmethod
     def patch_request_and_invoke(cls, request):
@@ -296,7 +295,7 @@ class LoadBalancerHandler(BaseServiceHandler):
         json_data = {'loadbalancer_id': request.args['loadbalancer_id'],
                      'member_id': request.args['member_id']}
         return cls.invoke_method(request, data=json.dumps(json_data),
-                                  status_code=httplib.ACCEPTED)
+                                 status_code=httplib.ACCEPTED)
 
 
 class DNSHandler(BaseServiceHandler):
@@ -343,14 +342,14 @@ class DNSHandler(BaseServiceHandler):
         """
         json_data = {'zone_id': request.args['zone_id']}
         return cls.invoke_method(request, data=json.dumps(json_data),
-                                  status_code=httplib.ACCEPTED)
+                                 status_code=httplib.ACCEPTED)
 
     @classmethod
     def create_record(cls, request):
         json_data = json.loads(request.data)
         json_data['zone_id'] = request.args['zone_id']
         response = cls.invoke_method(request, data=json.dumps(json_data),
-                                      status_code=httplib.ACCEPTED)
+                                     status_code=httplib.ACCEPTED)
         record_id = json.loads(response.data)['id']
         response.autocorrect_location_header = False
         response.headers.add_header('Location', record_id)
@@ -362,4 +361,4 @@ class DNSHandler(BaseServiceHandler):
         json_data = {'zone_id': request.args['zone_id'],
                      'record_id': request.args['record_id']}
         return cls.invoke_method(request, data=json.dumps(json_data),
-                                  status_code=httplib.ACCEPTED)
+                                 status_code=httplib.ACCEPTED)
