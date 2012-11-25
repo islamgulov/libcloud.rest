@@ -20,19 +20,6 @@ class Request(RequestBase):
         if self.url_rule is not None:
             return  self.url_rule[1]
 
-    @cached_property
-    def json(self):
-        """If the mimetype is `application/json` this will contain the
-        parsed JSON data.  Otherwise this will be `None`.
-
-        This requires Python 2.6 or an installed version of simplejson.
-        """
-        if self.mimetype == 'application/json':
-            try:
-                return json.loads(self.data)
-            except (ValueError, TypeError), e:
-                raise MalformedJSONError(detail=str(e))
-
 
 class Response(ResponseBase):
     default_mimetype = 'application/json'

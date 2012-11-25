@@ -123,7 +123,7 @@ class BaseServiceHandler(object):
         if data is None:
             data = request.data
         driver = cls._get_driver_instance(request)
-        method_name = request.args.get('method_name', None)
+        method_name = request.args.get('method_name', request.action)
         driver_method = DriverMethod(driver, method_name)
         try:
             result = driver_method.invoke(data)
