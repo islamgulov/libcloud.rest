@@ -75,7 +75,7 @@ def _parse_docstring_field(field_lines):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
         arg_type = field_data[2].replace('\n', ' ').strip()
-        return  arg_name, {'type_name': arg_type}
+        return arg_name, {'type_name': arg_type}
     if field_lines.startswith('@keyword') or field_lines.startswith('@param'):
         field_data = field_lines.split(None, 2)
         arg_name = field_data[1].strip(':')
@@ -186,7 +186,7 @@ def parse_docstring(docstring, cls=None):
             types_str = docstring_line.split(':', 1)[1]
             return_value_types = types_str.replace('\n', ' ').strip()
         #parse return description
-        elif  docstring_line.startswith('@return:'):
+        elif docstring_line.startswith('@return:'):
             return_description = docstring_line.split(':', 1)[1].strip()
         #parse arguments
         else:
@@ -218,4 +218,4 @@ def parse_args(method):
             }
         else:
             args_dict[arg] = {'required': True, }
-    return  args_dict
+    return args_dict

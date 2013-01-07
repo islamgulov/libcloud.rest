@@ -1,9 +1,5 @@
 # -*- coding:utf-8 -*-
 from werkzeug.wrappers import Request as RequestBase, Response as ResponseBase
-from werkzeug.utils import cached_property
-
-from libcloud_rest.utils import json
-from libcloud_rest.errors import MalformedJSONError
 
 
 class Request(RequestBase):
@@ -18,7 +14,7 @@ class Request(RequestBase):
     @property
     def action(self):
         if self.url_rule is not None:
-            return  self.url_rule[1]
+            return self.url_rule[1]
 
 
 class Response(ResponseBase):
