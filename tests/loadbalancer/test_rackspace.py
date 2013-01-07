@@ -111,8 +111,9 @@ class RackspaceUSTests(unittest2.TestCase):
             'members': [{'member_id': '',
                          'member_ip': '10.1.0.10',
                          'member_port': 80,
-                         'member_extra':{'condition': MemberCondition.DISABLED,
-                                         'weight': 10}},
+                         'member_extra': {
+                             'condition': MemberCondition.DISABLED,
+                             'weight': 10}},
                         {'member_id': '',
                          'member_ip': '10.1.0.11',
                          'member_port': 80}, ],
@@ -175,10 +176,10 @@ class RackspaceUSTests(unittest2.TestCase):
         resp = self.client.get(url, headers=self.headers)
         balancer = json.loads(resp.data)
         self.assertEquals(
-            balancer['extra']['virtualIps'], [{'address':'50.56.49.149',
-                                               'id':2359,
-                                               'type':'PUBLIC',
-                                               'ipVersion':'IPV4'}])
+            balancer['extra']['virtualIps'], [{'address': '50.56.49.149',
+                                               'id': 2359,
+                                               'type': 'PUBLIC',
+                                               'ipVersion': 'IPV4'}])
 
     def test_get_balancer_connect_health_monitor(self):
         url = self.url_tmpl % ('/'.join(['balancers', '94695']))
