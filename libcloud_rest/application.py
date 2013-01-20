@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import sys
+import re
 
 from werkzeug.urls import url_decode
 
@@ -8,13 +9,12 @@ from libcloud_rest.api import validators as valid
 from libcloud_rest.log import logger
 from .errors import LibcloudRestError, InternalError
 from libcloud_rest.constants import MAX_BODY_LENGTH
-from libcloud_rest.utils import json
-from libcloud_rest.api.handlers import StorageHandler
-from .wrappers import Request, Response
+from libcloud_rest.utils import json, Response, Request
 
 
 class LibcloudRestApp(object):
     url_map = urls
+    storage_url = re.compile('/[v0-9.]+/storage/.*')
 
     def preprocess_request(self, request):
         request_header_validator = valid.DictValidator({
@@ -22,16 +22,16 @@ class LibcloudRestApp(object):
             'Content-Type': valid.ConstValidator('application/json'),
         })
         if request.method in ['POST', 'PUT'] and\
-                not issubclass(request.handler_class, StorageHandler):
+                not re.match(self.storage_url, request.path):
             request_header_validator(dict(request.headers))
+            #TODO: FIXME GK
         if request.method == 'GET':
             data = url_decode(request.query_string, cls=dict)
             request.data = json.dumps(data)
 
-    def dispatch_request(self, request):
+    def dispatch_request(self, handler, request):
         self.preprocess_request(request)
-        method = getattr(request.handler_class, request.action)
-        return method(request)
+        return handler(request)
 
     def make_response(self, *args):
         """
@@ -83,8 +83,8 @@ class LibcloudRestApp(object):
                      (request.remote_addr, request.method, request.url))
         urls = self.url_map.bind_to_environ(environ)
         try:
-            request.url_rule, request.args = urls.match()
-            response = self.dispatch_request(request)
+            handler, request.args = urls.match()
+            response = self.dispatch_request(handler, request)
         except Exception, e:
             response = self.handle_exception(e, request)
         return response(environ, start_response)

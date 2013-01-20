@@ -98,7 +98,7 @@ class DriverMethod(object):
         return self.method(*vargs, **kwargs)
 
 
-def get_providers_info(drivers, providers):
+def get_providers_info(providers):
     """
     List of all supported providers.
 
@@ -108,7 +108,8 @@ def get_providers_info(drivers, providers):
     @return C{list} of C{dict} objects
     """
     result = []
-    for provider, Driver in get_providers_dict(drivers, providers).items():
+    for provider, Driver in get_providers_dict(providers.DRIVERS,
+                                               providers.Provider).items():
         result.append({
             'id': provider,
             'friendly_name': getattr(Driver, 'name', ''),

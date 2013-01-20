@@ -6,6 +6,12 @@ try:
 except ImportError:
     import json
 
+from werkzeug.wrappers import Response
+
+
+class JsonResponse(Response):
+    default_mimetype = 'application/json'
+
 
 class DateTimeJsonEncoder(json.JSONEncoder):
     """
