@@ -5,6 +5,7 @@ import re
 from libcloud.compute import base as compute_base
 from libcloud.compute.drivers import openstack as compute_openstack
 from libcloud.compute.drivers import cloudstack as compute_cloudstack
+from libcloud.compute.drivers import digitalocean
 from libcloud.compute.drivers import ec2
 from libcloud.common import gandi as gandi_common
 from libcloud.compute.drivers import opennebula as opennebula_compute
@@ -759,6 +760,20 @@ class RackspaceHealthMonitorEntry(LibcloudObjectEntry):
             json_data['health_monitor_attempts_before_deactivation']
         return lb_rackspace.RackspaceHealthMonitor(
             type, delay, timeout, attempts_before_deactivation)
+
+
+class DigitalOceanSSHKey(LibcloudObjectEntry):
+    object_class = digitalocean.SSHKey
+    render_attrs = ('id', 'name', 'pub_key')
+    ssh_id = StringField('ID of the ssh key which should be used')
+    ssh_name = StringField('Name of the ssh key which should be used')
+    ssh_pub_key = StringField('Pub key of the ssh key which should be used')
+
+    def _get_object(self, json_data, driver):
+        _id = json_data['ssh_id']
+        name = json_data['ssh_name']
+        key = json_data['ssh_pub_key']
+        return digitalocean.SSHKey(_id, name, key)
 
 
 class ContainerEntry(LibcloudObjectEntry):
