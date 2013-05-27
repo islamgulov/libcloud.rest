@@ -6,7 +6,7 @@ try:
 except ImportError:
     import json
 
-from werkzeug.wrappers import Response
+from werkzeug.wrappers import Response, Request
 
 
 class JsonResponse(Response):
