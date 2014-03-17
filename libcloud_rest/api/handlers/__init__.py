@@ -19,6 +19,7 @@ from libcloud_rest.api.providers import get_providers_info,\
     get_driver_by_provider_name, get_driver_instance, get_providers_dict,\
     DriverMethod
 from libcloud_rest.utils import json, JsonResponse, Response
+from tests.utils import get_test_driver_instance
 
 DEBUG = True
 
@@ -26,18 +27,16 @@ if DEBUG:
     import mock
 
 
-def get_driver_instance(providers, request):
+def get_driver_instance_by_request(providers, request):
     provider_name = request.args.get('provider')
     headers = request.headers
     api_data = parse_request_headers(headers)
     Driver = get_driver_by_provider_name(
         providers.DRIVERS, providers.Provider, provider_name)
     if TEST_QUERY_STRING in request.query_string and DEBUG:
-        from tests.utils import get_test_driver_instance
-
-        driver_instance = get_test_driver_instance(Driver, **api_data)
+        driver_instance = get_test_driver_instance(Driver, api_data)
     else:
-        driver_instance = get_driver_instance(Driver, **api_data)
+        driver_instance = get_driver_instance(Driver, api_data)
     return driver_instance
 
 
@@ -50,7 +49,7 @@ def invoke_method(providers, method_name, request, status_code=httplib.OK,
     """
     if data is None:
         data = request.data
-    driver = get_driver_instance(providers, request)
+    driver = get_driver_instance_by_request(providers, request)
     driver_method = DriverMethod(driver, method_name)
     try:
         result = driver_method.invoke(data)

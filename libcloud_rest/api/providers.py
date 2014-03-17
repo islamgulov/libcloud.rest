@@ -160,7 +160,7 @@ def get_driver_by_provider_name(drivers, providers, provider_name):
     return Driver
 
 
-def get_driver_instance(Driver, **kwargs):
+def get_driver_instance(Driver, kwargs):
     """
 
     @param Driver:

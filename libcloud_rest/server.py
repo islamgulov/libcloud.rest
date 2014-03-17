@@ -17,30 +17,12 @@ DEBUG = False
 def start_server(host, port, logger, debug):
     from werkzeug.serving import run_simple
     from libcloud_rest.application import LibcloudRestApp
-    import werkzeug
 
     app = LibcloudRestApp()
 
-    if debug:
-        logger.info('Debug HTTP server listening on %s:%s' % (host, port))
-        run_simple(host, port, app,
-                   use_debugger=True, use_reloader=True)
-    else:
-        from gevent.monkey import patch_all
-        from gevent import pywsgi as wsgi
-
-        patch_all()
-        logger.info('HTTP server listening on %s:%s' % (host, port))
-
-        @werkzeug.serving.run_with_reloader
-        def run_server():
-            class debug_logger(object):
-                @staticmethod
-                def write(*args, **kwargs):
-                    logger.debug(*args, **kwargs)
-
-            ws = wsgi.WSGIServer((host, port), app, log=debug_logger)
-            ws.serve_forever()
+    logger.info('Debug HTTP server listening on %s:%s' % (host, port))
+    run_simple(host, port, app,
+               use_debugger=True, use_reloader=True)
 
 
 def setup_logger(log_level, log_file):
@@ -83,7 +65,7 @@ def main():
     if log_level not in VALID_LOG_LEVELS:
         valid_levels = [value.lower() for value in VALID_LOG_LEVELS]
         raise ValueError('Invalid log level: %s. Valid log levels are: %s' %
-                         (options.log_level, ', ' .join(valid_levels)))
+                         (options.log_level, ', '.join(valid_levels)))
 
     if options.debug:
         log_level = 'DEBUG'

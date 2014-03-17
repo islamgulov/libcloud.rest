@@ -2,7 +2,7 @@
 import os
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools import Command
 from setuptools.command.install import install as _install
 from subprocess import call
@@ -59,13 +59,15 @@ class TestCommand(Command):
             # test for dependencies
             try:
                 import simplejson
-                simplejson              # silence pyflakes
+
+                simplejson  # silence pyflakes
             except ImportError:
                 missing.append("simplejson")
 
             try:
                 import ssl
-                ssl                     # silence pyflakes
+
+                ssl  # silence pyflakes
             except ImportError:
                 missing.append("ssl")
 
@@ -115,40 +117,14 @@ class Pep8Command(Command):
         sys.exit(retcode)
 
 
-class install(_install):
-    user_options = _install.user_options + [
-        ('without-gevent', None, "install libcloud.rest without gevent"),
-    ]
-    boolean_options = _install.boolean_options + [
-        'without-gevent',
-    ]
-
-    def initialize_options(self):
-        _install.initialize_options(self)
-        self.without_gevent = None
-
-    def finalize_options(self):
-        _install.finalize_options(self)
-        if self.without_gevent is not None:
-            gevent = lambda pkg: pkg[:6] == 'gevent' and\
-                (not len(pkg) > 6 or pkg[6] in ['>', '=', '<'])
-            self.distribution.install_requires[:] = ifilterfalse(
-                gevent, self.distribution.install_requires
-            )
-
-
 setup(
     name='libcloud_rest',
     version='0.0.1',
-    packages=[
-        'libcloud_rest',
-        'libcloud_rest.api',
-    ],
+    packages=find_packages(),
     package_dir={'libcloud_rest': 'libcloud_rest'},
     install_requires=[
         'werkzeug==0.8.3',
-        'apache-libcloud>=0.11.1',
-        'gevent>=0.13.6'
+        'apache-libcloud==0.12.4',
     ],
     url='https://github.com/islamgulov/libcloud.rest/',
     license='Apache License (2.0)',
@@ -162,6 +138,5 @@ setup(
     cmdclass={
         'pep8': Pep8Command,
         'test': TestCommand,
-        'install': install,
     },
 )

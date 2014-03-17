@@ -9,9 +9,7 @@ Note: This is an Apache Google Summer of Code 2012 project.
 
 ## Deploying
 
-By default Libcloud REST runs using gevent's WSGI handler. Gevent WSGI handler
-doesn't support SSL which means that if you want to use SSL you need to use a
-some kind of SSL terminator such as [stud][4].
+By default Libcloud REST runs using debug WSGI server.
 
 # Links
 
@@ -21,4 +19,3 @@ some kind of SSL terminator such as [stud][4].
 [1]: http://libcloud.apache.org
 [2]: https://docs.google.com/document/d/1P9fIxILn-WdgpkXDPydHB_dghGs-BYuoSmkFwh0Y36w/edit
 [3]: http://www.google-melange.com/gsoc/project/google/gsoc2012/islamgulov/11001
-[4]: https://github.com/bumptech/stud.git
