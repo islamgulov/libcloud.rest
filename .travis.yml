@@ -5,17 +5,13 @@ python:
   - "pypy"
 
 install:
-  - pip install Werkzeug
-  - pip install pep8
-  - pip install mock unittest2
+  - pip install Werkzeug apache-libcloud==0.12.4
+  - pip install mock unittest2 pytest
   - pip install lockfile
-  - pip install --upgrade -e git://git.apache.org/libcloud.git#egg=libcloud
 
 
-before_script: python setup.py pep8
-script: python setup.py test
+script: py.test
 
 notifications:
   email:
-    - tomaz+travisci@tomaz.me
     - ilgizisl@gmail.com
