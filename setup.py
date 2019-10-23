@@ -123,7 +123,7 @@ setup(
     packages=find_packages(),
     package_dir={'libcloud_rest': 'libcloud_rest'},
     install_requires=[
-        'werkzeug==0.8.3',
+        'werkzeug==0.15.3',
         'apache-libcloud==0.12.4',
     ],
     url='https://github.com/islamgulov/libcloud.rest/',
